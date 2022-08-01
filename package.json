@@ -4,6 +4,8 @@
   "description": "",
   "main": "main.js",
   "scripts": {
+    "push": "rollup -cw --environment DEST:main",
+    "local": "rollup -cw --environment DEST:local",
     "build": "rollup -cw",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

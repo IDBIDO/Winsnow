@@ -1,0 +1,1 @@
+{"version":3,"file":"main.js","sources":["../src/main.ts"],"sourcesContent":["\r\n\r\nexport const loop = function () {\r\n    console.log('hello');\r\n    \r\n}"],"names":[],"mappings":";;;;AAEa,MAAA,IAAI,GAAG,YAAA;AAChB,IAAA,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,CAAC;AAEzB;;;;"}

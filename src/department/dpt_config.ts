@@ -14,24 +14,21 @@ export function getEnergyRCL(energyAmount: number): number {
 }
 
 //Restriccion: pos no puede estar en el borde del mapa!!!
-export function positionToStand(roomName: string, pos: [number, number]): [number, number][] {
+export function positionToHarvest(roomName: string, pos: [number, number]): [number, number][] {
     const terrain = new Room.Terrain(roomName);
     
-    let canStand:[number, number][];
-    if (terrain.get(pos[0]-1, pos[1]+1) != 1) canStand.push([pos[0]-1, pos[1]+1]);
-    if (terrain.get(pos[0]-1, pos[1]) != 1) canStand.push([pos[0]-1, pos[1]]);
-    if (terrain.get(pos[0]-1, pos[1]-1) != 1) canStand.push([pos[0]-1, pos[1]-1]);
+    let canStand:[number, number][] = [];
+    if (terrain.get(pos[0]-1, pos[1]+1) != 1) canStand.push([pos[0]-1, pos[1]+1]);  //x-1, y+1
+    if (terrain.get(pos[0]-1, pos[1]) != 1) canStand.push([pos[0]-1, pos[1]]);      //x-1, y
+    if (terrain.get(pos[0]-1, pos[1]-1) != 1) canStand.push([pos[0]-1, pos[1]-1]);  //x-1, y-1
 
-    if (terrain.get(pos[0], pos[1]+1) != 1) canStand.push([pos[0], pos[1]+1]);
-    if (terrain.get(pos[0], pos[1]) != 1) canStand.push([pos[0], pos[1]]);
-    if (terrain.get(pos[0], pos[1]-1) != 1) canStand.push([pos[0]-1, pos[1]+1]);
+    if (terrain.get(pos[0], pos[1]+1) != 1) canStand.push([pos[0], pos[1]+1]);      //x, y+1
+    if (terrain.get(pos[0], pos[1]) != 1) canStand.push([pos[0], pos[1]]);          //x, y
+    if (terrain.get(pos[0], pos[1]-1) != 1) canStand.push([pos[0]-1, pos[1]+1]);    //x, y-1
 
-    if (terrain.get(pos[0]+1, pos[1]+1) != 1) canStand.push([pos[0]+1, pos[1]+1]);
-    if (terrain.get(pos[0]-1, pos[1]) != 1) canStand.push([pos[0]-1, pos[1]]);
-    if (terrain.get(pos[0]-1, pos[1]-1) != 1) canStand.push([pos[0]-1, pos[1]-1]);
-
-
-
+    if (terrain.get(pos[0]+1, pos[1]+1) != 1) canStand.push([pos[0]+1, pos[1]+1]);  //x+1, y+1
+    if (terrain.get(pos[0]+1, pos[1]) != 1) canStand.push([pos[0]+1, pos[1]]);      //x-1, y
+    if (terrain.get(pos[0]+1, pos[1]-1) != 1) canStand.push([pos[0]+1, pos[1]-1]);  //x-1, y-1
 
     return canStand
 }
@@ -59,5 +56,7 @@ export const permanentNumConfigs = {
     
 
 }
+
+
 
 

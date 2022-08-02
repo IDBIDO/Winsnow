@@ -33,7 +33,7 @@ export default class Dpt_Work extends Department {
         }
     }
 
-    private actualizeCreepNum(): void {
+    actualizeCreepNumber(): void {
         const activeCreeps = this.getNumActiveCreeps();
         const rclEnergy = dpt_config.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
         const numCreepsNeeded = dpt_config.permanentNumConfigs.dpt_work[rclEnergy];
@@ -100,7 +100,7 @@ export default class Dpt_Work extends Department {
     }
 
     public run(): void {
-        
+        /*
         if (Memory['colony'][this.mainRoom]['state']['updateCreepNumWorker']) {
             //this.actualizeCreepNum();
             Memory['colony'][this.mainRoom]['state']['updateCreepNumWorker'] = false;
@@ -113,7 +113,7 @@ export default class Dpt_Work extends Department {
         this.creepExecution();
 
         if (Game.time%7) this.recycleCreepsDead();
-
+*/
 
     }
 }

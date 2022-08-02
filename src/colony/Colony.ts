@@ -1,6 +1,7 @@
 import {Mem} from "./Memory"
 import Dpt_Work from "@/department/dpt_work/Dpt_Work";
 import { CreepSpawning } from "@/structure/CreepSpawning";
+import Dpt_harvest from "@/department/dpt_harvest/Dpt_harvest";
 
 
 /** 
@@ -36,8 +37,11 @@ export class Colony {
         //const dpt_work = new Dpt_Work(this.mainRoom);
         //const creepSpawning = new CreepSpawning(this.mainRoom);
         //dpt_work.run();
+        
         //creepSpawning.run();
         
+        const dpt_harvest = new Dpt_harvest(this.mainRoom);
+        dpt_harvest.run();
     }
     
 }

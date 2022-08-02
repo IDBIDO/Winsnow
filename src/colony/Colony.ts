@@ -42,12 +42,15 @@ export class Colony {
         
         const dpt_harvest = new Dpt_harvest(this.mainRoom);
         dpt_harvest.run();
+
+        const creepSpawning = new CreepSpawning(this.mainRoom);
+        creepSpawning.run();
     }
     
 }
 
 
-//Memory['colony']['W6N8']['creepSpawning']['spawn'].push('Spawn1')
+//Memory['colony']['W7N7']['creepSpawning']['spawn'].push('Spawn1')
 //ColonyApi.createColony('W7N9')
 
 //Memory['colony']['W7N7']['dpt_work']['ticksToSpawn']['W7N7_dptWork_1'] = Game.time + 10;

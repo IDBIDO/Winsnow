@@ -52,9 +52,15 @@ export const basic:{
         
 
     }),
-    harvester: (data: SourceTargetData): ICreepConfig => ({
+    harvester: (data: HarvesterData): ICreepConfig => ({
         source: creep => {
-            return true;
+            const source = Game.getObjectById(data.source as Id<Source>);
+            if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(source);
+            }
+            
+
+            return false;
         },
         target: creep => {
             return true;

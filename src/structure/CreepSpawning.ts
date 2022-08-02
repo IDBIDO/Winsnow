@@ -41,14 +41,20 @@ export class CreepSpawning {
         return (Math.random().toString(36).substr(2,9));
     }
 
-    private spawn(spawnName: string, creepName: string, creepRole: string, creepData:{} ): ScreepsReturnCode {
+    private spawn(spawnName: string, creepName: string, creepRole: string, creepData:{}, dpt: string ): ScreepsReturnCode {
         const spawn = Game.spawns[spawnName];
         const energyRCL = setting.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
         console.log(energyRCL);
         
         const creepBody = setting.getBody(creepRole, energyRCL);
 
-        return spawn.spawnCreep(creepBody, creepName)
+        return spawn.spawnCreep(creepBody, creepName, {
+            memory: {
+                role: creepRole, 
+                department: dpt,
+                data: creepData
+            }
+        })
         
     }
 
@@ -67,7 +73,7 @@ export class CreepSpawning {
               const creepRole = spawnTask[creepName]['role'];
               const creepDpt = spawnTask[creepName]['department'];
               const creepData = spawnTask[creepName]['data'];
-              if (this.spawn(spawnName, creepName, creepRole, creepData) == OK) {
+              if (this.spawn(spawnName, creepName, creepRole, creepData, creepDpt) == OK) {
                 delete spawnTask[creepName];
 
                 this.notifyTaskComplete(creepName, creepRole, creepDpt);

@@ -2011,12 +2011,18 @@ class CreepSpawning {
         //return (performance.now().toString(36)+Math.random().toString(36)).replace(/\./g,"");
         return (Math.random().toString(36).substr(2, 9));
     }
-    spawn(spawnName, creepName, creepRole, creepData) {
+    spawn(spawnName, creepName, creepRole, creepData, dpt) {
         const spawn = Game.spawns[spawnName];
         const energyRCL = getEnergyRCL$1(Game.rooms[this.mainRoom].energyCapacityAvailable);
         console.log(energyRCL);
         const creepBody = getBody(creepRole, energyRCL);
-        return spawn.spawnCreep(creepBody, creepName);
+        return spawn.spawnCreep(creepBody, creepName, {
+            memory: {
+                role: creepRole,
+                department: dpt,
+                data: creepData
+            }
+        });
     }
     run() {
         const spawnTask = this.memory['task'];
@@ -2029,7 +2035,7 @@ class CreepSpawning {
                 const creepRole = spawnTask[creepName]['role'];
                 const creepDpt = spawnTask[creepName]['department'];
                 const creepData = spawnTask[creepName]['data'];
-                if (this.spawn(spawnName, creepName, creepRole, creepData) == OK) {
+                if (this.spawn(spawnName, creepName, creepRole, creepData, creepDpt) == OK) {
                     delete spawnTask[creepName];
                     this.notifyTaskComplete(creepName, creepRole, creepDpt);
                 }
@@ -2185,7 +2191,7 @@ class Colony {
     }
 }
 //Memory['colony']['W7N7']['creepSpawning']['spawn'].push('Spawn1')
-//ColonyApi.createColony('W7N9')
+//ColonyApi.createColony('W7N7')
 //Memory['colony']['W7N7']['dpt_work']['ticksToSpawn']['W7N7_dptWork_1'] = Game.time + 10;
 
 global.ColonyApi = {
@@ -2258,7 +2264,11 @@ const basic = {
     }),
     harvester: (data) => ({
         source: creep => {
-            return true;
+            const source = Game.getObjectById(data.source);
+            if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(source);
+            }
+            return false;
         },
         target: creep => {
             return true;
@@ -2272,11 +2282,11 @@ const basic = {
 class CreepExtension extends Creep {
     //public work(data: SourceTargetData, role: string): void
     work() {
-        let data = { "target": "aaa", "source": "ddd" };
-        //const config: ICreepConfig = worker['builder'](s);
-        let role = '';
         //---------------- GET CREEP LOGIC --------------------
-        const creepLogic = basic[role](data);
+        //console.log(this.memory['role']);
+        //console.log(this.memory['data'])
+        const creepLogic = basic[this.memory['role']](this.memory['data']);
+        //const creepLogic = basic[role](data);
         // ------------------------ 第二步：执行 creep 准备阶段 ------------------------
         // 没准备的时候就执行准备阶段
         if (!this.memory['ready']) {
@@ -2331,5 +2341,11 @@ module.exports.loop = function () {
     //console.log(creepSpawning.uid());
     //console.log(performance.now());
     //console.log('C' + Math.random().toString(36).substr(2,8));
+    const creep = Memory['creeps'];
+    for (let creepName in creep) {
+        if (Game.creeps[creepName]) {
+            Game.creeps[creepName]['work']();
+        }
+    }
 };
 //# sourceMappingURL=main.js.map

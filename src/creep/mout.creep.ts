@@ -13,7 +13,11 @@ export default class CreepExtension extends Creep {
         //const config: ICreepConfig = worker['builder'](s);
         let role = '';
         //---------------- GET CREEP LOGIC --------------------
-        const creepLogic = basic[role](data);
+        //console.log(this.memory['role']);
+        //console.log(this.memory['data'])
+
+        const creepLogic = basic[this.memory['role']](this.memory['data'])
+        //const creepLogic = basic[role](data);
 
 
         // ------------------------ 第二步：执行 creep 准备阶段 ------------------------

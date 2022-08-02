@@ -51,6 +51,6 @@ export class Colony {
 
 
 //Memory['colony']['W7N7']['creepSpawning']['spawn'].push('Spawn1')
-//ColonyApi.createColony('W7N9')
+//ColonyApi.createColony('W7N7')
 
 //Memory['colony']['W7N7']['dpt_work']['ticksToSpawn']['W7N7_dptWork_1'] = Game.time + 10;

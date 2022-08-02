@@ -61,6 +61,7 @@ export class Mem {
         colonyMem['state'] = {};
         colonyMem['state']['currentRCL'] = 1;
         colonyMem['state']['updateRoomPlanning'] = true;
+        colonyMem['state']['updateCreepNum'] = true;
         colonyMem['state']['updateCreepNumWorker'] = true;
         
         colonyMem['state']['updateCreepNum'] = 1;
@@ -73,13 +74,27 @@ export class Mem {
         colonyMem['creepSpawning']['task'] = {};
         colonyMem['creepSpawning']['completeTask'] = {};
 
-        
+        this.initializeDptHarvest();
+
         this.initializeDptWork();
 
         
 
     }
     
+    private initializeDptHarvest() {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        colonyMem['dpt_harvest'] = {};
+        colonyMem['dpt_harvest']['state'] = '';
+            //BOST_MODE: generate creep to ocupied all harvest position, 
+            //LOW_MODE: only two harvester
+            //
+        colonyMem['dpt_harvest']['creep'] = {};
+        colonyMem['dpt_harvest']['creep']['internal'] = {};
 
+        colonyMem['dpt_harvest']['source'] = {}
+            //'id': [Pos1, Pos2, Pos3...]
+        colonyMem['dpt_harvest']['ticksToSpawn'] = {};
+    }
 
 }

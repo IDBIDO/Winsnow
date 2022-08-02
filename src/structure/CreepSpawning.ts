@@ -26,6 +26,12 @@ export class CreepSpawning {
             deadTime: setting.ticksToSpawn(role, energyRCL) + 1500 + 10
         };
         */
+       console.log(dpt);
+       console.log(name);
+       console.log(setting.ticksToSpawn(role, energyRCL));
+       
+       
+       
         Memory['colony'][this.mainRoom][dpt]['ticksToSpawn'][name] = Game.time + setting.ticksToSpawn(role, energyRCL) + 1500 + 10;
         
     }
@@ -35,13 +41,21 @@ export class CreepSpawning {
         return (Math.random().toString(36).substr(2,9));
     }
 
-    private spawn(spawnName: string, creepRole: string, creepName: string, ): ScreepsReturnCode {
+    private spawn(spawnName: string, creepName: string, creepRole: string, creepData:{}, dpt: string ): ScreepsReturnCode {
         const spawn = Game.spawns[spawnName];
         const energyRCL = setting.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
+        console.log(energyRCL);
+        
         const creepBody = setting.getBody(creepRole, energyRCL);
 
-        return spawn.spawnCreep(creepBody, creepName)
-
+        return spawn.spawnCreep(creepBody, creepName, {
+            memory: {
+                role: creepRole, 
+                department: dpt,
+                data: creepData
+            }
+        })
+        
     }
 
     public run(): void {
@@ -57,13 +71,12 @@ export class CreepSpawning {
             
               const spawnName:string = spawnList[spawnIndex];              
               const creepRole = spawnTask[creepName]['role'];
-              const creepDpt = spawnTask[creepName]['dpt'];
-
-              if (this.spawn(spawnName, creepRole, creepName) == OK) {
+              const creepDpt = spawnTask[creepName]['department'];
+              const creepData = spawnTask[creepName]['data'];
+              if (this.spawn(spawnName, creepName, creepRole, creepData, creepDpt) == OK) {
                 delete spawnTask[creepName];
 
                 this.notifyTaskComplete(creepName, creepRole, creepDpt);
-                //delete spawnTask[taskIndex];
               }
               
               ++spawnIndex;

@@ -21,13 +21,19 @@ module.exports.loop = function() {
 
   ColonyApi;
 
-  //const colony = new Colony('W6N8');
-  //colony.run();
+  const colony = new Colony('W7N7');
+  colony.run();
 
-  const creepSpawning = new CreepSpawning('W8N7');
+  //const creepSpawning = new CreepSpawning('W8N7');
   //console.log(creepSpawning.uid());
     //console.log(performance.now());
     //console.log('C' + Math.random().toString(36).substr(2,8));
-    
+    const creep = Memory['creeps'];
+    for (let creepName in creep)  {
+      if (Game.creeps[creepName]) {
+        Game.creeps[creepName]['work']();
+        
+      }
+    }
 
 }

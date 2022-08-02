@@ -8,12 +8,16 @@ import { basic } from "./role/basic";
 
 export default class CreepExtension extends Creep {
     //public work(data: SourceTargetData, role: string): void
-    public work(data: SourceTargetData, role: string) {
-        let s: SourceTargetData = {"target": "aaa", "source": "ddd"};
+    public work(): void {
+        let data: SourceTargetData = {"target": "aaa", "source": "ddd"};
         //const config: ICreepConfig = worker['builder'](s);
-        
+        let role = '';
         //---------------- GET CREEP LOGIC --------------------
-        const creepLogic = basic[role](data);
+        //console.log(this.memory['role']);
+        //console.log(this.memory['data'])
+
+        const creepLogic = basic[this.memory['role']](this.memory['data'])
+        //const creepLogic = basic[role](data);
 
 
         // ------------------------ 第二步：执行 creep 准备阶段 ------------------------

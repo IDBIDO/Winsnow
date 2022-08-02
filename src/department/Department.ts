@@ -32,41 +32,29 @@ export abstract class Department {
         
     }
 
-    protected actualizeCreepNumber() {
-        const rclEnergy = dpt_config.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
-        const role: string = dpt_config.permmanentCreepsRoleNum[this.mainRoom]['role'];
-        const num: number = dpt_config.permmanentCreepsRoleNum[this.mainRoom]['numConfig'][rclEnergy];
+    protected abstract actualizeCreepNumber();
 
-        this.memory['creep'] = {};
-
-        //get old creeps name
-        let oldCreepList = Array<string>();
-        for (let creepName in this.memory['creep']) {
-            oldCreepList.push(creepName);
-        }
+    protected sendToSpawnInitializacion(creepName: string, role: string,  data: {}, dpt: string) {
+        Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName] ={};
         
-        //get new creeps name and save them to memory
-        let newCreepList = Array<string>(num);
-        for (let i = 0; i < num; ++i) {
-            const creepName = this.mainRoom + '_' + this.type + i;
-            newCreepList[i] = creepName;
-            this.memory['creep'][creepName] = {};
-        }
-
-        if (oldCreepList > newCreepList) {
-            for (let i = 0; i < oldCreepList.length; ++i) {
-                if (! newCreepList.includes(oldCreepList[i])) {
-                    this.deleteCreep(oldCreepList[i])
-                }
-            }
-        }
-
-
+        const spawnTask = Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName];
+        console.log(creepName);
         
+        spawnTask['role'] = role;
+        spawnTask['department'] = dpt;
+        spawnTask['data'] = data;
+        
+        /*
+        for (let config in creepConfig) {
+            spawnTask[config] = creepConfig[config];
+        }
+        */
     }
 
-
-    
+    protected uid() {
+        //return (performance.now().toString(36)+Math.random().toString(36)).replace(/\./g,"");
+        return (Math.random().toString(36).substr(2,9));
+    }
 
 
 

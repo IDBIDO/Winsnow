@@ -34,15 +34,21 @@ export abstract class Department {
 
     protected abstract actualizeCreepNumber();
 
-    protected sendToSpawnInitializacion(creepName: string, creepConfig: {}) {
+    protected sendToSpawnInitializacion(creepName: string, role: string,  data: {}, dpt: string) {
         Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName] ={};
         
         const spawnTask = Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName];
         console.log(creepName);
         
+        spawnTask['role'] = role;
+        spawnTask['department'] = dpt;
+        spawnTask['data'] = data;
+        
+        /*
         for (let config in creepConfig) {
             spawnTask[config] = creepConfig[config];
         }
+        */
     }
 
     protected uid() {

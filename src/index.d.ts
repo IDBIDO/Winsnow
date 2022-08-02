@@ -1,7 +1,13 @@
+interface HarvesterData{
+    source: string;
+    target: string;
+}
+
 interface SourceTargetData{
     source: string;
     target: string;
 }
+
 
 interface creepConfig {
     prepare: [number, number],

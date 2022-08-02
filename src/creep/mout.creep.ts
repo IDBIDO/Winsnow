@@ -8,10 +8,10 @@ import { basic } from "./role/basic";
 
 export default class CreepExtension extends Creep {
     //public work(data: SourceTargetData, role: string): void
-    public work(data: SourceTargetData, role: string) {
-        let s: SourceTargetData = {"target": "aaa", "source": "ddd"};
+    public work(): void {
+        let data: SourceTargetData = {"target": "aaa", "source": "ddd"};
         //const config: ICreepConfig = worker['builder'](s);
-        
+        let role = '';
         //---------------- GET CREEP LOGIC --------------------
         const creepLogic = basic[role](data);
 

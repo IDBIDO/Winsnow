@@ -16,7 +16,8 @@ export function getEnergyRCL(energyAmount: number): number {
 export function getBody(role: string, rcl: number): BodyPartConstant[] {
 
     let prototype: BodyPartConstant[] = bodyPrototype[role];
-    const componentNum = bodyComponentNum[role][rcl.toString()];
+    
+    const componentNum = bodyComponentNum[role][rcl];
     let act: BodyPartConstant[] = [];
     for (let i in prototype) {
         for (let j = 0; j < componentNum[i]; ++j ) {

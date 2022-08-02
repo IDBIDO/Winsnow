@@ -30,15 +30,15 @@ export default class Dpt_Work extends Department {
 
             let numCreepsNeeded1 = dpt_config.positionToHarvest(this.mainRoom, sourceId1['pos']).length;
             if (numCreepsNeeded1 > 3) numCreepsNeeded1 = 3;
-            const config1 = {
-                role: 'harvesterInternal',
-                source: sourceId1,
+            const data:HarvesterData = {
+                source: sourceId1.id,
                 target: null
             }
+            const role = 'harvester';
             for (let i = 0; i < numCreepsNeeded1; ++i) {
                 const creepName = this.uid();
                 
-                this.sendToSpawnInitializacion(creepName, config1)
+                this.sendToSpawnInitializacion(creepName, role,  data, 'dpt_harvest')
             }
 
             let numCreepsNeeded2 = dpt_config.positionToHarvest(this.mainRoom, sourceId2['pos']).length;
@@ -50,7 +50,7 @@ export default class Dpt_Work extends Department {
             for (let i = 0; i < numCreepsNeeded2; ++i) {
                 const creepName = this.uid();
                 
-                this.sendToSpawnInitializacion(creepName, config2)
+                //this.sendToSpawnInitializacion(creepName, config2)
             }
 
 
@@ -68,6 +68,9 @@ export default class Dpt_Work extends Department {
             this.actualizeCreepNumber();
             Memory['colony'][this.mainRoom]['state']['updateCreepNum']= false;
         }
+        
+        
+       
     }
 
 

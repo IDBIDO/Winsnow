@@ -1935,6 +1935,110 @@ class Mem {
     }
 }
 
+const energyAvailable$1 = [300, 550, 800, 1300, 1800, 2300, 5600, 10000];
+function getEnergyRCL$1(energyAmount) {
+    let i = 0;
+    while (i < 8) {
+        if (energyAmount <= energyAvailable$1[i])
+            return i + 1;
+        ++i;
+    }
+    return -1;
+}
+function getBody(role, rcl) {
+    let prototype = bodyPrototype[role];
+    const componentNum = bodyComponentNum[role][rcl];
+    let act = [];
+    for (let i in prototype) {
+        for (let j = 0; j < componentNum[i]; ++j) {
+            act.push(prototype[i]);
+        }
+    }
+    return act;
+}
+function ticksToSpawn(role, rcl) {
+    const componentNum = bodyComponentNum[role][rcl.toString()];
+    const ticks = componentNum.reduce((x, y) => x + y, 0);
+    return ticks * 3;
+}
+const bodyPrototype = {
+    harvester: [WORK, CARRY, MOVE],
+    worker: [WORK, CARRY, MOVE],
+    transporter: [CARRY, MOVE]
+};
+const bodyComponentNum = {
+    //WORK  CARRY   MOVE
+    harvester: {
+        1: [2, 1, 1],
+        2: [4, 1, 2]
+    },
+    worker: {
+        1: [1, 1, 1],
+        2: [2, 2, 2]
+    },
+    transporter: {
+        1: [2, 2],
+        2: [3, 2]
+    }
+};
+
+class CreepSpawning {
+    constructor(mainRoom) {
+        this.mainRoom = mainRoom;
+        this.memory = Memory['colony'][mainRoom]['creepSpawning'];
+    }
+    /*
+        colonyMem['Spawning'] = {};
+        colonyMem['Spawning']['spawn'] = [];
+        colonyMem['Spawning']['task'] = [];
+        colonyMem['Spawning']['completeTask'] = {};
+    */
+    notifyTaskComplete(name, role, dpt) {
+        this.memory['completeTask'];
+        const energyRCL = getEnergyRCL$1(Game.rooms[this.mainRoom].energyCapacityAvailable);
+        /*
+        const completeTask: SpawnTaskComplete = {
+            creepName: name,
+            deadTime: setting.ticksToSpawn(role, energyRCL) + 1500 + 10
+        };
+        */
+        console.log(dpt);
+        console.log(name);
+        console.log(ticksToSpawn(role, energyRCL));
+        Memory['colony'][this.mainRoom][dpt]['ticksToSpawn'][name] = Game.time + ticksToSpawn(role, energyRCL) + 1500 + 10;
+    }
+    uid() {
+        //return (performance.now().toString(36)+Math.random().toString(36)).replace(/\./g,"");
+        return (Math.random().toString(36).substr(2, 9));
+    }
+    spawn(spawnName, creepName, creepRole, creepData) {
+        const spawn = Game.spawns[spawnName];
+        const energyRCL = getEnergyRCL$1(Game.rooms[this.mainRoom].energyCapacityAvailable);
+        console.log(energyRCL);
+        const creepBody = getBody(creepRole, energyRCL);
+        return spawn.spawnCreep(creepBody, creepName);
+    }
+    run() {
+        const spawnTask = this.memory['task'];
+        let spawnIndex = 0;
+        for (let creepName in spawnTask) {
+            //console.log(creepName);
+            const spawnList = this.memory['spawn'];
+            if (spawnIndex < spawnList.length) {
+                const spawnName = spawnList[spawnIndex];
+                const creepRole = spawnTask[creepName]['role'];
+                const creepDpt = spawnTask[creepName]['department'];
+                const creepData = spawnTask[creepName]['data'];
+                if (this.spawn(spawnName, creepName, creepRole, creepData) == OK) {
+                    delete spawnTask[creepName];
+                    this.notifyTaskComplete(creepName, creepRole, creepDpt);
+                }
+                ++spawnIndex;
+            }
+        }
+    }
+}
+
 class Department {
     constructor(mainRoom, type) {
         this.mainRoom = mainRoom;
@@ -1949,13 +2053,18 @@ class Department {
     }
     deleteCreep(creepName) {
     }
-    sendToSpawnInitializacion(creepName, creepConfig) {
+    sendToSpawnInitializacion(creepName, role, data, dpt) {
         Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName] = {};
         const spawnTask = Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName];
         console.log(creepName);
+        spawnTask['role'] = role;
+        spawnTask['department'] = dpt;
+        spawnTask['data'] = data;
+        /*
         for (let config in creepConfig) {
             spawnTask[config] = creepConfig[config];
         }
+        */
     }
     uid() {
         //return (performance.now().toString(36)+Math.random().toString(36)).replace(/\./g,"");
@@ -2017,25 +2126,21 @@ class Dpt_Work extends Department {
             let numCreepsNeeded1 = positionToHarvest(this.mainRoom, sourceId1['pos']).length;
             if (numCreepsNeeded1 > 3)
                 numCreepsNeeded1 = 3;
-            const config1 = {
-                role: 'harvesterInternal',
-                source: sourceId1,
+            const data = {
+                source: sourceId1.id,
                 target: null
             };
+            const role = 'harvester';
             for (let i = 0; i < numCreepsNeeded1; ++i) {
                 const creepName = this.uid();
-                this.sendToSpawnInitializacion(creepName, config1);
+                this.sendToSpawnInitializacion(creepName, role, data, 'dpt_harvest');
             }
             let numCreepsNeeded2 = positionToHarvest(this.mainRoom, sourceId2['pos']).length;
             if (numCreepsNeeded2 > 3)
                 numCreepsNeeded2 = 3;
-            const config2 = {
-                source: sourceId2,
-                target: null
-            };
             for (let i = 0; i < numCreepsNeeded2; ++i) {
-                const creepName = this.uid();
-                this.sendToSpawnInitializacion(creepName, config2);
+                this.uid();
+                //this.sendToSpawnInitializacion(creepName, config2)
             }
         }
         //let dif = numCreepsNeeded - activeCreeps;
@@ -2075,9 +2180,11 @@ class Colony {
         //creepSpawning.run();
         const dpt_harvest = new Dpt_Work(this.mainRoom);
         dpt_harvest.run();
+        const creepSpawning = new CreepSpawning(this.mainRoom);
+        creepSpawning.run();
     }
 }
-//Memory['colony']['W6N8']['creepSpawning']['spawn'].push('Spawn1')
+//Memory['colony']['W7N7']['creepSpawning']['spawn'].push('Spawn1')
 //ColonyApi.createColony('W7N9')
 //Memory['colony']['W7N7']['dpt_work']['ticksToSpawn']['W7N7_dptWork_1'] = Game.time + 10;
 
@@ -2164,8 +2271,10 @@ const basic = {
 */
 class CreepExtension extends Creep {
     //public work(data: SourceTargetData, role: string): void
-    work(data, role) {
+    work() {
+        let data = { "target": "aaa", "source": "ddd" };
         //const config: ICreepConfig = worker['builder'](s);
+        let role = '';
         //---------------- GET CREEP LOGIC --------------------
         const creepLogic = basic[role](data);
         // ------------------------ 第二步：执行 creep 准备阶段 ------------------------

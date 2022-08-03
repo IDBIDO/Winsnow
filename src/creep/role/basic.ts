@@ -59,11 +59,19 @@ export const basic:{
                 creep.moveTo(source);
             }
             
-
-            return false;
+            //change state if creep store max
+            return creep.store.getFreeCapacity() <= 0;
         },
         target: creep => {
-            return true;
+            let target: StructureContainer | Creep;
+            target = Game.getObjectById(data.source as Id<StructureContainer> | Id<Creep>);
+            //if target is a creep, throw a task to call a transporter
+            if (!target || target instanceof Creep ) {
+                
+            }
+
+
+            return false;
         }
 
 

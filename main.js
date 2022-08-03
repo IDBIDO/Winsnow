@@ -1918,15 +1918,21 @@ class Mem {
         colonyMem['creepSpawning']['task'] = {};
         colonyMem['creepSpawning']['completeTask'] = {};
         this.initializeDptHarvest();
+        this.initializeDptLogistic();
         this.initializeDptWork();
+    }
+    initializeDptLogistic() {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        colonyMem['dpt_logistic'] = {};
+        colonyMem['dpt_logistic']['state'] = '';
+        colonyMem['dpt_logistic']['creep'] = {};
+        colonyMem['dpt_logistic']['task'] = {};
+        colonyMem['dpt_logistic']['ticksToSpawn'] = {};
     }
     initializeDptHarvest() {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_harvest'] = {};
         colonyMem['dpt_harvest']['state'] = '';
-        //BOST_MODE: generate creep to ocupied all harvest position, 
-        //LOW_MODE: only two harvester
-        //
         colonyMem['dpt_harvest']['creep'] = {};
         colonyMem['dpt_harvest']['creep']['internal'] = {};
         colonyMem['dpt_harvest']['source'] = {};
@@ -2268,10 +2274,15 @@ const basic = {
             if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(source);
             }
-            return false;
+            //change state if creep store max
+            return creep.store.getFreeCapacity() <= 0;
         },
         target: creep => {
-            return true;
+            let target;
+            target = Game.getObjectById(data.source);
+            //if target is a creep, throw a task to call a transporter
+            if (!target || target instanceof Creep) ;
+            return false;
         }
     }),
 };

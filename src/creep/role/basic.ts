@@ -1,3 +1,5 @@
+import * as publisher from "../taskPublisher";
+
 export const basic:{
     [role in BaseRoleConstant]: (data: SourceTargetData) => ICreepConfig
 } = {
@@ -64,14 +66,26 @@ export const basic:{
         },
         target: creep => {
             let target: StructureContainer | Creep;
-            target = Game.getObjectById(data.source as Id<StructureContainer> | Id<Creep>);
+            target = Game.getObjectById(data.target as Id<StructureContainer> | Id<Creep>);
+            
+            
             //if target is a creep, throw a task to call a transporter
-            if (!target || target instanceof Creep ) {
-                
+            if (!target) {
+                if(!creep.memory['waiting']) {
+                    publisher.callSourceTransporter(creep.id, creep.room.name);
+                    creep.memory['waiting'] = true;
+                }
+            }
+            /*
+            else if (target instanceof Creep) {
+                creep.transfer(target, RESOURCE_ENERGY)
+            }
+            */
+            else {
+                creep.transfer(target, RESOURCE_ENERGY)
             }
 
-
-            return false;
+            return (creep.store.getUsedCapacity() <= 0);
         }
 
 

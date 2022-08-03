@@ -8,6 +8,12 @@ interface SourceTargetData{
     target: string;
 }
 
+interface LogisticSourceTask {
+    id: string, 
+    room: string,
+    //pos: [number, number]
+}
+
 
 interface creepConfig {
     prepare: [number, number],

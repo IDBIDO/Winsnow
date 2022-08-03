@@ -89,7 +89,8 @@ export class Mem {
         colonyMem['dpt_logistic']['state'] = '';
         
         colonyMem['dpt_logistic']['creep'] = {};
-        colonyMem['dpt_logistic']['task'] = {};
+        colonyMem['dpt_logistic']['sourceTask'] = {};
+        colonyMem['dpt_logistic']['targetTask'] = {};
 
         colonyMem['dpt_logistic']['ticksToSpawn'] = {};
     }
@@ -100,7 +101,7 @@ export class Mem {
         colonyMem['dpt_harvest']['state'] = '';
 
         colonyMem['dpt_harvest']['creep'] = {};
-        colonyMem['dpt_harvest']['creep']['internal'] = {};
+        
 
         colonyMem['dpt_harvest']['source'] = {}
             //'id': [Pos1, Pos2, Pos3...]

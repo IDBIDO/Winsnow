@@ -1926,7 +1926,8 @@ class Mem {
         colonyMem['dpt_logistic'] = {};
         colonyMem['dpt_logistic']['state'] = '';
         colonyMem['dpt_logistic']['creep'] = {};
-        colonyMem['dpt_logistic']['task'] = {};
+        colonyMem['dpt_logistic']['sourceTask'] = {};
+        colonyMem['dpt_logistic']['targetTask'] = {};
         colonyMem['dpt_logistic']['ticksToSpawn'] = {};
     }
     initializeDptHarvest() {
@@ -1934,7 +1935,6 @@ class Mem {
         colonyMem['dpt_harvest'] = {};
         colonyMem['dpt_harvest']['state'] = '';
         colonyMem['dpt_harvest']['creep'] = {};
-        colonyMem['dpt_harvest']['creep']['internal'] = {};
         colonyMem['dpt_harvest']['source'] = {};
         //'id': [Pos1, Pos2, Pos3...]
         colonyMem['dpt_harvest']['ticksToSpawn'] = {};
@@ -2231,6 +2231,20 @@ const assignPrototype = function (obj1, obj2) {
     });
 };
 
+function callSourceTransporter(id, mainRoom) {
+    let memory = Memory['colony'][mainRoom]['dpt_logistic']['sourceTask'];
+    const sourceTaskName = randomLogisticTaskName();
+    memory[sourceTaskName] = {};
+    const logSourceTask = {
+        id: id,
+        room: mainRoom
+    };
+    memory[sourceTaskName] = logSourceTask;
+}
+function randomLogisticTaskName() {
+    return ('LOG' + Math.random().toString(36).substr(2, 7));
+}
+
 const basic = {
     colonizer: (data) => ({
         source: creep => {
@@ -2279,10 +2293,23 @@ const basic = {
         },
         target: creep => {
             let target;
-            target = Game.getObjectById(data.source);
+            target = Game.getObjectById(data.target);
             //if target is a creep, throw a task to call a transporter
-            if (!target || target instanceof Creep) ;
-            return false;
+            if (!target) {
+                if (!creep.memory['waiting']) {
+                    callSourceTransporter(creep.id, creep.room.name);
+                    creep.memory['waiting'] = true;
+                }
+            }
+            /*
+            else if (target instanceof Creep) {
+                creep.transfer(target, RESOURCE_ENERGY)
+            }
+            */
+            else {
+                creep.transfer(target, RESOURCE_ENERGY);
+            }
+            return (creep.store.getUsedCapacity() <= 0);
         }
     }),
 };

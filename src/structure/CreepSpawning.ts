@@ -52,10 +52,27 @@ export class CreepSpawning {
             memory: {
                 role: creepRole, 
                 department: dpt,
+                roomName: this.mainRoom,
                 data: creepData
             }
         })
         
+    }
+
+    /**Creep Queen must be spawned or spawing */
+    private renewQueen(): boolean {
+        const queen = Game.creeps['Queen'+this.mainRoom];
+        if (queen) {
+            if (queen.spawning) return false;
+            else if (queen.ticksToLive < 200) return true;
+        }
+    }
+
+    private spawnQueen(): boolean {
+        if (!Game.creeps['Queen'+this.mainRoom]) {
+            
+        }
+        return true;
     }
 
     public run(): void {

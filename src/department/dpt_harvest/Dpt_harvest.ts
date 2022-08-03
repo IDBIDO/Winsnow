@@ -30,7 +30,7 @@ export default class Dpt_Work extends Department {
 
             let numCreepsNeeded1 = dpt_config.positionToHarvest(this.mainRoom, sourceId1['pos']).length;
             if (numCreepsNeeded1 > 3) numCreepsNeeded1 = 3;
-            const data:HarvesterData = {
+            const data1:HarvesterData = {
                 source: sourceId1.id,
                 target: null
             }
@@ -38,19 +38,19 @@ export default class Dpt_Work extends Department {
             for (let i = 0; i < numCreepsNeeded1; ++i) {
                 const creepName = this.uid();
                 
-                this.sendToSpawnInitializacion(creepName, role,  data, 'dpt_harvest')
+                this.sendToSpawnInitializacion(creepName, role,  data1, 'dpt_harvest')
             }
 
             let numCreepsNeeded2 = dpt_config.positionToHarvest(this.mainRoom, sourceId2['pos']).length;
             if (numCreepsNeeded2 > 3) numCreepsNeeded2 = 3;
-            const config2 = {
+            const data2 = {
                 source: sourceId2,
                 target: null
             }
             for (let i = 0; i < numCreepsNeeded2; ++i) {
                 const creepName = this.uid();
                 
-                //this.sendToSpawnInitializacion(creepName, config2)
+                this.sendToSpawnInitializacion(creepName, role, data2, 'dpt_harvester')
             }
 
 

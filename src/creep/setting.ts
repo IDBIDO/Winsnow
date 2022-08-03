@@ -27,6 +27,10 @@ export function getBody(role: string, rcl: number): BodyPartConstant[] {
     return act;
 }
 
+export function getQueenBody(){
+
+}
+
 export function ticksToSpawn(role: string, rcl: number): number {
     const componentNum:number[] = bodyComponentNum[role][rcl.toString()];
     const ticks:number = componentNum.reduce((x, y) => x + y, 0)
@@ -72,8 +76,8 @@ export const bodyConfigs = {
     },
 
     transporter: {
-        1: {CARRY: 2, MOVE: 2},
-        2: {CARRY: 3, MOVE: 2}
+        1: {CARRY: 3, MOVE: 3},
+        2: {CARRY: 3, MOVE: 3}
     }
   
 }

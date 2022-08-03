@@ -1,17 +1,29 @@
+
+/********************* ROLE DATA ****************/
+
 interface HarvesterData{
     source: string;
     target: string;
 }
 
+interface LogisticData {
+    source: LogisticSourceTask,
+    target: string
+}
+
+
 interface SourceTargetData{
     source: string;
+    sourcePos: [number, number];
     target: string;
 }
 
+/************* TASK *************/
+
 interface LogisticSourceTask {
     id: string, 
-    room: string,
-    //pos: [number, number]
+    roomName: string,
+    pos: [number, number]
 }
 
 
@@ -68,6 +80,7 @@ type BaseRoleConstant =
     //'miner' |
     //'upgrader' |
     //'filler' |
-    'builder' 
+    'builder' |
+    'transporter'
     //'repairer'
-
+    

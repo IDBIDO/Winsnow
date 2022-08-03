@@ -41,14 +41,11 @@ export abstract class Department {
         console.log(creepName);
         
         spawnTask['role'] = role;
+        spawnTask['roomName'] = this.mainRoom;
         spawnTask['department'] = dpt;
         spawnTask['data'] = data;
         
-        /*
-        for (let config in creepConfig) {
-            spawnTask[config] = creepConfig[config];
-        }
-        */
+
     }
 
     protected uid() {

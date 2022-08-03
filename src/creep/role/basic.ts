@@ -1,7 +1,7 @@
 import * as publisher from "../taskPublisher";
 
 export const basic:{
-    [role in BaseRoleConstant]: (data: SourceTargetData) => ICreepConfig
+    [role in BaseRoleConstant]: (data: {}) => ICreepConfig
 } = {
     colonizer: (data: SourceTargetData): ICreepConfig => ({
         source: creep => {
@@ -72,7 +72,7 @@ export const basic:{
             //if target is a creep, throw a task to call a transporter
             if (!target) {
                 if(!creep.memory['waiting']) {
-                    publisher.callSourceTransporter(creep.id, creep.room.name);
+                    publisher.callSourceTransporter(creep);
                     creep.memory['waiting'] = true;
                 }
             }
@@ -90,6 +90,16 @@ export const basic:{
 
 
         
+
+    }),
+
+    transporter: (data: LogisticData): ICreepConfig => ({
+        source: creep => {
+            return false;
+        },
+        target: creep => {
+            return false;
+        }
 
     }),
 }

@@ -2031,21 +2031,7 @@ class CreepSpawning {
             }
         });
     }
-    /**Creep Queen must be spawned or spawing */
-    renewQueen() {
-        const queen = Game.creeps['Queen' + this.mainRoom];
-        if (queen) {
-            if (queen.spawning)
-                return false;
-            else if (queen.ticksToLive < 200)
-                return true;
-        }
-    }
-    spawnQueen() {
-        if (!Game.creeps['Queen' + this.mainRoom]) ;
-        return true;
-    }
-    run() {
+    spawnTaskExecution() {
         const spawnTask = this.memory['task'];
         let spawnIndex = 0;
         for (let creepName in spawnTask) {
@@ -2063,6 +2049,50 @@ class CreepSpawning {
                 ++spawnIndex;
             }
         }
+    }
+    getAvailableSpawnName() {
+        const spawnList = this.memory['spawn'];
+        for (let i = 0; i < spawnList.length; ++i) {
+            if (Game.spawns[spawnList[i]].spawning == null)
+                return spawnList[i];
+        }
+        return null;
+    }
+    /**Creep Queen must be spawned or spawing */
+    renewQueen() {
+        const queen = Game.creeps['Queen' + this.mainRoom];
+        if (queen) {
+            if (queen.spawning)
+                return false;
+            else if (queen.ticksToLive < 200)
+                return true;
+        }
+    }
+    spawnQueen() {
+        const spawnName = this.getAvailableSpawnName();
+        if (spawnName) {
+            console.log(spawnName);
+            const source = {
+                id: null,
+                roomName: null,
+                pos: null
+            };
+            const data = {
+                source: source,
+                target: null
+            };
+            this.spawn(spawnName, 'Queen' + this.mainRoom, 'transporter', data, 'dpt_logistic');
+        }
+    }
+    run() {
+        const queen = Game.creeps['Queen' + this.mainRoom];
+        if (!queen) {
+            this.spawnQueen();
+        }
+        else if (queen.ticksToLive < 200) {
+            this.renewQueen();
+        }
+        this.spawnTaskExecution();
     }
 }
 

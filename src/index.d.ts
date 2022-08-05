@@ -39,7 +39,7 @@ interface MoveRequest {
     type: 'MOVE',
     id: string;                 //object id
     pos: [number, number];      //position to move
-    roomName: string;           //room of position
+    roomName: string;           //position's room
 }
 
 interface TransferRequest {
@@ -127,5 +127,6 @@ type BaseRoleConstant =
     //'repairer'
     
 type AdvancedRoleConstant =
-    'manager'
+    'manager'|
+    'transporter'
     

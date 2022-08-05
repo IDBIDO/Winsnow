@@ -33,6 +33,20 @@ export default class Dpt_Logistic extends Department {
 
     } 
 
+    private getSourceTask() {
+        const requestList = this.memory['sourceTask'];
+        if (Object.keys(requestList).length === 0) {
+            return null;
+        }
+        else return requestList[0];
+    }
+
+    private processRequest() {
+        const requestList = this.memory['request'];
+
+
+    }
+
     public run() {
 
     }

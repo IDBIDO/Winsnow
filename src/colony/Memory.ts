@@ -87,11 +87,13 @@ export class Mem {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_logistic'] = {};
         colonyMem['dpt_logistic']['state'] = '';
+
+        colonyMem['dpt_logistic']['request'] = [];
         
-        colonyMem['dpt_logistic']['creep'] = {};
         colonyMem['dpt_logistic']['sourceTask'] = {};
         colonyMem['dpt_logistic']['targetTask'] = {};
 
+        colonyMem['dpt_logistic']['creep'] = {};
         colonyMem['dpt_logistic']['ticksToSpawn'] = {};
     }
 

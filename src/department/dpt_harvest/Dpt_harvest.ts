@@ -1,8 +1,8 @@
 import { Department } from "../Department";
 import * as dpt_config from "@/department/dpt_config"
-import * as setting from "@/creep/setting";
-import { isNull, max, random } from "lodash";
-import { maxTwoNumber } from "@/roomPlanning/planningUtils";
+import { moveRequest, sendLogisticTask } from "@/colony/dpt_comunication";
+import { taskName } from "@/colony/nameManagement";
+
 
 export default class Dpt_Work extends Department {
     
@@ -59,18 +59,26 @@ export default class Dpt_Work extends Department {
     }
 
     private processRequest() {
-        
+        const requestList = this.memory['request'];
+        for (let i = 0; i < requestList.length; ++i) {
+            const creepName = requestList[0];
+            const creep = Game.creeps[creepName];
+            const logisticTaskRequest: MoveRequest = moveRequest(creep.id, [creep.pos.x, creep.pos.y], creep.memory['roomName'])
+            sendLogisticTask(creep.memory['roomName'], taskName(logisticTaskRequest), logisticTaskRequest);
+        }
+        //clear request
+        this.memory['request'] = [];
     }
         
 
     public run() {
+        
         if (Memory['colony'][this.mainRoom]['state']['updateCreepNum']) {
             this.actualizeCreepNumber();
             Memory['colony'][this.mainRoom]['state']['updateCreepNum']= false;
         }
-        
-        
-       
+
+        this.processRequest();
     }
 
 

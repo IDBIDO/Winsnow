@@ -1,6 +1,6 @@
 
 
-/******************* FASE1: START COMUNICATION  ***********************/
+/******************* FASE1: OBJECT SEND REQUEST  ***********************/
 
 import { taskName } from "./nameManagement";
 
@@ -41,12 +41,12 @@ export function withdrawRequest(id: string, resourceType: ResourceConstant): Wit
 
     /************** Fase1.2: SEND TASK REQUEST ****************/
 
-export function sendTaskRequest(roomName: string ,dpt: string, request: TaskRequest) {
-    Memory['colony'][roomName][dpt]['request'].push(request);
+export function sendRequest(roomName: string ,dpt: string, creepName: string) {
+    Memory['colony'][roomName][dpt]['request'].push(creepName);
 }
 
 
-/******************* FASE2: DEPARTMENT SEND TASK  ***********************/
+/******************* FASE2. DEPARTMENT: SEND TASK  ***********************/
     /* Fase2.1:  TASK CREATION */
 export function task(request: TaskRequest) {
 
@@ -57,11 +57,27 @@ export function task(request: TaskRequest) {
     return task;
 }
 
-    /* Fase2.2:  SEND TASK */
-export function sendTask(roomName: string ,dpt: string, task: Task) {
-    Memory['colony'][roomName][dpt]['task']
+    /* Fase2.2:  SEND LOGISTIC TASK */
+export function sendLogisticTask(roomName: string , taskName: string ,request: TaskRequest) {
+    
+    if (request.type == 'MOVE' || request.type == 'WITHDRAW') {
+        Memory['colony'][roomName]['dpt_logistic']['sourceTask'][taskName] = request;
+    }
+    else {
+        Memory['colony'][roomName]['dpt_logistic']['targetTask'][taskName] = request;
+
+    }
 }
 
+/** Game time to resend request */
+export function getTTL(request: TaskRequest) {
+    if (request.type == 'MOVE') return 12
+}
+
+/******************* FASE3. Creep: TASK REQUEST  ***********************/
+export function sendTaskRequest(creepName: string, roomName: string) {
+    Memory['colony'][roomName]['dpt_logistic']['requestCreep'].push(creepName);
+}
 
 
 

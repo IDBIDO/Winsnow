@@ -1925,9 +1925,10 @@ class Mem {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_logistic'] = {};
         colonyMem['dpt_logistic']['state'] = '';
-        colonyMem['dpt_logistic']['creep'] = {};
+        colonyMem['dpt_logistic']['request'] = [];
         colonyMem['dpt_logistic']['sourceTask'] = {};
         colonyMem['dpt_logistic']['targetTask'] = {};
+        colonyMem['dpt_logistic']['creep'] = {};
         colonyMem['dpt_logistic']['ticksToSpawn'] = {};
     }
     initializeDptHarvest() {
@@ -2161,6 +2162,36 @@ function positionToHarvest(roomName, pos) {
     return canStand;
 }
 
+function taskName(request) {
+    //return (performance.now().toString(36)+Math.random().toString(36)).replace(/\./g,"");
+    return (request.type + Math.random().toString(36).substr(2, 9));
+}
+
+/******************* FASE1: OBJECT SEND REQUEST  ***********************/
+/* Fase1.1:  TASK REQUEST CREATION */
+function moveRequest(id, pos, roomName) {
+    const r = {
+        type: 'MOVE',
+        id: id,
+        pos: pos,
+        roomName: roomName
+    };
+    return r;
+}
+/************** Fase1.2: SEND TASK REQUEST ****************/
+function sendRequest(roomName, dpt, creepName) {
+    Memory['colony'][roomName][dpt]['request'].push(creepName);
+}
+/* Fase2.2:  SEND LOGISTIC TASK */
+function sendLogisticTask(roomName, taskName, request) {
+    if (request.type == 'MOVE' || request.type == 'WITHDRAW') {
+        Memory['colony'][roomName]['dpt_logistic']['sourceTask'][taskName] = request;
+    }
+    else {
+        Memory['colony'][roomName]['dpt_logistic']['targetTask'][taskName] = request;
+    }
+}
+
 class Dpt_Work extends Department {
     constructor(dptRoom) {
         super(dptRoom, 'dpt_harvest');
@@ -2204,12 +2235,22 @@ class Dpt_Work extends Department {
         //setting.workerSourceConfigUpdate(rclEnergy, this.mainRoom);
     }
     processRequest() {
+        const requestList = this.memory['request'];
+        for (let i = 0; i < requestList.length; ++i) {
+            const creepName = requestList[0];
+            const creep = Game.creeps[creepName];
+            const logisticTaskRequest = moveRequest(creep.id, [creep.pos.x, creep.pos.y], creep.memory['roomName']);
+            sendLogisticTask(creep.memory['roomName'], taskName(logisticTaskRequest), logisticTaskRequest);
+        }
+        //clear request
+        this.memory['request'] = [];
     }
     run() {
         if (Memory['colony'][this.mainRoom]['state']['updateCreepNum']) {
             this.actualizeCreepNumber();
             Memory['colony'][this.mainRoom]['state']['updateCreepNum'] = false;
         }
+        this.processRequest();
     }
 }
 
@@ -2289,21 +2330,6 @@ const assignPrototype = function (obj1, obj2) {
     });
 };
 
-function callSourceTransporter(creep) {
-    let memory = Memory['colony'][creep.memory['roomName']]['dpt_logistic']['sourceTask'];
-    const sourceTaskName = randomLogisticTaskName();
-    memory[sourceTaskName] = {};
-    const logSourceTask = {
-        id: creep.id,
-        roomName: creep.room.name,
-        pos: [creep.pos.x, creep.pos.x]
-    };
-    memory[sourceTaskName] = logSourceTask;
-}
-function randomLogisticTaskName() {
-    return ('LOG' + Math.random().toString(36).substr(2, 7));
-}
-
 const basic = {
     colonizer: (data) => ({
         source: creep => {
@@ -2356,7 +2382,8 @@ const basic = {
             //if target is a creep, throw a task to call a transporter
             if (!target) {
                 if (!creep.memory['waiting']) {
-                    callSourceTransporter(creep);
+                    //publisher.callSourceTransporter(creep);
+                    sendRequest(creep.memory['roomName'], creep.memory['department'], creep.name);
                     creep.memory['waiting'] = true;
                 }
             }

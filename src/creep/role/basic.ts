@@ -1,3 +1,4 @@
+import { sendRequest } from "@/colony/dpt_comunication";
 import * as publisher from "../taskPublisher";
 
 export const basic:{
@@ -72,7 +73,8 @@ export const basic:{
             //if target is a creep, throw a task to call a transporter
             if (!target) {
                 if(!creep.memory['waiting']) {
-                    publisher.callSourceTransporter(creep);
+                    //publisher.callSourceTransporter(creep);
+                    sendRequest(creep.memory['roomName'], creep.memory['department'], creep.name);
                     creep.memory['waiting'] = true;
                 }
             }

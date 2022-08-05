@@ -1918,18 +1918,25 @@ class Mem {
         colonyMem['creepSpawning']['task'] = {};
         colonyMem['creepSpawning']['completeTask'] = {};
         this.initializeDptHarvest();
+        this.initializeDptLogistic();
         this.initializeDptWork();
+    }
+    initializeDptLogistic() {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        colonyMem['dpt_logistic'] = {};
+        colonyMem['dpt_logistic']['state'] = '';
+        colonyMem['dpt_logistic']['request'] = [];
+        colonyMem['dpt_logistic']['sourceTask'] = {};
+        colonyMem['dpt_logistic']['targetTask'] = {};
+        colonyMem['dpt_logistic']['creep'] = {};
+        colonyMem['dpt_logistic']['ticksToSpawn'] = {};
     }
     initializeDptHarvest() {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_harvest'] = {};
-        colonyMem['dpt_harvest']['state'] = '';
-        //BOST_MODE: generate creep to ocupied all harvest position, 
-        //LOW_MODE: only two harvester
-        //
+        //harvesters collect energy request 
+        colonyMem['dpt_harvest']['request'] = [];
         colonyMem['dpt_harvest']['creep'] = {};
-        colonyMem['dpt_harvest']['creep']['internal'] = {};
-        colonyMem['dpt_harvest']['source'] = {};
         //'id': [Pos1, Pos2, Pos3...]
         colonyMem['dpt_harvest']['ticksToSpawn'] = {};
     }
@@ -2020,11 +2027,12 @@ class CreepSpawning {
             memory: {
                 role: creepRole,
                 department: dpt,
+                roomName: this.mainRoom,
                 data: creepData
             }
         });
     }
-    run() {
+    spawnTaskExecution() {
         const spawnTask = this.memory['task'];
         let spawnIndex = 0;
         for (let creepName in spawnTask) {
@@ -2042,6 +2050,50 @@ class CreepSpawning {
                 ++spawnIndex;
             }
         }
+    }
+    getAvailableSpawnName() {
+        const spawnList = this.memory['spawn'];
+        for (let i = 0; i < spawnList.length; ++i) {
+            if (Game.spawns[spawnList[i]].spawning == null)
+                return spawnList[i];
+        }
+        return null;
+    }
+    /**Creep Queen must be spawned or spawing */
+    renewQueen() {
+        const queen = Game.creeps['Queen' + this.mainRoom];
+        if (queen) {
+            if (queen.spawning)
+                return false;
+            else if (queen.ticksToLive < 200)
+                return true;
+        }
+    }
+    spawnQueen() {
+        const spawnName = this.getAvailableSpawnName();
+        if (spawnName) {
+            console.log(spawnName);
+            const source = {
+                id: null,
+                roomName: null,
+                pos: null
+            };
+            const data = {
+                source: source,
+                target: null
+            };
+            this.spawn(spawnName, 'Queen' + this.mainRoom, 'transporter', data, 'dpt_logistic');
+        }
+    }
+    run() {
+        const queen = Game.creeps['Queen' + this.mainRoom];
+        if (!queen) {
+            this.spawnQueen();
+        }
+        else if (queen.ticksToLive < 200) {
+            this.renewQueen();
+        }
+        this.spawnTaskExecution();
     }
 }
 
@@ -2062,15 +2114,11 @@ class Department {
     sendToSpawnInitializacion(creepName, role, data, dpt) {
         Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName] = {};
         const spawnTask = Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName];
-        console.log(creepName);
+        //console.log(creepName);
         spawnTask['role'] = role;
+        spawnTask['roomName'] = this.mainRoom;
         spawnTask['department'] = dpt;
         spawnTask['data'] = data;
-        /*
-        for (let config in creepConfig) {
-            spawnTask[config] = creepConfig[config];
-        }
-        */
     }
     uid() {
         //return (performance.now().toString(36)+Math.random().toString(36)).replace(/\./g,"");
@@ -2114,6 +2162,36 @@ function positionToHarvest(roomName, pos) {
     return canStand;
 }
 
+function taskName(request) {
+    //return (performance.now().toString(36)+Math.random().toString(36)).replace(/\./g,"");
+    return (request.type + Math.random().toString(36).substr(2, 9));
+}
+
+/******************* FASE1: OBJECT SEND REQUEST  ***********************/
+/* Fase1.1:  TASK REQUEST CREATION */
+function moveRequest(id, pos, roomName) {
+    const r = {
+        type: 'MOVE',
+        id: id,
+        pos: pos,
+        roomName: roomName
+    };
+    return r;
+}
+/************** Fase1.2: SEND TASK REQUEST ****************/
+function sendRequest(roomName, dpt, creepName) {
+    Memory['colony'][roomName][dpt]['request'].push(creepName);
+}
+/* Fase2.2:  SEND LOGISTIC TASK */
+function sendLogisticTask(roomName, taskName, request) {
+    if (request.type == 'MOVE' || request.type == 'WITHDRAW') {
+        Memory['colony'][roomName]['dpt_logistic']['sourceTask'][taskName] = request;
+    }
+    else {
+        Memory['colony'][roomName]['dpt_logistic']['targetTask'][taskName] = request;
+    }
+}
+
 class Dpt_Work extends Department {
     constructor(dptRoom) {
         super(dptRoom, 'dpt_harvest');
@@ -2132,31 +2210,47 @@ class Dpt_Work extends Department {
             let numCreepsNeeded1 = positionToHarvest(this.mainRoom, sourceId1['pos']).length;
             if (numCreepsNeeded1 > 3)
                 numCreepsNeeded1 = 3;
-            const data = {
+            const data1 = {
                 source: sourceId1.id,
                 target: null
             };
             const role = 'harvester';
             for (let i = 0; i < numCreepsNeeded1; ++i) {
                 const creepName = this.uid();
-                this.sendToSpawnInitializacion(creepName, role, data, 'dpt_harvest');
+                this.sendToSpawnInitializacion(creepName, role, data1, 'dpt_harvest');
             }
             let numCreepsNeeded2 = positionToHarvest(this.mainRoom, sourceId2['pos']).length;
             if (numCreepsNeeded2 > 3)
                 numCreepsNeeded2 = 3;
+            const data2 = {
+                source: sourceId2.id,
+                target: null
+            };
             for (let i = 0; i < numCreepsNeeded2; ++i) {
-                this.uid();
-                //this.sendToSpawnInitializacion(creepName, config2)
+                const creepName = this.uid();
+                this.sendToSpawnInitializacion(creepName, role, data2, 'dpt_harvest');
             }
         }
         //let dif = numCreepsNeeded - activeCreeps;
         //setting.workerSourceConfigUpdate(rclEnergy, this.mainRoom);
+    }
+    processRequest() {
+        const requestList = this.memory['request'];
+        for (let i = 0; i < requestList.length; ++i) {
+            const creepName = requestList[0];
+            const creep = Game.creeps[creepName];
+            const logisticTaskRequest = moveRequest(creep.id, [creep.pos.x, creep.pos.y], creep.memory['roomName']);
+            sendLogisticTask(creep.memory['roomName'], taskName(logisticTaskRequest), logisticTaskRequest);
+        }
+        //clear request
+        this.memory['request'] = [];
     }
     run() {
         if (Memory['colony'][this.mainRoom]['state']['updateCreepNum']) {
             this.actualizeCreepNumber();
             Memory['colony'][this.mainRoom]['state']['updateCreepNum'] = false;
         }
+        this.processRequest();
     }
 }
 
@@ -2200,8 +2294,19 @@ global.ColonyApi = {
         col1.initializeMem();
         //col1.updateSpawnTask();
         return "Colony " + roomName + " created.";
+        /*
+        let request: LogisticTaskRequest = {
+            type: 'MOVE',
+            data: {
+                id: 'sss',
+                pos: [1,2],
+                roomName: 'dddd'
+            }
+        }
+        */
     },
-    generateCreep(roomName, role) {
+    sendTaskRequest(roomName, dpt, request) {
+        Memory['colony'][roomName][dpt]['request'].push(request);
     }
 };
 
@@ -2268,10 +2373,61 @@ const basic = {
             if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(source);
             }
+            //change state if creep store max
+            return creep.store.getFreeCapacity() <= 0;
+        },
+        target: creep => {
+            let target;
+            target = Game.getObjectById(data.target);
+            //if target is a creep, throw a task to call a transporter
+            if (!target) {
+                if (!creep.memory['waiting']) {
+                    //publisher.callSourceTransporter(creep);
+                    sendRequest(creep.memory['roomName'], creep.memory['department'], creep.name);
+                    creep.memory['waiting'] = true;
+                }
+            }
+            /*
+            else if (target instanceof Creep) {
+                creep.transfer(target, RESOURCE_ENERGY)
+            }
+            */
+            else {
+                creep.transfer(target, RESOURCE_ENERGY);
+            }
+            return (creep.store.getUsedCapacity() <= 0);
+        }
+    }),
+    transporter: (data) => ({
+        source: creep => {
+            const sourceID = creep.memory['data']['source']['id'];
+            const source = Game.getObjectById(sourceID);
+            if (source instanceof Creep) {
+                creep.moveTo(source);
+            }
+            /*
+            if(sourceID == null) {
+                const sourceTask = Memory['colony'][creep.memory['roomName']][creep.memory['department']]['sourceTask'];
+                const keys = Object.keys(sourceTask);
+                
+                if (keys.length > 0) {
+                    creep.memory['data']['source'] = sourceTask[keys[0]]
+                    //console.log(Object.keys(sourceTask)[0]);
+    
+                }
+
+                else return false;
+            }
+
+            const source = Game.getObjectById(sourceID);
+            if (source instanceof Creep) {
+                creep.moveTo(source);
+            }
+            */
             return false;
         },
         target: creep => {
-            return true;
+            return false;
         }
     }),
 };

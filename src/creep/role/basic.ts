@@ -1,5 +1,8 @@
+import { sendRequest } from "@/colony/dpt_comunication";
+import * as publisher from "../taskPublisher";
+
 export const basic:{
-    [role in BaseRoleConstant]: (data: SourceTargetData) => ICreepConfig
+    [role in BaseRoleConstant]: (data: {}) => ICreepConfig
 } = {
     colonizer: (data: SourceTargetData): ICreepConfig => ({
         source: creep => {
@@ -59,15 +62,74 @@ export const basic:{
                 creep.moveTo(source);
             }
             
-
-            return false;
+            //change state if creep store max
+            return creep.store.getFreeCapacity() <= 0;
         },
         target: creep => {
-            return true;
+            let target: StructureContainer | Creep;
+            target = Game.getObjectById(data.target as Id<StructureContainer> | Id<Creep>);
+            
+            
+            //if target is a creep, throw a task to call a transporter
+            if (!target) {
+                if(!creep.memory['waiting']) {
+                    //publisher.callSourceTransporter(creep);
+                    sendRequest(creep.memory['roomName'], creep.memory['department'], creep.name);
+                    creep.memory['waiting'] = true;
+                }
+            }
+            /*
+            else if (target instanceof Creep) {
+                creep.transfer(target, RESOURCE_ENERGY)
+            }
+            */
+            else {
+                creep.transfer(target, RESOURCE_ENERGY)
+            }
+
+            return (creep.store.getUsedCapacity() <= 0);
         }
 
 
         
+
+    }),
+
+    transporter: (data: LogisticData): ICreepConfig => ({
+        source: creep => {
+            const sourceID = creep.memory['data']['source']['id'];
+            const source = Game.getObjectById(sourceID);
+            if (source instanceof Creep) {
+                creep.moveTo(source);
+            }
+            
+            /*
+            if(sourceID == null) {
+                const sourceTask = Memory['colony'][creep.memory['roomName']][creep.memory['department']]['sourceTask'];
+                const keys = Object.keys(sourceTask);
+                
+                if (keys.length > 0) {
+                    creep.memory['data']['source'] = sourceTask[keys[0]]
+                    //console.log(Object.keys(sourceTask)[0]);
+    
+                }
+
+                else return false;
+            }
+
+            const source = Game.getObjectById(sourceID);
+            if (source instanceof Creep) {
+                creep.moveTo(source);
+            }
+            */
+
+
+
+            return false;
+        },
+        target: creep => {
+            return false;
+        }
 
     }),
 }

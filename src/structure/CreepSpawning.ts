@@ -52,14 +52,15 @@ export class CreepSpawning {
             memory: {
                 role: creepRole, 
                 department: dpt,
+                roomName: this.mainRoom,
                 data: creepData
             }
         })
         
     }
 
-    public run(): void {
-
+    private spawnTaskExecution() {
+     
         const spawnTask = this.memory['task']
         let spawnIndex = 0;
 
@@ -83,6 +84,58 @@ export class CreepSpawning {
             }
         
         }
+    }
+
+    private getAvailableSpawnName():string {
+
+        const spawnList = this.memory['spawn'];
+        for (let i = 0;  i < spawnList.length; ++i) {
+            if (Game.spawns[spawnList[i]].spawning == null) return spawnList[i];
+        }
+        return null;
+
+    }
+
+    /**Creep Queen must be spawned or spawing */
+    private renewQueen(): boolean {
+        const queen = Game.creeps['Queen'+this.mainRoom];
+        if (queen) {
+            if (queen.spawning) return false;
+            else if (queen.ticksToLive < 200) return true;
+        }
+    }
+
+    private spawnQueen() {
+        const spawnName = this.getAvailableSpawnName();
+        
+        if (spawnName) {
+            console.log(spawnName);
+
+            const source: LogisticSourceTask = {
+                id: null, 
+                roomName: null,
+                pos: null
+            }
+            const data: LogisticData = {
+                source: source,
+                target: null
+            }
+            let r = this.spawn(spawnName, 'Queen'+ this.mainRoom, 'transporter', data, 'dpt_logistic');
+            
+        }
+    }
+
+    public run(): void {
+        const queen = Game.creeps['Queen'+this.mainRoom];
+        if (!queen) {
+            this.spawnQueen();
+        }
+        else if (queen.ticksToLive < 200) {
+            this.renewQueen();
+        }
+
+        this.spawnTaskExecution();
+
     }
 
 

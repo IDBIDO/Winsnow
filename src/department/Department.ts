@@ -38,17 +38,14 @@ export abstract class Department {
         Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName] ={};
         
         const spawnTask = Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName];
-        console.log(creepName);
+        //console.log(creepName);
         
         spawnTask['role'] = role;
+        spawnTask['roomName'] = this.mainRoom;
         spawnTask['department'] = dpt;
         spawnTask['data'] = data;
         
-        /*
-        for (let config in creepConfig) {
-            spawnTask[config] = creepConfig[config];
-        }
-        */
+
     }
 
     protected uid() {

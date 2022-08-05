@@ -1,12 +1,72 @@
+
+/********************* ROLE DATA ****************/
+
 interface HarvesterData{
     source: string;
     target: string;
 }
 
+interface LogisticData {
+    source: LogisticSourceTask,
+    target: string
+}
+
+
 interface SourceTargetData{
     source: string;
+    sourcePos: [number, number];
     target: string;
 }
+
+/******************** *******************/
+interface Task {
+    taskID: string, 
+    data: TaskRequest
+}
+
+
+
+/****************************REQUEST ***********************/
+type TaskRequest = 
+    LogisticTaskRequest
+
+/************* LOGISTIC REQUEST  *************/
+
+type LogisticTaskRequest = 
+    MoveRequest | TransferRequest | WithdrawRequest
+
+interface MoveRequest {
+    type: 'MOVE',
+    id: string;                 //object id
+    pos: [number, number];      //position to move
+    roomName: string;           //position's room
+}
+
+interface TransferRequest {
+    type: 'TRANSFER',
+    id: string, 
+    resourceType: ResourceConstant,
+    amount: number
+}
+
+interface WithdrawRequest {
+    type: 'WITHDRAW',
+    id: string, 
+    resourceType: ResourceConstant
+}
+
+/************* BUILDER REQUEST  ***************/
+
+
+
+/************* TASK *************/
+
+interface LogisticSourceTask {
+    id: string, 
+    roomName: string,
+    pos: [number, number]
+}
+
 
 
 interface creepConfig {
@@ -62,6 +122,11 @@ type BaseRoleConstant =
     //'miner' |
     //'upgrader' |
     //'filler' |
-    'builder' 
+    'builder' |
+    'transporter'
     //'repairer'
-
+    
+type AdvancedRoleConstant =
+    'manager'|
+    'transporter'
+    

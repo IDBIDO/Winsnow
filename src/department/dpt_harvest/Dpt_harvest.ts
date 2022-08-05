@@ -1,8 +1,8 @@
 import { Department } from "../Department";
 import * as dpt_config from "@/department/dpt_config"
-import * as setting from "@/creep/setting";
-import { isNull, max, random } from "lodash";
-import { maxTwoNumber } from "@/roomPlanning/planningUtils";
+import { moveRequest, sendLogisticTask } from "@/colony/dpt_comunication";
+import { taskName } from "@/colony/nameManagement";
+
 
 export default class Dpt_Work extends Department {
     
@@ -18,10 +18,6 @@ export default class Dpt_Work extends Department {
         return Memory['colony'][this.mainRoom]['roomPlanning']['model']['source'][1]
 
     }
-
-
-
-
     actualizeCreepNumber(): void {
         const rclEnergy = dpt_config.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
         if (rclEnergy == 1) {
@@ -30,7 +26,7 @@ export default class Dpt_Work extends Department {
 
             let numCreepsNeeded1 = dpt_config.positionToHarvest(this.mainRoom, sourceId1['pos']).length;
             if (numCreepsNeeded1 > 3) numCreepsNeeded1 = 3;
-            const data:HarvesterData = {
+            const data1:HarvesterData = {
                 source: sourceId1.id,
                 target: null
             }
@@ -38,19 +34,19 @@ export default class Dpt_Work extends Department {
             for (let i = 0; i < numCreepsNeeded1; ++i) {
                 const creepName = this.uid();
                 
-                this.sendToSpawnInitializacion(creepName, role,  data, 'dpt_harvest')
+                this.sendToSpawnInitializacion(creepName, role,  data1, 'dpt_harvest')
             }
 
             let numCreepsNeeded2 = dpt_config.positionToHarvest(this.mainRoom, sourceId2['pos']).length;
             if (numCreepsNeeded2 > 3) numCreepsNeeded2 = 3;
-            const config2 = {
-                source: sourceId2,
+            const data2 = {
+                source: sourceId2.id,
                 target: null
             }
             for (let i = 0; i < numCreepsNeeded2; ++i) {
                 const creepName = this.uid();
                 
-                //this.sendToSpawnInitializacion(creepName, config2)
+                this.sendToSpawnInitializacion(creepName, role, data2, 'dpt_harvest')
             }
 
 
@@ -62,15 +58,27 @@ export default class Dpt_Work extends Department {
 
     }
 
+    private processRequest() {
+        const requestList = this.memory['request'];
+        for (let i = 0; i < requestList.length; ++i) {
+            const creepName = requestList[0];
+            const creep = Game.creeps[creepName];
+            const logisticTaskRequest: MoveRequest = moveRequest(creep.id, [creep.pos.x, creep.pos.y], creep.memory['roomName'])
+            sendLogisticTask(creep.memory['roomName'], taskName(logisticTaskRequest), logisticTaskRequest);
+        }
+        //clear request
+        this.memory['request'] = [];
+    }
+        
 
     public run() {
+        
         if (Memory['colony'][this.mainRoom]['state']['updateCreepNum']) {
             this.actualizeCreepNumber();
             Memory['colony'][this.mainRoom]['state']['updateCreepNum']= false;
         }
-        
-        
-       
+
+        this.processRequest();
     }
 
 

@@ -74,25 +74,39 @@ export class Mem {
         colonyMem['creepSpawning']['task'] = {};
         colonyMem['creepSpawning']['completeTask'] = {};
 
-        this.initializeDptHarvest();
 
+        this.initializeDptHarvest();
+        this.initializeDptLogistic();
         this.initializeDptWork();
 
         
 
     }
     
+    private initializeDptLogistic() {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        colonyMem['dpt_logistic'] = {};
+        colonyMem['dpt_logistic']['state'] = '';
+
+        colonyMem['dpt_logistic']['request'] = [];
+        
+        colonyMem['dpt_logistic']['sourceTask'] = {};
+        colonyMem['dpt_logistic']['targetTask'] = {};
+
+        colonyMem['dpt_logistic']['creep'] = {};
+        colonyMem['dpt_logistic']['ticksToSpawn'] = {};
+    }
+
     private initializeDptHarvest() {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_harvest'] = {};
-        colonyMem['dpt_harvest']['state'] = '';
-            //BOST_MODE: generate creep to ocupied all harvest position, 
-            //LOW_MODE: only two harvester
-            //
-        colonyMem['dpt_harvest']['creep'] = {};
-        colonyMem['dpt_harvest']['creep']['internal'] = {};
+        
+        //harvesters collect energy request 
+        colonyMem['dpt_harvest']['request'] = [];
 
-        colonyMem['dpt_harvest']['source'] = {}
+
+
+        colonyMem['dpt_harvest']['creep'] = {};
             //'id': [Pos1, Pos2, Pos3...]
         colonyMem['dpt_harvest']['ticksToSpawn'] = {};
     }

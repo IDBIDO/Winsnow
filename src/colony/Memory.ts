@@ -98,12 +98,13 @@ export class Mem {
     private initializeDptHarvest() {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_harvest'] = {};
-        colonyMem['dpt_harvest']['state'] = '';
+        
+        //harvesters collect energy request 
+        colonyMem['dpt_harvest']['request'] = [];
+
+
 
         colonyMem['dpt_harvest']['creep'] = {};
-        
-
-        colonyMem['dpt_harvest']['source'] = {}
             //'id': [Pos1, Pos2, Pos3...]
         colonyMem['dpt_harvest']['ticksToSpawn'] = {};
     }

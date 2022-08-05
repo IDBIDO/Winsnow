@@ -38,7 +38,7 @@ export abstract class Department {
         Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName] ={};
         
         const spawnTask = Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName];
-        console.log(creepName);
+        //console.log(creepName);
         
         spawnTask['role'] = role;
         spawnTask['roomName'] = this.mainRoom;

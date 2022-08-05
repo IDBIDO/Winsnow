@@ -18,10 +18,6 @@ export default class Dpt_Work extends Department {
         return Memory['colony'][this.mainRoom]['roomPlanning']['model']['source'][1]
 
     }
-
-
-
-
     actualizeCreepNumber(): void {
         const rclEnergy = dpt_config.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
         if (rclEnergy == 1) {
@@ -44,13 +40,13 @@ export default class Dpt_Work extends Department {
             let numCreepsNeeded2 = dpt_config.positionToHarvest(this.mainRoom, sourceId2['pos']).length;
             if (numCreepsNeeded2 > 3) numCreepsNeeded2 = 3;
             const data2 = {
-                source: sourceId2,
+                source: sourceId2.id,
                 target: null
             }
             for (let i = 0; i < numCreepsNeeded2; ++i) {
                 const creepName = this.uid();
                 
-                this.sendToSpawnInitializacion(creepName, role, data2, 'dpt_harvester')
+                this.sendToSpawnInitializacion(creepName, role, data2, 'dpt_harvest')
             }
 
 
@@ -62,6 +58,10 @@ export default class Dpt_Work extends Department {
 
     }
 
+    private processRequest() {
+        
+    }
+        
 
     public run() {
         if (Memory['colony'][this.mainRoom]['state']['updateCreepNum']) {

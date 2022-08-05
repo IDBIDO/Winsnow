@@ -1933,9 +1933,9 @@ class Mem {
     initializeDptHarvest() {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_harvest'] = {};
-        colonyMem['dpt_harvest']['state'] = '';
+        //harvesters collect energy request 
+        colonyMem['dpt_harvest']['request'] = [];
         colonyMem['dpt_harvest']['creep'] = {};
-        colonyMem['dpt_harvest']['source'] = {};
         //'id': [Pos1, Pos2, Pos3...]
         colonyMem['dpt_harvest']['ticksToSpawn'] = {};
     }
@@ -2113,7 +2113,7 @@ class Department {
     sendToSpawnInitializacion(creepName, role, data, dpt) {
         Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName] = {};
         const spawnTask = Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName];
-        console.log(creepName);
+        //console.log(creepName);
         spawnTask['role'] = role;
         spawnTask['roomName'] = this.mainRoom;
         spawnTask['department'] = dpt;
@@ -2192,16 +2192,18 @@ class Dpt_Work extends Department {
             if (numCreepsNeeded2 > 3)
                 numCreepsNeeded2 = 3;
             const data2 = {
-                source: sourceId2,
+                source: sourceId2.id,
                 target: null
             };
             for (let i = 0; i < numCreepsNeeded2; ++i) {
                 const creepName = this.uid();
-                this.sendToSpawnInitializacion(creepName, role, data2, 'dpt_harvester');
+                this.sendToSpawnInitializacion(creepName, role, data2, 'dpt_harvest');
             }
         }
         //let dif = numCreepsNeeded - activeCreeps;
         //setting.workerSourceConfigUpdate(rclEnergy, this.mainRoom);
+    }
+    processRequest() {
     }
     run() {
         if (Memory['colony'][this.mainRoom]['state']['updateCreepNum']) {
@@ -2251,8 +2253,19 @@ global.ColonyApi = {
         col1.initializeMem();
         //col1.updateSpawnTask();
         return "Colony " + roomName + " created.";
+        /*
+        let request: LogisticTaskRequest = {
+            type: 'MOVE',
+            data: {
+                id: 'sss',
+                pos: [1,2],
+                roomName: 'dddd'
+            }
+        }
+        */
     },
-    generateCreep(roomName, role) {
+    sendTaskRequest(roomName, dpt, request) {
+        Memory['colony'][roomName][dpt]['request'].push(request);
     }
 };
 
@@ -2360,6 +2373,30 @@ const basic = {
     }),
     transporter: (data) => ({
         source: creep => {
+            const sourceID = creep.memory['data']['source']['id'];
+            const source = Game.getObjectById(sourceID);
+            if (source instanceof Creep) {
+                creep.moveTo(source);
+            }
+            /*
+            if(sourceID == null) {
+                const sourceTask = Memory['colony'][creep.memory['roomName']][creep.memory['department']]['sourceTask'];
+                const keys = Object.keys(sourceTask);
+                
+                if (keys.length > 0) {
+                    creep.memory['data']['source'] = sourceTask[keys[0]]
+                    //console.log(Object.keys(sourceTask)[0]);
+    
+                }
+
+                else return false;
+            }
+
+            const source = Game.getObjectById(sourceID);
+            if (source instanceof Creep) {
+                creep.moveTo(source);
+            }
+            */
             return false;
         },
         target: creep => {

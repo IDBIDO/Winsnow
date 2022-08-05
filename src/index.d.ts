@@ -18,6 +18,47 @@ interface SourceTargetData{
     target: string;
 }
 
+/******************** *******************/
+interface Task {
+    taskID: string, 
+    data: TaskRequest
+}
+
+
+
+/****************************REQUEST ***********************/
+type TaskRequest = 
+    LogisticTaskRequest
+
+/************* LOGISTIC REQUEST  *************/
+
+type LogisticTaskRequest = 
+    MoveRequest | TransferRequest | WithdrawRequest
+
+interface MoveRequest {
+    type: 'MOVE',
+    id: string;                 //object id
+    pos: [number, number];      //position to move
+    roomName: string;           //room of position
+}
+
+interface TransferRequest {
+    type: 'TRANSFER',
+    id: string, 
+    resourceType: ResourceConstant,
+    amount: number
+}
+
+interface WithdrawRequest {
+    type: 'WITHDRAW',
+    id: string, 
+    resourceType: ResourceConstant
+}
+
+/************* BUILDER REQUEST  ***************/
+
+
+
 /************* TASK *************/
 
 interface LogisticSourceTask {
@@ -25,6 +66,7 @@ interface LogisticSourceTask {
     roomName: string,
     pos: [number, number]
 }
+
 
 
 interface creepConfig {
@@ -83,4 +125,7 @@ type BaseRoleConstant =
     'builder' |
     'transporter'
     //'repairer'
+    
+type AdvancedRoleConstant =
+    'manager'
     

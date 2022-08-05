@@ -95,6 +95,34 @@ export const basic:{
 
     transporter: (data: LogisticData): ICreepConfig => ({
         source: creep => {
+            const sourceID = creep.memory['data']['source']['id'];
+            const source = Game.getObjectById(sourceID);
+            if (source instanceof Creep) {
+                creep.moveTo(source);
+            }
+            
+            /*
+            if(sourceID == null) {
+                const sourceTask = Memory['colony'][creep.memory['roomName']][creep.memory['department']]['sourceTask'];
+                const keys = Object.keys(sourceTask);
+                
+                if (keys.length > 0) {
+                    creep.memory['data']['source'] = sourceTask[keys[0]]
+                    //console.log(Object.keys(sourceTask)[0]);
+    
+                }
+
+                else return false;
+            }
+
+            const source = Game.getObjectById(sourceID);
+            if (source instanceof Creep) {
+                creep.moveTo(source);
+            }
+            */
+
+
+
             return false;
         },
         target: creep => {

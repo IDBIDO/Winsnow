@@ -1,7 +1,7 @@
 import { sendRequest } from "@/colony/dpt_comunication";
 import * as publisher from "../taskPublisher";
 
-export const basic:{
+const roles:{
     [role in BaseRoleConstant]: (data: {}) => ICreepConfig
 } = {
     colonizer: (data: SourceTargetData): ICreepConfig => ({
@@ -61,7 +61,6 @@ export const basic:{
             if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(source);
             }
-            
             //change state if creep store max
             return creep.store.getFreeCapacity() <= 0;
         },
@@ -95,6 +94,7 @@ export const basic:{
 
     }),
 
+    /*
     transporter: (data: LogisticData): ICreepConfig => ({
         source: creep => {
             const sourceID = creep.memory['data']['source']['id'];
@@ -102,28 +102,7 @@ export const basic:{
             if (source instanceof Creep) {
                 creep.moveTo(source);
             }
-            
-            /*
-            if(sourceID == null) {
-                const sourceTask = Memory['colony'][creep.memory['roomName']][creep.memory['department']]['sourceTask'];
-                const keys = Object.keys(sourceTask);
-                
-                if (keys.length > 0) {
-                    creep.memory['data']['source'] = sourceTask[keys[0]]
-                    //console.log(Object.keys(sourceTask)[0]);
     
-                }
-
-                else return false;
-            }
-
-            const source = Game.getObjectById(sourceID);
-            if (source instanceof Creep) {
-                creep.moveTo(source);
-            }
-            */
-
-
 
             return false;
         },
@@ -132,4 +111,6 @@ export const basic:{
         }
 
     }),
+    */
 }
+export default roles;

@@ -31,28 +31,49 @@ type TaskRequest =
     LogisticTaskRequest
 
 /************* LOGISTIC REQUEST  *************/
+type LogisticTaskType = 
+    'MOVE' | 'TRANSFER' | 'WITHDRAW'
 
 type LogisticTaskRequest = 
     MoveRequest | TransferRequest | WithdrawRequest
 
-interface MoveRequest {
-    type: 'MOVE',
+interface MoveRequestData{
     id: string;                 //object id
     pos: [number, number];      //position to move
     roomName: string;           //position's room
 }
 
-interface TransferRequest {
-    type: 'TRANSFER',
+interface MoveRequest {
+    type: 'MOVE',
+    source: MoveRequestData
+}
+
+interface TransferRequestData {
     id: string, 
     resourceType: ResourceConstant,
     amount: number
 }
 
-interface WithdrawRequest {
-    type: 'WITHDRAW',
+interface TransferRequest {
+    type: 'TRANSFER',
+    target: TransferRequestData
+}
+
+interface WithdrawRequestData {
     id: string, 
     resourceType: ResourceConstant
+}
+
+interface WithdrawRequest {
+    type: 'WITHDRAW',
+    source: WithdrawRequestData
+}
+
+interface transferTaskOperation {
+         // creep 工作时执行的方法
+    target: (creep: Creep) => boolean
+    // creep 非工作(收集资源时)执行的方法
+    source: (creep: Creep) => boolean
 }
 
 /************* BUILDER REQUEST  ***************/
@@ -65,6 +86,13 @@ interface LogisticSourceTask {
     id: string, 
     roomName: string,
     pos: [number, number]
+}
+interface LogisticMoveTask {
+    type: 'MOVE',
+    source: MoveRequestData
+    target: {
+        id: string,
+    }
 }
 
 
@@ -122,11 +150,16 @@ type BaseRoleConstant =
     //'miner' |
     //'upgrader' |
     //'filler' |
-    'builder' |
-    'transporter'
+    'builder' 
     //'repairer'
     
 type AdvancedRoleConstant =
     'manager'|
     'transporter'
     
+type CreepWork = {
+    [role in CreepRoleConstant]: (data: {}) => ICreepConfig
+}
+
+// 所有的 creep 角色
+type CreepRoleConstant = BaseRoleConstant | AdvancedRoleConstant 

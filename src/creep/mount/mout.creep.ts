@@ -1,6 +1,5 @@
 
-import { basic } from "./role/basic";
-
+import roles from '../role'
 
 /*
     creep work 
@@ -16,8 +15,8 @@ export default class CreepExtension extends Creep {
         //console.log(this.memory['role']);
         //console.log(this.memory['data'])
 
-        const creepLogic = basic[this.memory['role']](this.memory['data'])
-        //const creepLogic = basic[role](data);
+        const creepLogic = roles[this.memory['role']](this.memory['data'])
+        //const creepLogic = roles[role](data);
 
 
         // ------------------------ 第二步：执行 creep 准备阶段 ------------------------

@@ -26,12 +26,9 @@ export class CreepSpawning {
             deadTime: setting.ticksToSpawn(role, energyRCL) + 1500 + 10
         };
         */
-       console.log(dpt);
-       console.log(name);
-       console.log(setting.ticksToSpawn(role, energyRCL));
-       
-       
-       
+       //console.log(dpt);
+       //console.log(name);
+       //console.log(setting.ticksToSpawn(role, energyRCL));
         Memory['colony'][this.mainRoom][dpt]['ticksToSpawn'][name] = Game.time + setting.ticksToSpawn(role, energyRCL) + 1500 + 10;
         
     }
@@ -44,7 +41,7 @@ export class CreepSpawning {
     private spawn(spawnName: string, creepName: string, creepRole: string, creepData:{}, dpt: string ): ScreepsReturnCode {
         const spawn = Game.spawns[spawnName];
         const energyRCL = setting.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
-        console.log(energyRCL);
+        //console.log(energyRCL);
         
         const creepBody = setting.getBody(creepRole, energyRCL);
 
@@ -109,7 +106,7 @@ export class CreepSpawning {
         const spawnName = this.getAvailableSpawnName();
         
         if (spawnName) {
-            console.log(spawnName);
+            //console.log(spawnName);
 
             const source: LogisticSourceTask = {
                 id: null, 

@@ -1901,6 +1901,9 @@ class Mem {
         request mem for a new colony
     */
     initializeColonyMem() {
+        if (!Memory['colony']) {
+            Memory['colony'] = {};
+        }
         delete Memory['colony'][this.mainRoom];
         Memory['colony'][this.mainRoom] = {};
         const colonyMem = Memory['colony'][this.mainRoom];
@@ -2009,9 +2012,9 @@ class CreepSpawning {
             deadTime: setting.ticksToSpawn(role, energyRCL) + 1500 + 10
         };
         */
-        console.log(dpt);
-        console.log(name);
-        console.log(ticksToSpawn(role, energyRCL));
+        //console.log(dpt);
+        //console.log(name);
+        //console.log(setting.ticksToSpawn(role, energyRCL));
         Memory['colony'][this.mainRoom][dpt]['ticksToSpawn'][name] = Game.time + ticksToSpawn(role, energyRCL) + 1500 + 10;
     }
     uid() {
@@ -2021,7 +2024,7 @@ class CreepSpawning {
     spawn(spawnName, creepName, creepRole, creepData, dpt) {
         const spawn = Game.spawns[spawnName];
         const energyRCL = getEnergyRCL$1(Game.rooms[this.mainRoom].energyCapacityAvailable);
-        console.log(energyRCL);
+        //console.log(energyRCL);
         const creepBody = getBody(creepRole, energyRCL);
         return spawn.spawnCreep(creepBody, creepName, {
             memory: {
@@ -2072,7 +2075,7 @@ class CreepSpawning {
     spawnQueen() {
         const spawnName = this.getAvailableSpawnName();
         if (spawnName) {
-            console.log(spawnName);
+            //console.log(spawnName);
             const source = {
                 id: null,
                 roomName: null,
@@ -2172,13 +2175,15 @@ function taskName(request) {
 function moveRequest(id, pos, roomName) {
     const r = {
         type: 'MOVE',
-        id: id,
-        pos: pos,
-        roomName: roomName
+        source: {
+            id: id,
+            pos: pos,
+            roomName: roomName
+        }
     };
     return r;
 }
-/************** Fase1.2: SEND TASK REQUEST ****************/
+/************** Fase1.2. OBJECT: SEND TASK REQUEST ****************/
 function sendRequest(roomName, dpt, creepName) {
     Memory['colony'][roomName][dpt]['request'].push(creepName);
 }
@@ -2330,7 +2335,7 @@ const assignPrototype = function (obj1, obj2) {
     });
 };
 
-const basic = {
+const roles$1 = {
     colonizer: (data) => ({
         source: creep => {
             const source = Game.getObjectById(data.source);
@@ -2398,39 +2403,84 @@ const basic = {
             return (creep.store.getUsedCapacity() <= 0);
         }
     }),
-    transporter: (data) => ({
+    /*
+    transporter: (data: LogisticData): ICreepConfig => ({
         source: creep => {
             const sourceID = creep.memory['data']['source']['id'];
             const source = Game.getObjectById(sourceID);
             if (source instanceof Creep) {
                 creep.moveTo(source);
             }
-            /*
-            if(sourceID == null) {
-                const sourceTask = Memory['colony'][creep.memory['roomName']][creep.memory['department']]['sourceTask'];
-                const keys = Object.keys(sourceTask);
-                
-                if (keys.length > 0) {
-                    creep.memory['data']['source'] = sourceTask[keys[0]]
-                    //console.log(Object.keys(sourceTask)[0]);
     
-                }
 
-                else return false;
-            }
-
-            const source = Game.getObjectById(sourceID);
-            if (source instanceof Creep) {
-                creep.moveTo(source);
-            }
-            */
             return false;
         },
         target: creep => {
             return false;
         }
+
     }),
+    */
 };
+
+const roles = {
+    manager: (data) => ({
+        source: creep => {
+            return true;
+        },
+        target: creep => {
+            return false;
+        }
+    }),
+    transporter: (data) => ({
+        source: creep => {
+            /*
+            const sourceData = creep.memory['task']['source'];
+            let move = 'MOVE';
+            if (sourceData) return transferTaskOperations[move].source(creep)
+            else {
+                creep.say('💤')
+                return true;
+            }
+            */
+            return transferTaskOperations['MOVE'].source(creep);
+        },
+        target: creep => {
+            return false;
+        }
+    })
+};
+const transferTaskOperations = {
+    MOVE: {
+        source: (creep) => {
+            creep.say('💤');
+            return false;
+        },
+        target: (creep) => {
+            return false;
+        }
+    },
+    TRANSFER: {
+        source: (creep) => {
+            return false;
+        },
+        target: (creep) => {
+            return false;
+        }
+    },
+    WITHDRAW: {
+        source: (creep) => {
+            return false;
+        },
+        target: (creep) => {
+            return false;
+        }
+    }
+};
+
+//import remoteRoles from './remote'
+//import warRoles from './war'
+const creepWork = Object.assign(Object.assign({}, roles$1), roles);
 
 /*
     creep work
@@ -2441,8 +2491,8 @@ class CreepExtension extends Creep {
         //---------------- GET CREEP LOGIC --------------------
         //console.log(this.memory['role']);
         //console.log(this.memory['data'])
-        const creepLogic = basic[this.memory['role']](this.memory['data']);
-        //const creepLogic = basic[role](data);
+        const creepLogic = creepWork[this.memory['role']](this.memory['data']);
+        //const creepLogic = roles[role](data);
         // ------------------------ 第二步：执行 creep 准备阶段 ------------------------
         // 没准备的时候就执行准备阶段
         if (!this.memory['ready']) {
@@ -2482,12 +2532,6 @@ var mountCreep = () => {
     assignPrototype(Creep, CreepExtension);
 };
 
-/*
-ColonyApi.createColony('W7N3')
-
-
-
-*/
 //Main loop
 module.exports.loop = function () {
     mountCreep();

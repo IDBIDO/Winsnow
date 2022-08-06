@@ -1,5 +1,5 @@
 import { assignPrototype } from "@/utils"
-import CreepExtension from "@/creep/mout.creep"
+import CreepExtension from "@/creep/mount/mout.creep"
 
 /**
  * 挂载 creep 拓展

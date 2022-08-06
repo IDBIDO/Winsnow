@@ -1,4 +1,7 @@
-export const advanced: {
+
+
+
+const roles: {
     [role in AdvancedRoleConstant]: (data: {}) => ICreepConfig
 } = {
 
@@ -15,11 +18,21 @@ export const advanced: {
 
     transporter: (data: string): ICreepConfig => ({
         source: creep => {
+            /*
             const sourceData = creep.memory['task']['source'];
-            if (sourceData) return true//transferTaskOperations[task.type].source(creep, task, data.sourceId)
-            else creep.say('💤')
+            let move = 'MOVE';
+            if (sourceData) return transferTaskOperations[move].source(creep)
+            else {
+                creep.say('💤')
+                return true;
+            }
+            */
+            return transferTaskOperations['MOVE'].source(creep)
+            
         },
         target: creep => {
+
+
 
             return false;
         }
@@ -29,3 +42,39 @@ export const advanced: {
 
 
 }
+
+export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskOperation
+} = {
+    MOVE: {
+        source: (creep:Creep) => {
+            
+            creep.say('💤')
+
+            return false;
+        },
+        target: (creep:Creep) => {
+            return false;
+        }
+        
+    },
+    TRANSFER: {
+        source: (creep:Creep) => {
+            return false;
+        },
+        target: (creep:Creep) => {
+            return false;
+        }
+        
+    },
+    WITHDRAW: {
+        source: (creep:Creep) => {
+            return false;
+        },
+        target: (creep:Creep) => {
+            return false;
+        }
+        
+    }
+
+}
+export default roles;

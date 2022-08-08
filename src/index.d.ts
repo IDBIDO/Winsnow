@@ -163,3 +163,18 @@ type CreepWork = {
 
 // 所有的 creep 角色
 type CreepRoleConstant = BaseRoleConstant | AdvancedRoleConstant 
+
+
+/******************* STRUCTURE FUNCTION ***********************/
+type ContainerFunction = 
+    'container_source1' |
+    'container_source2' |
+    'container_mineral1'|
+    'container_controller'
+
+type LinkFunction = 
+    'link_source1' |
+    'link_source2' |
+    'link_controller1'|
+    'link_center'
+

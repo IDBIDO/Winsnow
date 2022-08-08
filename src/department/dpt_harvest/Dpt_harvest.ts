@@ -72,12 +72,12 @@ export default class Dpt_Work extends Department {
         
 
     public run() {
-        
+        /*
         if (Memory['colony'][this.mainRoom]['state']['updateCreepNum']) {
             this.actualizeCreepNumber();
             Memory['colony'][this.mainRoom]['state']['updateCreepNum']= false;
         }
-
+        */
         this.processRequest();
     }
 

@@ -2251,10 +2251,12 @@ class Dpt_Work extends Department {
         this.memory['request'] = [];
     }
     run() {
+        /*
         if (Memory['colony'][this.mainRoom]['state']['updateCreepNum']) {
             this.actualizeCreepNumber();
-            Memory['colony'][this.mainRoom]['state']['updateCreepNum'] = false;
+            Memory['colony'][this.mainRoom]['state']['updateCreepNum']= false;
         }
+        */
         this.processRequest();
     }
 }

@@ -9,10 +9,11 @@ export function moveRequest(id: string, pos: [number, number], roomName: string)
 
     const r: MoveRequest = {
         type: 'MOVE',
-        id: id, 
-        pos: pos, 
-        roomName: roomName
-        
+        source: {
+            id: id, 
+            pos: pos, 
+            roomName: roomName
+        }
     }
     return r;
 }
@@ -21,10 +22,11 @@ export function transferRequest(id: string, resourceType: ResourceConstant ,amou
 
     const r: TransferRequest = {
         type: 'TRANSFER',
-        id: id, 
-        resourceType: resourceType,
-        amount: amount,
-        
+        target: {
+            id: id, 
+            resourceType: resourceType,
+            amount: amount,
+        }
     }
     return r;
 }
@@ -32,21 +34,23 @@ export function transferRequest(id: string, resourceType: ResourceConstant ,amou
 export function withdrawRequest(id: string, resourceType: ResourceConstant): WithdrawRequest {
     const r: WithdrawRequest = {
         type: 'WITHDRAW',
-        id: id, 
-        resourceType: resourceType
+        source: {
+            id: id, 
+            resourceType: resourceType
+        }
     }
     return r;
 }
 
 
-    /************** Fase1.2: SEND TASK REQUEST ****************/
+    /************** Fase1.2. OBJECT: SEND TASK REQUEST ****************/
 
 export function sendRequest(roomName: string ,dpt: string, creepName: string) {
     Memory['colony'][roomName][dpt]['request'].push(creepName);
 }
 
 
-/******************* FASE2. DEPARTMENT: SEND TASK  ***********************/
+/******************* FASE2. DEPARTMENT: SEND TASK TO OBJ_DEPARTMENT  ***********************/
     /* Fase2.1:  TASK CREATION */
 export function task(request: TaskRequest) {
 
@@ -78,6 +82,7 @@ export function getTTL(request: TaskRequest) {
 export function sendTaskRequest(creepName: string, roomName: string) {
     Memory['colony'][roomName]['dpt_logistic']['requestCreep'].push(creepName);
 }
+
 
 
 

@@ -2,15 +2,8 @@ import {Colony} from "./colony/Colony"
 import * as ColonyApi from "./colony/ColonyApi"
 import {Mem} from "./colony/Memory"
 
-import mountCreep from './creep'
+import mountCreep from './creep/mount'
 import { CreepSpawning } from "./structure/CreepSpawning"
-/*
-ColonyApi.createColony('W7N3')
-
-
-
-*/
-
 
 //Main loop
 module.exports.loop = function() {
@@ -28,6 +21,7 @@ module.exports.loop = function() {
   //console.log(creepSpawning.uid());
     //console.log(performance.now());
     //console.log('C' + Math.random().toString(36).substr(2,8));
+  
     const creep = Memory['creeps'];
     for (let creepName in creep)  {
       if (Game.creeps[creepName]) {
@@ -35,5 +29,6 @@ module.exports.loop = function() {
         
       }
     }
+    
 
 }

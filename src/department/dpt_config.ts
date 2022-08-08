@@ -33,14 +33,7 @@ export function positionToHarvest(roomName: string, pos: [number, number]): [num
     return canStand
 }
 
-export function nwork(energyAmount: number): {} {
-    let energyRCL = getEnergyRCL(energyAmount);
-    if (energyRCL == 1) {
 
-    }
-
-    return
-}
 
 
 export const permmanentCreepsRoleNum = {

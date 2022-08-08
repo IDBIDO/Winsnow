@@ -53,6 +53,9 @@ export class Mem {
         request mem for a new colony
     */
     public initializeColonyMem(): void {
+        if (! Memory['colony']) {
+            Memory['colony'] = {}
+        }
         delete Memory['colony'][this.mainRoom]
 
         Memory['colony'][this.mainRoom] = {};

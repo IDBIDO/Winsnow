@@ -1,5 +1,6 @@
 import { Department } from "../Department";
 import * as dpt_config from "@/department/dpt_config"
+import { moveRequest } from "@/colony/dpt_comunication";
 
 
 export default class Dpt_Logistic extends Department {
@@ -39,6 +40,39 @@ export default class Dpt_Logistic extends Department {
             return null;
         }
         else return requestList[0];
+    }
+
+    /** Dpt_logistic creaat move task to reply a request */
+    private creatMoveTask(moveTask: MoveRequest): LogisticMoveTask {
+        const storage = Game.rooms[this.mainRoom].storage
+        if (storage) {
+            const task: LogisticMoveTask = {
+                type: 'MOVE',
+                source: moveTask.source,
+                target: {
+                    id: storage.id
+                }
+            }
+            return task;
+        }
+        //!!!!!!!! PUEDE DAR ERROR SI RCL > 5
+        else {
+            const targetTaskList = this.memory['targetTask'];
+            const taskName = Object.keys(targetTaskList);
+            if (taskName.length) {
+                targetTaskList[taskName[0]];
+                const task: LogisticMoveTask = {
+                    type: 'MOVE',
+                    source: moveTask.source,
+                    target: {
+                        id: targetTaskList[taskName[0]]
+                    }
+                }
+                return task;
+            }
+            else return null;
+        }
+        
     }
 
     private processRequest() {

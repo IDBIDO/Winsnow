@@ -2443,10 +2443,20 @@ const roles = {
                 return true;
             }
             */
-            return transferTaskOperations['MOVE'].source(creep);
+            creep.say('zz');
+            return false;
         },
         target: creep => {
-            return false;
+            if (creep.memory['task'] = null) {
+                sendRequest(creep.memory['roomName'], creep.memory['department'], creep.name);
+                creep.memory['sleeping'] = true;
+                return true;
+            }
+            else {
+                //WORKING CODE
+                const taskType = creep.memory['task']['type'];
+                return transferTaskOperations[taskType].source(creep);
+            }
         }
     })
 };
@@ -2455,8 +2465,19 @@ const transferTaskOperations = {
         source: (creep) => {
             creep.say('💤');
             return false;
+            /*
+            const sourceData = creep.memory['task']['source'];
+            const targetPos:RoomPosition = new RoomPosition(sourceData['pos'][0], sourceData['pos'][1], sourceData['roomName'])
+            creep.moveTo(targetPos)
+            if (creep.pos.isNearTo(targetPos)) {
+                return true;
+            }
+            return false;
+            */
         },
         target: (creep) => {
+            const targetData = creep.memory['task']['target'];
+            Game.getObjectById(targetData['id']);
             return false;
         }
     },

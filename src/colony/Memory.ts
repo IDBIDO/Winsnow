@@ -62,7 +62,15 @@ export class Mem {
         const colonyMem = Memory['colony'][this.mainRoom];
 
         colonyMem['state'] = {};
-        colonyMem['state']['currentRCL'] = 1;
+
+        colonyMem['state']['buildColony'] = {}
+        colonyMem['state']['buildColony']['buildRCL'] = 0;
+        colonyMem['state']['buildColony']['fase'] = 0;
+        colonyMem['state']['buildColony']['working'] = false;
+        colonyMem['state']['buildColony']['task'] = {}
+
+        colonyMem['state']['import'] = {}
+
         colonyMem['state']['updateRoomPlanning'] = true;
         colonyMem['state']['updateCreepNum'] = true;
         colonyMem['state']['updateCreepNumWorker'] = true;

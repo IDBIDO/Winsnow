@@ -14,7 +14,7 @@ module.exports.loop = function() {
 
   ColonyApi;
 
-  const colony = new Colony('W7N7');
+  const colony = new Colony('W5N8');
   colony.run();
 
   //const creepSpawning = new CreepSpawning('W8N7');

@@ -30,6 +30,7 @@ export default class Dpt_Work extends Department {
                 source: sourceId1.id,
                 target: null
             }
+
             const role = 'harvester';
             for (let i = 0; i < numCreepsNeeded1; ++i) {
                 const creepName = this.uid();

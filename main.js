@@ -1892,9 +1892,11 @@ class Mem {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_work'] = {};
         colonyMem['dpt_work']['creep'] = {};
-        colonyMem['dpt_work']['buildTask'] = [];
-        colonyMem['dpt_work']['repairTask'] = [];
         colonyMem['dpt_work']['ticksToSpawn'] = {};
+        colonyMem['dpt_work']['buildTask'] = {};
+        colonyMem['dpt_work']['completeBuildTask'] = {};
+        colonyMem['dpt_work']['repairTask'] = {};
+        colonyMem['dpt_work']['completeRepairTask'] = {};
         this.initializeWorkerCreepsMem();
     }
     /*
@@ -1979,7 +1981,9 @@ function ticksToSpawn(role, rcl) {
 const bodyPrototype = {
     harvester: [WORK, CARRY, MOVE],
     worker: [WORK, CARRY, MOVE],
-    transporter: [CARRY, MOVE]
+    transporter: [CARRY, MOVE],
+    initializer: [WORK, CARRY, MOVE],
+    iniQueen: [CARRY, MOVE]
 };
 const bodyComponentNum = {
     //WORK  CARRY   MOVE
@@ -1994,6 +1998,12 @@ const bodyComponentNum = {
     transporter: {
         1: [2, 2],
         2: [3, 2]
+    },
+    initializer: {
+        1: [2, 1, 1]
+    },
+    iniQueen: {
+        1: [3, 3],
     }
 };
 
@@ -2090,7 +2100,7 @@ class CreepSpawning {
                 source: source,
                 target: null
             };
-            this.spawn(spawnName, 'Queen' + this.mainRoom, 'transporter', data, 'dpt_logistic');
+            this.spawn(spawnName, 'Queen' + this.mainRoom, 'iniQueen', data, 'dpt_logistic');
         }
     }
     run() {
@@ -2321,18 +2331,12 @@ function positionToHarvest(roomName, pos) {
 }
 /************************ SEND TO SPAWN ************************/
 
+/** CONTROL ALL DEPARTMENT */
 class OperationReserch {
     constructor(mainRoom) {
         this.mainRoom = mainRoom;
         this.memory = Memory['colony'][mainRoom]['state'];
     }
-    /*
-    state {
-        rcl: number
-        fase: number
-
-    }
-    */
     /** Funtion to control creep numbers, only used for OR */
     sendToSpawnInitializacion(creepName, role, data, dpt) {
         Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName] = {};
@@ -2343,35 +2347,56 @@ class OperationReserch {
         spawnTask['department'] = dpt;
         spawnTask['data'] = data;
     }
-    buildSourceContainers() {
-        console.log(111);
+    /************************** buildRCL 1 *********************************/
+    /** fase 0 */
+    putSourceUpgraderContainers() {
         const sourceContainer1Pos = getContainerPos(this.mainRoom, "container_source1");
         Game.rooms[this.mainRoom].createConstructionSite(sourceContainer1Pos[0], sourceContainer1Pos[1], 'container');
+        const sourceContainer2Pos = getContainerPos(this.mainRoom, "container_source2");
+        Game.rooms[this.mainRoom].createConstructionSite(sourceContainer2Pos[0], sourceContainer2Pos[1], 'container');
+        const controllerContainerPos = getContainerPos(this.mainRoom, 'container_controller');
+        Game.rooms[this.mainRoom].createConstructionSite(controllerContainerPos[0], controllerContainerPos[1], 'container');
+        this.memory['buildColony']['fase'] = 1;
+        this.memory['buildColony']['working'] = false;
+    }
+    /** fase 1 */
+    buildSourceContainers() {
+        const sourceContainer1Pos = getContainerPos(this.mainRoom, "container_source1");
+        //Game.rooms[this.mainRoom].createConstructionSite(sourceContainer1Pos[0], sourceContainer1Pos[1], 'container');
         const constructionSideID1 = getConstructionSideID(this.mainRoom, sourceContainer1Pos);
         let numCreepsNeeded1 = positionToHarvest(this.mainRoom, sourceContainer1Pos).length;
         if (numCreepsNeeded1 > 3)
             numCreepsNeeded1 = 3;
         const data1 = {
             source: getSourceEnery1ID(this.mainRoom),
-            target: constructionSideID1
+            target: {
+                id: constructionSideID1,
+                pos: [sourceContainer1Pos[0], sourceContainer1Pos[1]]
+            }
         };
         const sourceContainer2Pos = getContainerPos(this.mainRoom, "container_source2");
-        Game.rooms[this.mainRoom].createConstructionSite(sourceContainer2Pos[0], sourceContainer2Pos[1], 'container');
+        //Game.rooms[this.mainRoom].createConstructionSite(sourceContainer2Pos[0], sourceContainer2Pos[1], 'container');
         const constructionSideID2 = getConstructionSideID(this.mainRoom, sourceContainer2Pos);
         let numCreepsNeeded2 = positionToHarvest(this.mainRoom, sourceContainer2Pos).length;
         if (numCreepsNeeded2 > 3)
             numCreepsNeeded2 = 3;
         const data2 = {
             source: getSourceEnery2ID(this.mainRoom),
-            target: constructionSideID2
+            target: {
+                id: constructionSideID2,
+                pos: [sourceContainer2Pos[0], sourceContainer2Pos[1]]
+            }
         };
+        //send spawn task
         const totalNum = numCreepsNeeded1 + numCreepsNeeded2;
         let par = true;
         for (let i = 0; i < totalNum; ++i) {
             const creepName$1 = creepName();
             if (par) {
-                this.sendToSpawnInitializacion(creepName$1, 'harvester', data1, 'dpt_harvest');
+                this.sendToSpawnInitializacion(creepName$1, 'initializer', data1, 'dpt_harvest');
                 par = false;
+                //save creep name to check task completation
+                this.memory['buildColony']['task'][0] = {};
             }
             else {
                 this.sendToSpawnInitializacion(creepName$1, 'harvester', data2, 'dpt_harvest');
@@ -2379,9 +2404,11 @@ class OperationReserch {
             }
         }
     }
+    /** fase 2 */
     buildUpgraderContainer() {
     }
-    leveUpAndBuildRoad() {
+    /** fase 3 */
+    level2AndBuildRoad() {
     }
     buildColony() {
         const rcl = this.memory['buildColony']['buildRCL'];
@@ -2389,25 +2416,27 @@ class OperationReserch {
         switch (rcl) {
             case 0: //new colony, only have a spawn
                 if (fase == 0)
-                    this.buildSourceContainers();
+                    this.putSourceUpgraderContainers(); //PUT SOURCE CONTAINERS
                 else if (fase == 1)
+                    this.buildSourceContainers();
+                else if (fase == 2)
                     this.buildUpgraderContainer();
                 else
-                    this.leveUpAndBuildRoad();
+                    this.level2AndBuildRoad();
                 break;
         }
     }
-    taskComplete() {
+    faseComplete() {
         return false;
     }
     run() {
         if (this.memory['buildColony']['buildRCL'] != 9 && Game.time % 13 == 0) {
             if (!this.memory['buildColony']['working']) {
-                this.buildColony();
                 this.memory['buildColony']['working'] = true;
+                this.buildColony();
             }
             else { //if OR are working, check if all task complete
-                if (this.taskComplete()) {
+                if (this.faseComplete()) {
                     this.memory['buildColony']['working'] = false;
                     const rcl = this.memory['buildColony']['buildRCL'];
                     this.memory['buildColony']['buildRCL'] = rcl + 1;
@@ -2442,8 +2471,8 @@ class Colony {
         operationResearch.run();
         new Dpt_Work(this.mainRoom);
         //dpt_harvest.run();
-        new CreepSpawning(this.mainRoom);
-        //creepSpawning.run();
+        const creepSpawning = new CreepSpawning(this.mainRoom);
+        creepSpawning.run();
     }
 }
 //Memory['colony']['W7N7']['creepSpawning']['spawn'].push('Spawn1')
@@ -2558,6 +2587,59 @@ const roles$1 = {
                 creep.transfer(target, RESOURCE_ENERGY);
             }
             return (creep.store.getUsedCapacity() <= 0);
+        }
+    }),
+    initializer: (data) => ({
+        source: creep => {
+            const source = Game.getObjectById(data.source);
+            if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(source);
+            }
+            return creep.store.getFreeCapacity() <= 0;
+        },
+        target: creep => {
+            const queen = Game.creeps['Queen' + creep.room];
+            if (queen) {
+                if (creep.pos.isNearTo(queen.pos)) {
+                    creep.transfer(queen, 'energy');
+                }
+            }
+            else {
+                const target = Game.getObjectById(data.target.id);
+                if (target) {
+                    if (target instanceof ConstructionSite) {
+                        creep.build(target);
+                    }
+                    else if (target instanceof Structure) {
+                        creep.transfer(target, 'energy');
+                    }
+                }
+                else {
+                    const pos = new RoomPosition(data.target.pos[0], data.target.pos[1], creep.memory['roomName']);
+                    const container = pos.lookFor(LOOK_STRUCTURES)[0];
+                    creep.memory['data']['target'] = container.id;
+                }
+            }
+            return (creep.store.getUsedCapacity() <= 0);
+        }
+    }),
+    iniQueen: (data) => ({
+        source: creep => {
+            const nearInitializer = creep.pos.findClosestByRange(FIND_MY_CREEPS);
+            if (nearInitializer) {
+                creep.moveTo(nearInitializer);
+            }
+            // 自己身上的能量装满了，返回 true（切换至 target 阶段）
+            return creep.store.getFreeCapacity() <= 0;
+        },
+        target: creep => {
+            const nearSpawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
+            if (nearSpawn) {
+                creep.moveTo(nearSpawn);
+                if (nearSpawn.store.getFreeCapacity())
+                    creep.transfer(nearSpawn, 'energy');
+            }
+            return creep.store[RESOURCE_ENERGY] <= 0;
         }
     }),
     /*

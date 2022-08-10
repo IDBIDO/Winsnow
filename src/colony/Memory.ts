@@ -43,9 +43,11 @@ export class Mem {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_work'] = {};
         colonyMem['dpt_work']['creep'] = {};
-        colonyMem['dpt_work']['buildTask'] = [];
-        colonyMem['dpt_work']['repairTask'] = [];
         colonyMem['dpt_work']['ticksToSpawn'] = {};
+        colonyMem['dpt_work']['buildTask'] = {};
+        colonyMem['dpt_work']['completeBuildTask'] = {};
+        colonyMem['dpt_work']['repairTask'] = {};
+        colonyMem['dpt_work']['completeRepairTask'] = {};
         this.initializeWorkerCreepsMem();
     }
 

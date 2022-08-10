@@ -42,7 +42,7 @@ export class Colony {
         //dpt_harvest.run();
 
         const creepSpawning = new CreepSpawning(this.mainRoom);
-        //creepSpawning.run();
+        creepSpawning.run();
     }
     
 }

@@ -1,5 +1,13 @@
 
 /********************* ROLE DATA ****************/
+interface InitializerData {
+    source: string;
+    target: {
+        id: string,
+        pos:[number, number]
+    }
+}
+
 
 interface HarvesterData{
     source: string;
@@ -150,8 +158,10 @@ type BaseRoleConstant =
     //'miner' |
     //'upgrader' |
     //'filler' |
-    'builder' 
-    //'repairer'
+    'builder' |
+    //'repairer' |
+    'initializer'|
+    'iniQueen'
     
 type AdvancedRoleConstant =
     'manager'|
@@ -177,4 +187,7 @@ type LinkFunction =
     'link_source2' |
     'link_controller1'|
     'link_center'
+
+
+/************************ BUILD COLONY TASK TYPE ************************ */
 

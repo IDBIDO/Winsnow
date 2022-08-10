@@ -42,7 +42,9 @@ export function ticksToSpawn(role: string, rcl: number): number {
 export const bodyPrototype = {
     harvester: [WORK, CARRY, MOVE],
     worker: [WORK, CARRY, MOVE],
-    transporter: [CARRY, MOVE]
+    transporter: [CARRY, MOVE],
+    initializer: [WORK, CARRY, MOVE],
+    iniQueen: [CARRY, MOVE]
 }
 
 
@@ -61,7 +63,15 @@ export const bodyComponentNum = {
     transporter: {
         1: [2, 2],
         2: [3, 2]
+    },
+
+    initializer: {
+        1: [2, 1, 1]
+    },
+    iniQueen: {
+        1: [3, 3],
     }
+
 }
 
 export const bodyConfigs = {

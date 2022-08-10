@@ -117,7 +117,8 @@ export class CreepSpawning {
                 source: source,
                 target: null
             }
-            let r = this.spawn(spawnName, 'Queen'+ this.mainRoom, 'transporter', data, 'dpt_logistic');
+            let r = this.spawn(spawnName, 'Queen'+ this.mainRoom, 'iniQueen', data, 'dpt_logistic');
+            
             
         }
     }

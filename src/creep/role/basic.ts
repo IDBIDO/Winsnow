@@ -39,21 +39,14 @@ const roles:{
             if (creep.harvest(source) == ERR_NOT_IN_RANGE) creep.moveTo(source);
 
         // 自己身上的能量装满了，返回 true（切换至 target 阶段）
-        return creep.store.getFreeCapacity() <= 0
-
-            return true;
+        return creep.store.getFreeCapacity() <= 0;
         },
         target: creep => {
             const target = Game.getObjectById(data.target as Id<ConstructionSite>);
             if (creep.build(target) == ERR_NOT_IN_RANGE) creep.moveTo(target);
 
-
             return creep.store[RESOURCE_ENERGY] <= 0
         }
-
-
-        
-
     }),
     harvester: (data: HarvesterData): ICreepConfig => ({
         source: creep => {
@@ -92,6 +85,73 @@ const roles:{
 
         
 
+    }),
+
+    
+    initializer: (data: InitializerData): ICreepConfig => ({
+        source: creep => {
+            const source = Game.getObjectById(data.source as Id<Source>);
+            
+            if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(source);
+            }
+
+            return creep.store.getFreeCapacity() <= 0;
+        },
+        target: creep => {
+
+            const queen = Game.creeps['Queen' + creep.room];
+            if (queen) {
+                if (creep.pos.isNearTo(queen.pos)) {
+                    creep.transfer(queen, 'energy');
+                }
+            }
+
+            else {
+                const target = Game.getObjectById(data.target.id as Id<_HasId>)
+                if (target) {
+                    if (target instanceof ConstructionSite) {
+                        creep.build(target);
+                    }
+                    else if (target instanceof Structure) {
+                        creep.transfer(target, 'energy');
+                    }
+
+                }
+                else {
+                    const pos = new RoomPosition(data.target.pos[0], data.target.pos[1], creep.memory['roomName']);
+                    const container = pos.lookFor(LOOK_STRUCTURES)[0];
+                    creep.memory['data']['target'] = container.id;
+                }
+            }
+            return (creep.store.getUsedCapacity() <= 0);
+        }
+
+
+        
+
+    }),
+    
+    iniQueen: (data: SourceTargetData): ICreepConfig => ({
+        source: creep => {
+            
+            const nearInitializer = creep.pos.findClosestByRange(FIND_MY_CREEPS);
+            if (nearInitializer) {
+                creep.moveTo(nearInitializer);
+            }
+
+        // 自己身上的能量装满了，返回 true（切换至 target 阶段）
+        return creep.store.getFreeCapacity() <= 0;
+        },
+        target: creep => {
+            const nearSpawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
+            if (nearSpawn) {
+                creep.moveTo(nearSpawn);
+                if (nearSpawn.store.getFreeCapacity()) creep.transfer(nearSpawn, 'energy');
+            }
+
+            return creep.store[RESOURCE_ENERGY] <= 0
+        }
     }),
 
     /*

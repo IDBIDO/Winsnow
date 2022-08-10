@@ -118,6 +118,7 @@ export class CreepSpawning {
                 target: null
             }
             let r = this.spawn(spawnName, 'Queen'+ this.mainRoom, 'iniQueen', data, 'dpt_logistic');
+            console.log(r);
             
             
         }
@@ -126,6 +127,7 @@ export class CreepSpawning {
     public run(): void {
         const queen = Game.creeps['Queen'+this.mainRoom];
         if (!queen) {
+            
             this.spawnQueen();
         }
         else if (queen.ticksToLive < 200) {

@@ -2003,7 +2003,7 @@ const bodyComponentNum = {
         1: [2, 1, 1]
     },
     iniQueen: {
-        1: [3, 3],
+        1: [1, 1],
     }
 };
 
@@ -2100,7 +2100,8 @@ class CreepSpawning {
                 source: source,
                 target: null
             };
-            this.spawn(spawnName, 'Queen' + this.mainRoom, 'iniQueen', data, 'dpt_logistic');
+            let r = this.spawn(spawnName, 'Queen' + this.mainRoom, 'iniQueen', data, 'dpt_logistic');
+            console.log(r);
         }
     }
     run() {
@@ -2399,7 +2400,7 @@ class OperationReserch {
                 this.memory['buildColony']['task'][0] = {};
             }
             else {
-                this.sendToSpawnInitializacion(creepName$1, 'harvester', data2, 'dpt_harvest');
+                this.sendToSpawnInitializacion(creepName$1, 'initializer', data2, 'dpt_harvest');
                 par = true;
             }
         }
@@ -2598,11 +2599,10 @@ const roles$1 = {
             return creep.store.getFreeCapacity() <= 0;
         },
         target: creep => {
-            const queen = Game.creeps['Queen' + creep.room];
-            if (queen) {
-                if (creep.pos.isNearTo(queen.pos)) {
-                    creep.transfer(queen, 'energy');
-                }
+            const queen = Game.creeps['Queen' + creep.room.name];
+            if (queen && creep.pos.isNearTo(queen.pos)) {
+                console.log(1111);
+                creep.transfer(queen, 'energy');
             }
             else {
                 const target = Game.getObjectById(data.target.id);
@@ -2625,8 +2625,13 @@ const roles$1 = {
     }),
     iniQueen: (data) => ({
         source: creep => {
-            const nearInitializer = creep.pos.findClosestByRange(FIND_MY_CREEPS);
+            const nearInitializer = creep.pos.findClosestByRange(FIND_MY_CREEPS, {
+                filter: function (target) {
+                    return target.name != creep.name;
+                }
+            });
             if (nearInitializer) {
+                //console.log(creep.moveTo(nearInitializer));
                 creep.moveTo(nearInitializer);
             }
             // 自己身上的能量装满了，返回 true（切换至 target 阶段）
@@ -2635,9 +2640,11 @@ const roles$1 = {
         target: creep => {
             const nearSpawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
             if (nearSpawn) {
-                creep.moveTo(nearSpawn);
-                if (nearSpawn.store.getFreeCapacity())
-                    creep.transfer(nearSpawn, 'energy');
+                if (nearSpawn.store.getFreeCapacity('energy') > 0) {
+                    if (creep.transfer(nearSpawn, 'energy') == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(nearSpawn);
+                    }
+                }
             }
             return creep.store[RESOURCE_ENERGY] <= 0;
         }

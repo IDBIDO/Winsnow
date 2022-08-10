@@ -83,15 +83,14 @@ export class OperationReserch {
             if (par) {
                 this.sendToSpawnInitializacion(creepName, 'initializer',  data1, 'dpt_harvest')
                 par = false;
+
                 //save creep name to check task completation
-
-
                 this.memory['buildColony']['task'][0] = {
                     
                 }
             }
             else  {
-                this.sendToSpawnInitializacion(creepName, 'harvester',  data2, 'dpt_harvest')
+                this.sendToSpawnInitializacion(creepName, 'initializer',  data2, 'dpt_harvest')
                 par = true;
             }
             

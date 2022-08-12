@@ -1940,6 +1940,8 @@ class Mem {
         colonyMem['dpt_logistic']['targetTask'] = {};
         colonyMem['dpt_logistic']['creep'] = {};
         colonyMem['dpt_logistic']['ticksToSpawn'] = {};
+        colonyMem['sourceContainer'] = [];
+        colonyMem['controllerContainer'] = [];
     }
     initializeDptHarvest() {
         const colonyMem = Memory['colony'][this.mainRoom];
@@ -2003,7 +2005,7 @@ const bodyComponentNum = {
         1: [2, 1, 1]
     },
     iniQueen: {
-        1: [1, 1],
+        1: [2, 2],
     }
 };
 
@@ -2215,6 +2217,10 @@ function sendLogisticTask(roomName, taskName, request) {
         Memory['colony'][roomName]['dpt_logistic']['targetTask'][taskName] = request;
     }
 }
+///////////////////////////**** OPERATION RESERCH ****/////////////////////////
+function sendORBuildingTaskCompletation(roomName) {
+    Memory['colony'][roomName]['state']['task']['building'] = true;
+}
 
 class Dpt_Work extends Department {
     constructor(dptRoom) {
@@ -2280,6 +2286,7 @@ class Dpt_Work extends Department {
     }
 }
 
+/** CONTAINER CONSULTOR */
 function getContainerReference(roomName, structureFunction) {
     return Memory['colony'][roomName]['roomPlanning']['containerReference'][structureFunction];
 }
@@ -2302,8 +2309,14 @@ function getConstructionSideID(roomName, pos) {
 function getSourceEnery1ID(roomName) {
     return Memory['colony'][roomName]['roomPlanning']['model']['source'][0]['id'];
 }
+function getSourceEnery1Pos(roomName) {
+    return Memory['colony'][roomName]['roomPlanning']['model']['source'][0]['pos'];
+}
 function getSourceEnery2ID(roomName) {
     return Memory['colony'][roomName]['roomPlanning']['model']['source'][1]['id'];
+}
+function getSourceEnery2Pos(roomName) {
+    return Memory['colony'][roomName]['roomPlanning']['model']['source'][1]['pos'];
 }
 /******************** COMPU POSITION **********************/
 //Restriccion: pos no puede estar en el borde del mapa!!!
@@ -2318,8 +2331,7 @@ function positionToHarvest(roomName, pos) {
         canStand.push([pos[0] - 1, pos[1] - 1]); //x-1, y-1
     if (terrain.get(pos[0], pos[1] + 1) != 1)
         canStand.push([pos[0], pos[1] + 1]); //x, y+1
-    if (terrain.get(pos[0], pos[1]) != 1)
-        canStand.push([pos[0], pos[1]]); //x, y
+    //if (terrain.get(pos[0], pos[1]) != 1) canStand.push([pos[0], pos[1]]);          //x, y
     if (terrain.get(pos[0], pos[1] - 1) != 1)
         canStand.push([pos[0] - 1, pos[1] + 1]); //x, y-1
     if (terrain.get(pos[0] + 1, pos[1] + 1) != 1)
@@ -2365,7 +2377,7 @@ class OperationReserch {
         const sourceContainer1Pos = getContainerPos(this.mainRoom, "container_source1");
         //Game.rooms[this.mainRoom].createConstructionSite(sourceContainer1Pos[0], sourceContainer1Pos[1], 'container');
         const constructionSideID1 = getConstructionSideID(this.mainRoom, sourceContainer1Pos);
-        let numCreepsNeeded1 = positionToHarvest(this.mainRoom, sourceContainer1Pos).length;
+        let numCreepsNeeded1 = positionToHarvest(this.mainRoom, getSourceEnery1Pos(this.mainRoom)).length;
         if (numCreepsNeeded1 > 3)
             numCreepsNeeded1 = 3;
         const data1 = {
@@ -2378,7 +2390,7 @@ class OperationReserch {
         const sourceContainer2Pos = getContainerPos(this.mainRoom, "container_source2");
         //Game.rooms[this.mainRoom].createConstructionSite(sourceContainer2Pos[0], sourceContainer2Pos[1], 'container');
         const constructionSideID2 = getConstructionSideID(this.mainRoom, sourceContainer2Pos);
-        let numCreepsNeeded2 = positionToHarvest(this.mainRoom, sourceContainer2Pos).length;
+        let numCreepsNeeded2 = positionToHarvest(this.mainRoom, getSourceEnery2Pos(this.mainRoom)).length;
         if (numCreepsNeeded2 > 3)
             numCreepsNeeded2 = 3;
         const data2 = {
@@ -2397,7 +2409,7 @@ class OperationReserch {
                 this.sendToSpawnInitializacion(creepName$1, 'initializer', data1, 'dpt_harvest');
                 par = false;
                 //save creep name to check task completation
-                this.memory['buildColony']['task'][0] = {};
+                this.memory['buildColony']['task']['building'] = false;
             }
             else {
                 this.sendToSpawnInitializacion(creepName$1, 'initializer', data2, 'dpt_harvest');
@@ -2407,6 +2419,19 @@ class OperationReserch {
     }
     /** fase 2 */
     buildUpgraderContainer() {
+        //3 transporter for each source container (including the queen)
+        for (let i = 0; i < 3; ++i) {
+            const creepName$1 = creepName();
+            const data = {
+                source: {
+                    id: null,
+                    roomName: this.mainRoom,
+                    pos: null
+                },
+                target: null
+            };
+            this.sendToSpawnInitializacion(creepName$1, 'transporter', data, 'dpt_transporter');
+        }
     }
     /** fase 3 */
     level2AndBuildRoad() {
@@ -2417,17 +2442,40 @@ class OperationReserch {
         switch (rcl) {
             case 0: //new colony, only have a spawn
                 if (fase == 0)
-                    this.putSourceUpgraderContainers(); //PUT SOURCE CONTAINERS
+                    this.putSourceUpgraderContainers();
                 else if (fase == 1)
-                    this.buildSourceContainers();
+                    this.buildSourceContainers(); //building Task controlled by iniQueen
                 else if (fase == 2)
-                    this.buildUpgraderContainer();
+                    this.buildUpgraderContainer(); //buildingTask controlled by dpt_worker
                 else
-                    this.level2AndBuildRoad();
+                    this.level2AndBuildRoad(); //levelUpTask controlled by Controller
                 break;
         }
     }
+    /*
+    private sourceContainersBuild(): boolean {
+        const container_source1 = planningUtils.getContainerID(this.mainRoom, 'container_source1');
+        const container_source2 = planningUtils.getContainerID(this.mainRoom, 'container_source2');
+        if (container_source1 != null && container_source2 != null) return true;
+
+    }
+*/
+    checkBuildTaskDone() {
+        return this.memory['buildColony']['task']['building'];
+    }
     faseComplete() {
+        const rcl = this.memory['buildColony']['buildRCL'];
+        const fase = this.memory['buildColony']['fase'];
+        switch (rcl) {
+            case 0:
+                //fase 0 will jump automaty
+                if (fase == 1) {
+                    if (this.checkBuildTaskDone()) {
+                        this.memory['buildColony']['fase'] = 2; //construct controller container
+                        this.memory['buildColony']['working'] = false; //tell OR to run next fase
+                    }
+                }
+        }
         return false;
     }
     run() {
@@ -2435,14 +2483,6 @@ class OperationReserch {
             if (!this.memory['buildColony']['working']) {
                 this.memory['buildColony']['working'] = true;
                 this.buildColony();
-            }
-            else { //if OR are working, check if all task complete
-                if (this.faseComplete()) {
-                    this.memory['buildColony']['working'] = false;
-                    const rcl = this.memory['buildColony']['buildRCL'];
-                    this.memory['buildColony']['buildRCL'] = rcl + 1;
-                    this.memory['buildColony']['fase'] = 0;
-                }
             }
         }
     }
@@ -2476,8 +2516,8 @@ class Colony {
         creepSpawning.run();
     }
 }
-//Memory['colony']['W7N7']['creepSpawning']['spawn'].push('Spawn1')
-//ColonyApi.createColony('W5N8')
+//Memory['colony']['W2N5']['creepSpawning']['spawn'].push('Spawn1')
+//ColonyApi.createColony('W2N5')
 //Memory['colony']['W7N7']['dpt_work']['ticksToSpawn']['W7N7_dptWork_1'] = Game.time + 10;
 
 global.ColonyApi = {
@@ -2502,6 +2542,25 @@ global.ColonyApi = {
     }
 };
 
+const MemHack = {
+    memory: null,
+    parseTime: -1,
+    register() {
+        const start = Game.cpu.getUsed();
+        this.memory = Memory;
+        const end = Game.cpu.getUsed();
+        this.parseTime = end - start; 
+        this.memory = RawMemory._parsed;        
+    },
+    pretick() {
+        delete global.Memory;
+        global.Memory = this.memory; 
+        RawMemory._parsed = this.memory;
+    }
+};
+
+MemHack.register();
+
 /**
  * 把 obj2 的原型合并到 obj1 的原型上
  * 如果原型的键以 Getter 结尾，则将会把其挂载为 getter 属性
@@ -2521,6 +2580,14 @@ const assignPrototype = function (obj1, obj2) {
             obj1.prototype[key] = obj2.prototype[key];
     });
 };
+
+function saveStructureID(roomName, structureType, index, id) {
+    Memory['colony'][roomName]['roomPlanning']['model'][structureType][index]['id'] = id;
+}
+/** CONTAINER CONSULTOR */
+function getContainerIndex(roomName, structureFunction) {
+    return Memory['colony'][roomName]['roomPlanning']['containerReference'][structureFunction];
+}
 
 const roles$1 = {
     colonizer: (data) => ({
@@ -2571,20 +2638,22 @@ const roles$1 = {
         target: creep => {
             let target;
             target = Game.getObjectById(data.target);
+            /*  CODE FOR REMOTEHARVESTER
             //if target is a creep, throw a task to call a transporter
             if (!target) {
-                if (!creep.memory['waiting']) {
+                if(!creep.memory['waiting']) {
                     //publisher.callSourceTransporter(creep);
                     sendRequest(creep.memory['roomName'], creep.memory['department'], creep.name);
                     creep.memory['waiting'] = true;
                 }
             }
+            */
             /*
             else if (target instanceof Creep) {
                 creep.transfer(target, RESOURCE_ENERGY)
             }
             */
-            else {
+            if (target) {
                 creep.transfer(target, RESOURCE_ENERGY);
             }
             return (creep.store.getUsedCapacity() <= 0);
@@ -2601,7 +2670,6 @@ const roles$1 = {
         target: creep => {
             const queen = Game.creeps['Queen' + creep.room.name];
             if (queen && creep.pos.isNearTo(queen.pos)) {
-                console.log(1111);
                 creep.transfer(queen, 'energy');
             }
             else {
@@ -2614,10 +2682,11 @@ const roles$1 = {
                         creep.transfer(target, 'energy');
                     }
                 }
-                else {
+                else { //CHANGE ROLE TO HARVESTER
                     const pos = new RoomPosition(data.target.pos[0], data.target.pos[1], creep.memory['roomName']);
                     const container = pos.lookFor(LOOK_STRUCTURES)[0];
                     creep.memory['data']['target'] = container.id;
+                    creep.memory['role'] = 'harvester';
                 }
             }
             return (creep.store.getUsedCapacity() <= 0);
@@ -2646,6 +2715,20 @@ const roles$1 = {
                     }
                 }
             }
+            if (Game.time % 7 == 0) {
+                const containers = creep.room.find(FIND_STRUCTURES, {
+                    filter: { structureType: STRUCTURE_CONTAINER }
+                });
+                if (containers.length >= 2) { //fase 1 finished
+                    creep.memory['role'] = 'transporter'; //change queen role to transporter
+                    sendORBuildingTaskCompletation(creep.room.name); //send task complet mens. to OR
+                    //save id to planning model
+                    const sourceContainer1Index = getContainerIndex(creep.room.name, 'container_source1');
+                    saveStructureID(creep.room.name, 'container', sourceContainer1Index, containers[0].id);
+                    const sourceContainer2Index = getContainerIndex(creep.room.name, 'container_source2');
+                    saveStructureID(creep.room.name, 'container', sourceContainer2Index, containers[1].id);
+                }
+            }
             return creep.store[RESOURCE_ENERGY] <= 0;
         }
     }),
@@ -2669,7 +2752,47 @@ const roles$1 = {
     */
 };
 
+function getfirstSpawnName(roomName) {
+    return Memory['colony'][roomName]['creepSpawning']['spawn'][0];
+}
 const roles = {
+    queen: (data) => ({
+        source: creep => {
+            if (creep.ticksToLive < 200 &&
+                creep.memory['task'] == null &&
+                Game.rooms[creep.memory['roomName']].energyAvailable >= 300) {
+                //CREEP RENEW PROCESS
+                if (!creep.memory['renewing']) {
+                    creep.memory['renewing'] = true;
+                }
+                const spawnName = getfirstSpawnName(creep.memory['roomName']);
+                const spawn = Game.spawns[spawnName];
+                if (!creep.pos.isNearTo(spawn.pos))
+                    creep.moveTo(spawn);
+                else
+                    return true;
+                //else creep.say('♻️');
+            }
+            else {
+                //
+                return (roles['transporter']({}).source(creep));
+            }
+            return true;
+        },
+        target: creep => {
+            if (creep.ticksToLive < 200 &&
+                creep.memory['task'] == null &&
+                Game.rooms[creep.memory['roomName']].energyAvailable >= 300) {
+                if (creep.memory['renew'])
+                    return false;
+                else
+                    return true;
+            }
+            else {
+                return (roles['transporter']({}).target(creep));
+            }
+        }
+    }),
     manager: (data) => ({
         source: creep => {
             return true;
@@ -2801,8 +2924,9 @@ var mountCreep = () => {
 
 //Main loop
 module.exports.loop = function () {
+    MemHack.pretick();
     mountCreep();
-    const colony = new Colony('W5N8');
+    const colony = new Colony('W2N5');
     colony.run();
     //const creepSpawning = new CreepSpawning('W8N7');
     //console.log(creepSpawning.uid());

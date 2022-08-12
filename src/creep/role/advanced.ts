@@ -1,10 +1,57 @@
 import { sendRequest } from "@/colony/dpt_comunication";
 
-
+export function getfirstSpawnName(roomName: string) {
+    return Memory['colony'][roomName]['creepSpawning']['spawn'][0];
+}
 
 const roles: {
     [role in AdvancedRoleConstant]: (data: {}) => ICreepConfig
 } = {
+    queen: (data: string): ICreepConfig => ({
+        source: creep => {
+
+            if (creep.ticksToLive < 200 && 
+            creep.memory['task'] == null &&
+            Game.rooms[creep.memory['roomName']].energyAvailable >= 300) {
+                //CREEP RENEW PROCESS
+                if (!creep.memory['renewing']) {
+                    creep.memory['renewing'] = true;
+
+                } 
+
+
+                const spawnName = getfirstSpawnName(creep.memory['roomName']);
+                const spawn = Game.spawns[spawnName];
+                if (!creep.pos.isNearTo(spawn.pos)) creep.moveTo(spawn);
+                else return true;
+
+                //else creep.say('♻️');
+                
+            }
+
+            else {
+                //
+                return (roles['transporter']({}).source(creep));
+            }
+
+
+            return true;
+        },
+        target: creep => {
+            if (creep.ticksToLive < 200 && 
+                creep.memory['task'] == null &&
+                Game.rooms[creep.memory['roomName']].energyAvailable >= 300) {
+
+                    if (creep.memory['renew']) return false;
+                    else return true;
+                }
+            else {
+                return (roles['transporter']({}).target(creep));
+            }
+
+            return false;
+        }
+    }),
 
     manager: (data: string): ICreepConfig => ({
         source: creep => {

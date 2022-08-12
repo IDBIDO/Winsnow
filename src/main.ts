@@ -2,19 +2,23 @@ import {Colony} from "./colony/Colony"
 import * as ColonyApi from "./colony/ColonyApi"
 import {Mem} from "./colony/Memory"
 
+import MemHack from './MemHack'
+
 import mountCreep from './creep/mount'
 import { CreepSpawning } from "./structure/CreepSpawning"
 
 //Main loop
 module.exports.loop = function() {
-  
+
+  MemHack.pretick();
+
   mountCreep();
   Mem;
   
 
   ColonyApi;
 
-  const colony = new Colony('W5N8');
+  const colony = new Colony('W2N5');
   colony.run();
 
   //const creepSpawning = new CreepSpawning('W8N7');
@@ -29,6 +33,7 @@ module.exports.loop = function() {
         
       }
     }
+    
     
 
 }

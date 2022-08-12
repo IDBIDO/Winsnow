@@ -69,7 +69,7 @@ export const bodyComponentNum = {
         1: [2, 1, 1]
     },
     iniQueen: {
-        1: [1, 1],
+        1: [2, 2],
     }
 
 }

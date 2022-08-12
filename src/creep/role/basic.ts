@@ -1,4 +1,5 @@
-import { sendRequest } from "@/colony/dpt_comunication";
+import { sendORBuildingTaskCompletation, sendRequest } from "@/colony/dpt_comunication";
+import { getContainerIndex, saveStructureID } from "@/colony/planningUtils";
 import * as publisher from "../taskPublisher";
 
 const roles:{
@@ -58,10 +59,10 @@ const roles:{
             return creep.store.getFreeCapacity() <= 0;
         },
         target: creep => {
-            let target: StructureContainer | Creep;
-            target = Game.getObjectById(data.target as Id<StructureContainer> | Id<Creep>);
+            let target: StructureContainer | StructureLink;
+            target = Game.getObjectById(data.target as Id<StructureContainer> | Id<StructureLink>);
             
-            
+            /*  CODE FOR REMOTEHARVESTER
             //if target is a creep, throw a task to call a transporter
             if (!target) {
                 if(!creep.memory['waiting']) {
@@ -70,12 +71,14 @@ const roles:{
                     creep.memory['waiting'] = true;
                 }
             }
+            */
+
             /*
             else if (target instanceof Creep) {
                 creep.transfer(target, RESOURCE_ENERGY)
             }
             */
-            else {
+            if (target) {
                 creep.transfer(target, RESOURCE_ENERGY)
             }
 
@@ -103,7 +106,7 @@ const roles:{
             const queen = Game.creeps['Queen' + creep.room.name];
             
                 if (queen && creep.pos.isNearTo(queen.pos)) {
-                    console.log(1111);
+                    
                     
                     creep.transfer(queen, 'energy');
                 }
@@ -121,10 +124,14 @@ const roles:{
                     }
 
                 }
-                else {
-                    const pos = new RoomPosition(data.target.pos[0], data.target.pos[1], creep.memory['roomName']);
-                    const container = pos.lookFor(LOOK_STRUCTURES)[0];
-                    creep.memory['data']['target'] = container.id;
+                else {      //CHANGE ROLE TO HARVESTER
+                    
+                        const pos = new RoomPosition(data.target.pos[0], data.target.pos[1], creep.memory['roomName']);
+                        const container = pos.lookFor(LOOK_STRUCTURES)[0];
+                        creep.memory['data']['target'] = container.id;
+
+                        creep.memory['role'] = 'harvester'
+                    
                 }
             }
             return (creep.store.getUsedCapacity() <= 0);
@@ -164,6 +171,26 @@ const roles:{
                     }
                 }
             }
+
+            if (Game.time % 7 == 0) {
+                const containers = creep.room.find(FIND_STRUCTURES, {
+                    filter:{structureType: STRUCTURE_CONTAINER}
+                })
+                if (containers.length >= 2) {       //fase 1 finished
+                    creep.memory['role'] = 'transporter';   //change queen role to transporter
+                    sendORBuildingTaskCompletation(creep.room.name);     //send task complet mens. to OR
+
+                    //save id to planning model
+                    const sourceContainer1Index = getContainerIndex(creep.room.name, 'container_source1');
+                    saveStructureID(creep.room.name, 'container', sourceContainer1Index, containers[0].id);
+
+                    const sourceContainer2Index = getContainerIndex(creep.room.name, 'container_source2');
+                    saveStructureID(creep.room.name, 'container', sourceContainer2Index, containers[1].id);
+
+                    
+                }
+            };
+            
 
             return creep.store[RESOURCE_ENERGY] <= 0
         }

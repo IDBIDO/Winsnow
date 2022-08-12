@@ -108,6 +108,9 @@ export class Mem {
 
         colonyMem['dpt_logistic']['creep'] = {};
         colonyMem['dpt_logistic']['ticksToSpawn'] = {};
+
+        colonyMem['sourceContainer'] = [];
+        colonyMem['controllerContainer'] = [];
     }
 
     private initializeDptHarvest() {

@@ -165,7 +165,8 @@ type BaseRoleConstant =
     
 type AdvancedRoleConstant =
     'manager'|
-    'transporter'
+    'transporter'|
+    'queen'
     
 type CreepWork = {
     [role in CreepRoleConstant]: (data: {}) => ICreepConfig

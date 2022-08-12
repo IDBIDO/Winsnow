@@ -87,3 +87,20 @@ export function sendTaskRequest(creepName: string, roomName: string) {
 
 
 
+
+
+///////////////////////////**** OPERATION RESERCH ****/////////////////////////
+export function sendORBuildingTaskCompletation(roomName: string): void {
+    Memory['colony'][roomName]['state']['task']['building'] = true;
+}
+
+export function sendORLevelUpTaskCompletation(roomName: string): void {
+    Memory['colony'][roomName]['state']['task']['levelUp'] = true;
+}
+
+
+
+
+
+
+

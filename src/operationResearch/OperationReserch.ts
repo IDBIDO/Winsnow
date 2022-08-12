@@ -1,5 +1,5 @@
 import * as planningUtils from "./planningUtils";
-import * as roomUtils from "../colony/roomUtils"
+import * as roomUtils from "../colony/planningUtils"
 import * as names from "../colony/nameManagement"
 
 /** CONTROL ALL DEPARTMENT */
@@ -50,7 +50,9 @@ export class OperationReserch {
         const sourceContainer1Pos = planningUtils.getContainerPos(this.mainRoom, "container_source1");
         //Game.rooms[this.mainRoom].createConstructionSite(sourceContainer1Pos[0], sourceContainer1Pos[1], 'container');
         const constructionSideID1 = planningUtils.getConstructionSideID(this.mainRoom, sourceContainer1Pos);
-        let numCreepsNeeded1 = planningUtils.positionToHarvest(this.mainRoom, sourceContainer1Pos).length;
+        let numCreepsNeeded1 = planningUtils.positionToHarvest(this.mainRoom, planningUtils.getSourceEnery1Pos(this.mainRoom)).length;
+
+        
 
         if (numCreepsNeeded1 > 3) numCreepsNeeded1 = 3;
         const data1:InitializerData = {
@@ -65,7 +67,11 @@ export class OperationReserch {
         //Game.rooms[this.mainRoom].createConstructionSite(sourceContainer2Pos[0], sourceContainer2Pos[1], 'container');
         const constructionSideID2 = planningUtils.getConstructionSideID(this.mainRoom, sourceContainer2Pos);
 
-        let numCreepsNeeded2 = planningUtils.positionToHarvest(this.mainRoom, sourceContainer2Pos).length;
+
+        
+        
+
+        let numCreepsNeeded2 = planningUtils.positionToHarvest(this.mainRoom, planningUtils.getSourceEnery2Pos(this.mainRoom)).length;
         if (numCreepsNeeded2 > 3) numCreepsNeeded2 = 3;
         const data2:InitializerData = {
             source: planningUtils.getSourceEnery2ID(this.mainRoom),
@@ -85,12 +91,11 @@ export class OperationReserch {
                 par = false;
 
                 //save creep name to check task completation
-                this.memory['buildColony']['task'][0] = {
-                    
-                }
+                this.memory['buildColony']['task']['building'] = false;     
+
             }
             else  {
-                this.sendToSpawnInitializacion(creepName, 'initializer',  data2, 'dpt_harvest')
+                this.sendToSpawnInitializacion(creepName, 'initializer',  data2, 'dpt_harvest');
                 par = true;
             }
             
@@ -103,7 +108,20 @@ export class OperationReserch {
 
     /** fase 2 */
     private buildUpgraderContainer() {
+        //3 transporter for each source container (including the queen)
 
+        for (let i = 0; i < 3; ++i) {
+            const creepName = names.creepName();
+            const data: LogisticData = {
+                source: {
+                    id: null,
+                    roomName: this.mainRoom,
+                    pos: null
+                }, 
+                target: null
+            };
+            this.sendToSpawnInitializacion(creepName, 'transporter', data, 'dpt_transporter');
+        }
     }
 
     /** fase 3 */
@@ -118,14 +136,14 @@ export class OperationReserch {
         const fase:number = this.memory['buildColony']['fase'];
         switch(rcl) {
             case 0:        //new colony, only have a spawn
-                if(fase == 0) this.putSourceUpgraderContainers();         //PUT SOURCE CONTAINERS
-                else if (fase == 1) this.buildSourceContainers();         
-                else if (fase == 2) this.buildUpgraderContainer();  
-                else this.level2AndBuildRoad();                   
+                if(fase == 0) this.putSourceUpgraderContainers();         
+                else if (fase == 1) this.buildSourceContainers();         //building Task controlled by iniQueen
+                else if (fase == 2) this.buildUpgraderContainer();        //buildingTask controlled by dpt_worker
+                else this.level2AndBuildRoad();                           //levelUpTask controlled by Controller
                 break;
                 
             case 1:        
-
+                
                 break;
             case 2:
                 break;
@@ -147,9 +165,55 @@ export class OperationReserch {
         }
     }
 
+    /*
+    private sourceContainersBuild(): boolean {
+        const container_source1 = planningUtils.getContainerID(this.mainRoom, 'container_source1');
+        const container_source2 = planningUtils.getContainerID(this.mainRoom, 'container_source2');
+        if (container_source1 != null && container_source2 != null) return true;
+
+    }
+*/
+    private checkBuildTaskDone(): boolean {
+        return this.memory['buildColony']['task']['building'];
+    }
+
     private faseComplete():boolean {
+        const rcl:number = this.memory['buildColony']['buildRCL'];
+        const fase:number = this.memory['buildColony']['fase'];
+        switch(rcl) {
+            case 0:        
+                //fase 0 will jump automaty
+                if (fase == 1) {
+                    if (this.checkBuildTaskDone()) {
+                        this.memory['buildColony']['fase'] = 2;     //construct controller container
+                        this.memory['buildColony']['working'] = false;      //tell OR to run next fase
+                    }
+                }
+                else if (fase == 2) {
+                    
+                }
 
+            case 1:        
 
+                break;
+            case 2:
+                break;
+            case 3: 
+                break;
+            case 4:
+                break;
+            case 5:
+                break;
+
+            case 6: 
+                break;
+            case 7:
+
+                break;
+
+            default:
+                break;
+        }
         return false;
     }
 
@@ -163,12 +227,7 @@ export class OperationReserch {
             
             
             else {                                //if OR are working, check if all task complete
-                if (this.faseComplete()) {
-                    this.memory['buildColony']['working'] = false;
-                    const rcl:number = this.memory['buildColony']['buildRCL'];
-                    this.memory['buildColony']['buildRCL'] = rcl + 1;
-                    this.memory['buildColony']['fase'] = 0;
-                }
+
             }
             
             

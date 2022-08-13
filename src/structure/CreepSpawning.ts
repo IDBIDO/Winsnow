@@ -50,7 +50,7 @@ export class CreepSpawning {
                 role: creepRole, 
                 department: dpt,
                 roomName: this.mainRoom,
-                data: creepData
+                task: creepData
             }
         })
         
@@ -70,7 +70,7 @@ export class CreepSpawning {
               const spawnName:string = spawnList[spawnIndex];              
               const creepRole = spawnTask[creepName]['role'];
               const creepDpt = spawnTask[creepName]['department'];
-              const creepData = spawnTask[creepName]['data'];
+              const creepData = spawnTask[creepName]['task'];   //////////////////////
               if (this.spawn(spawnName, creepName, creepRole, creepData, creepDpt) == OK) {
                 delete spawnTask[creepName];
 
@@ -130,9 +130,8 @@ export class CreepSpawning {
             
             this.spawnQueen();
         }
-        else if (queen.ticksToLive < 200) {
-            this.renewQueen();
-        }
+        
+        
 
         this.spawnTaskExecution();
 

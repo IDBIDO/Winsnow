@@ -9,10 +9,33 @@ interface InitializerData {
 }
 
 
+
 interface HarvesterData{
     source: string;
     target: string;
 }
+
+/*****************WORKER**************** */
+interface WorkerData {
+    source: string;
+    target: {
+        id: string;
+        pos: string;
+        roomName: string;
+    }
+}
+
+type WorkerTaskType = 
+    'BUILD' | 'REPAIR'
+
+interface workerTaskOperation {
+        // creep 工作时执行的方法
+   target: (creep: Creep) => boolean
+   // creep 非工作(收集资源时)执行的方法
+   source: (creep: Creep) => boolean
+}
+ 
+/*********************************** */
 
 interface LogisticData {
     source: LogisticSourceTask,
@@ -33,7 +56,6 @@ interface Task {
 }
 
 
-
 /****************************REQUEST ***********************/
 type TaskRequest = 
     LogisticTaskRequest
@@ -45,12 +67,12 @@ type LogisticTaskType =
 type LogisticTaskRequest = 
     MoveRequest | TransferRequest | WithdrawRequest
 
+    
 interface MoveRequestData{
     id: string;                 //object id
     pos: [number, number];      //position to move
     roomName: string;           //position's room
-}
-
+}   
 interface MoveRequest {
     type: 'MOVE',
     source: MoveRequestData
@@ -61,17 +83,22 @@ interface TransferRequestData {
     resourceType: ResourceConstant,
     amount: number
 }
-
 interface TransferRequest {
     type: 'TRANSFER',
     target: TransferRequestData
+}
+
+interface TransferTask {
+    type: 'TRANSFER',
+    source: string,
+    target: TransferRequestData
+    amountDone: number;
 }
 
 interface WithdrawRequestData {
     id: string, 
     resourceType: ResourceConstant
 }
-
 interface WithdrawRequest {
     type: 'WITHDRAW',
     source: WithdrawRequestData
@@ -166,7 +193,7 @@ type BaseRoleConstant =
 type AdvancedRoleConstant =
     'manager'|
     'transporter'|
-    'queen'
+    'worker'
     
 type CreepWork = {
     [role in CreepRoleConstant]: (data: {}) => ICreepConfig

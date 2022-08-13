@@ -2,7 +2,7 @@
 
 /******************* FASE1: OBJECT SEND REQUEST  ***********************/
 
-import { taskName } from "./nameManagement";
+import { logisticTaskName } from "./nameManagement";
 
     /* Fase1.1:  TASK REQUEST CREATION */
 export function moveRequest(id: string, pos: [number, number], roomName: string): MoveRequest {
@@ -55,7 +55,7 @@ export function sendRequest(roomName: string ,dpt: string, creepName: string) {
 export function task(request: TaskRequest) {
 
     const task: Task = {
-        taskID: taskName(request),
+        taskID: logisticTaskName(request),
         data: request
     }
     return task;
@@ -91,13 +91,19 @@ export function sendTaskRequest(creepName: string, roomName: string) {
 
 ///////////////////////////**** OPERATION RESERCH ****/////////////////////////
 export function sendORBuildingTaskCompletation(roomName: string): void {
-    Memory['colony'][roomName]['state']['task']['building'] = true;
+    Memory['colony'][roomName]['state']['buildColony']['task']['building'] = true;
 }
 
 export function sendORLevelUpTaskCompletation(roomName: string): void {
-    Memory['colony'][roomName]['state']['task']['levelUp'] = true;
+    Memory['colony'][roomName]['state']['buildColony']['task']['levelUp'] = true;
 }
 
+export function sendBuildTask(roomName: string, constructionSideID: string, pos: [number,number]):void {
+    //Memory['colony'][roomName]['dpt_work']['buildTask'][constructionSideID] = {
+    //    'pos': pos,
+    //    'roomName': roomName
+    //}
+}
 
 
 

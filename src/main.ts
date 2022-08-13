@@ -34,6 +34,7 @@ module.exports.loop = function() {
       }
     }
     
-    
+   // Game.creeps['C8U4V6EMR'].memory['role'] = 'builder'
+   // Game.creeps['C8U4V6EMR'].memory['department'] = 'dpt_work'
 
 }

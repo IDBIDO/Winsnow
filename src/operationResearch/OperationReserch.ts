@@ -1,6 +1,7 @@
 import * as planningUtils from "./planningUtils";
 import * as roomUtils from "../colony/planningUtils"
 import * as names from "../colony/nameManagement"
+import { sendBuildTask } from "@/colony/dpt_comunication";
 
 /** CONTROL ALL DEPARTMENT */
 export class OperationReserch {
@@ -14,7 +15,7 @@ export class OperationReserch {
     }    
 
     /** Funtion to control creep numbers, only used for OR */
-    private sendToSpawnInitializacion(creepName: string, role: string,  data: {}, dpt: string) {
+    private sendToSpawnInitializacion(creepName: string, role: string,  task: {}, dpt: string) {
         Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName] ={};
         
         const spawnTask = Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName];
@@ -23,7 +24,7 @@ export class OperationReserch {
         spawnTask['role'] = role;
         spawnTask['roomName'] = this.mainRoom;
         spawnTask['department'] = dpt;
-        spawnTask['data'] = data;
+        spawnTask['task'] = task;
 
     }
 
@@ -108,20 +109,49 @@ export class OperationReserch {
 
     /** fase 2 */
     private buildUpgraderContainer() {
-        //3 transporter for each source container (including the queen)
-
-        for (let i = 0; i < 3; ++i) {
-            const creepName = names.creepName();
-            const data: LogisticData = {
-                source: {
-                    id: null,
-                    roomName: this.mainRoom,
-                    pos: null
-                }, 
-                target: null
-            };
-            this.sendToSpawnInitializacion(creepName, 'transporter', data, 'dpt_transporter');
+        console.log('FASE 2: BUILD UPGRADER CONTAINER');
+        
+        //5 transporter and 3 builders (including the queen)
+        for (let i = 0; i < 1; ++i) {
+            if ( i == 0  || i == 2 || i == 5)  {
+                //create builder
+                const creepName = names.creepName();
+                const data: WorkerData = {
+                    source: null,
+                    target: {
+                        id: null,
+                        pos: null,
+                        roomName: null
+                    },
+   
+                }
+                this.sendToSpawnInitializacion(creepName, 'builder', data, 'dpt_work');
+            }
+            else {
+                const creepName = names.creepName();
+                const data: LogisticData = {
+                    source: {
+                        id: null,
+                        roomName: this.mainRoom,
+                        pos: null
+                    }, 
+                    target: null
+                };
+                //this.sendToSpawnInitializacion(creepName, 'transporter', data, 'dpt_transporter');
+            }
         }
+        
+        //set logistic storage storage
+        const sourceContainer1ID = planningUtils.getContainerID(this.mainRoom, 'container_source1');
+        const sourceContainer2ID = planningUtils.getContainerID(this.mainRoom, 'container_source2');
+        Memory['colony'][this.mainRoom]['dpt_logistic']['storage'].push(sourceContainer1ID);
+        Memory['colony'][this.mainRoom]['dpt_logistic']['storage'].push(sourceContainer2ID);
+
+        //send upgraderContainer build task to dpt_worker
+        const upgraderContainerList = Game.rooms[this.mainRoom].find(FIND_CONSTRUCTION_SITES);
+        //sendBuildTask(this.mainRoom, upgraderContainerList[0].id, [upgraderContainerList[0].pos.x, upgraderContainerList[0].pos.y]);
+
+
     }
 
     /** fase 3 */
@@ -177,6 +207,14 @@ export class OperationReserch {
         return this.memory['buildColony']['task']['building'];
     }
 
+    private resetFaseValues() {
+        this.memory['buildColony']['working'] = false;      //tell OR to run next fase
+        this.memory['buildColony']['task']['building'] = false;
+        this.memory['buildColony']['task']['levelUP'] = false;
+
+        
+    }
+
     private faseComplete():boolean {
         const rcl:number = this.memory['buildColony']['buildRCL'];
         const fase:number = this.memory['buildColony']['fase'];
@@ -186,7 +224,7 @@ export class OperationReserch {
                 if (fase == 1) {
                     if (this.checkBuildTaskDone()) {
                         this.memory['buildColony']['fase'] = 2;     //construct controller container
-                        this.memory['buildColony']['working'] = false;      //tell OR to run next fase
+                        this.resetFaseValues();
                     }
                 }
                 else if (fase == 2) {
@@ -223,11 +261,12 @@ export class OperationReserch {
             if (!this.memory['buildColony']['working']){
                 this.memory['buildColony']['working'] = true;
                 this.buildColony();
+                
             }
             
             
             else {                                //if OR are working, check if all task complete
-
+                this.faseComplete();
             }
             
             

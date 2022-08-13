@@ -66,11 +66,14 @@ export class Mem {
         colonyMem['state'] = {};
 
         colonyMem['state']['buildColony'] = {}
+
         colonyMem['state']['buildColony']['buildRCL'] = 0;
         colonyMem['state']['buildColony']['fase'] = 0;
         colonyMem['state']['buildColony']['working'] = false;
         colonyMem['state']['buildColony']['task'] = {}
-
+        colonyMem['state']['buildColony']['task']['building'] = false;
+        colonyMem['state']['buildColony']['task']['levelUP'] = false;
+        
         colonyMem['state']['import'] = {}
 
         colonyMem['state']['updateRoomPlanning'] = true;
@@ -99,7 +102,7 @@ export class Mem {
     private initializeDptLogistic() {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_logistic'] = {};
-        colonyMem['dpt_logistic']['state'] = '';
+        colonyMem['dpt_logistic']['storage'] = [];
 
         colonyMem['dpt_logistic']['request'] = [];
         

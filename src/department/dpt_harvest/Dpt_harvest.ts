@@ -1,7 +1,7 @@
 import { Department } from "../Department";
 import * as dpt_config from "@/department/dpt_config"
 import { moveRequest, sendLogisticTask } from "@/colony/dpt_comunication";
-import { taskName } from "@/colony/nameManagement";
+import { logisticTaskName } from "@/colony/nameManagement";
 
 
 export default class Dpt_Work extends Department {
@@ -65,7 +65,7 @@ export default class Dpt_Work extends Department {
             const creepName = requestList[0];
             const creep = Game.creeps[creepName];
             const logisticTaskRequest: MoveRequest = moveRequest(creep.id, [creep.pos.x, creep.pos.y], creep.memory['roomName'])
-            sendLogisticTask(creep.memory['roomName'], taskName(logisticTaskRequest), logisticTaskRequest);
+            sendLogisticTask(creep.memory['roomName'], logisticTaskName(logisticTaskRequest), logisticTaskRequest);
         }
         //clear request
         this.memory['request'] = [];

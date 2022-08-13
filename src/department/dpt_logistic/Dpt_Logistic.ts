@@ -36,11 +36,40 @@ export default class Dpt_Logistic extends Department {
 
     private getSourceTask() {
         const requestList = this.memory['sourceTask'];
-        if (Object.keys(requestList).length === 0) {
+        const keys = Object.keys(requestList);
+        if (keys.length === 0) {
             return null;
         }
-        else return requestList[0];
+        else return requestList[keys[0]];
     }
+
+    private getTransferTask() {
+        const requestList = this.memory['transferTask'];
+        const keys = Object.keys(requestList);
+        if (keys.length === 0) {
+            return null;
+        }
+        else return requestList[keys[0]];
+    }
+
+    private getStorageID(): string {
+        const storageList = this.memory['storage'];
+        if (storageList.length == 1) {
+            return storageList[0];
+        }
+        else {
+            let maxCapacityUsedStorageIndex = 0;
+            for (let i = 1; i < storageList.length; ++i) {
+                const storage= Game.getObjectById(storageList[i]);// @ts-ignore
+                const actualStorage= Game.getObjectById(storageList[maxCapacityUsedStorageIndex]);// @ts-ignore
+
+                if (storage.store.getUsedCapacity() > actualStorage.store.getUsedCapacity()) {
+                    maxCapacityUsedStorageIndex = i;
+                }
+            }
+            return storageList[maxCapacityUsedStorageIndex];
+        }
+    }   
 
     /** Dpt_logistic creaat move task to reply a request */
     private creatMoveTask(moveTask: MoveRequest): LogisticMoveTask {
@@ -77,7 +106,15 @@ export default class Dpt_Logistic extends Department {
 
     private processRequest() {
         const requestList = this.memory['request'];
+        const sourceTaskList = this.memory['sourceTask'];
+        const targetTaskList = this.memory['targetTask'];
+        for (let i = requestList.length-1; i < 0; --i) {
 
+
+            if (targetTaskList.length) {
+                
+            }
+        }
 
     }
 

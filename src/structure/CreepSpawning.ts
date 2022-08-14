@@ -1,3 +1,4 @@
+import { creepName } from "@/colony/nameManagement";
 import * as setting from "@/creep/setting"
 
 export class CreepSpawning {
@@ -20,15 +21,7 @@ export class CreepSpawning {
     private notifyTaskComplete(name: string, role: string, dpt: string) {
         const completeTaskList = this.memory['completeTask'];
         const energyRCL = setting.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
-        /*
-        const completeTask: SpawnTaskComplete = {
-            creepName: name,
-            deadTime: setting.ticksToSpawn(role, energyRCL) + 1500 + 10
-        };
-        */
-       //console.log(dpt);
-       //console.log(name);
-       //console.log(setting.ticksToSpawn(role, energyRCL));
+
         Memory['colony'][this.mainRoom][dpt]['ticksToSpawn'][name] = Game.time + setting.ticksToSpawn(role, energyRCL) + 1500 + 10;
         
     }
@@ -123,17 +116,43 @@ export class CreepSpawning {
             
         }
     }
+    private initializeCreepState(creepName: string) {
+        Memory.creeps[creepName]['ready'] = false;
+        Memory.creeps[creepName]['working'] = false;
+        Memory.creeps[creepName]['sendLogisticRequest'] = false;
+
+    }
+
+    private recycleSpawning(spawnName: string, creepName: string, creepRole: string): ScreepsReturnCode {
+        const spawn = Game.spawns[spawnName];
+
+        const energyRCL = setting.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
+        const creepBody = setting.getBody(creepRole, energyRCL);
+        this.initializeCreepState(creepName);
+
+        return spawn.spawnCreep(creepBody, creepName)
+        
+    }
+
+
 
     public run(): void {
         const queen = Game.creeps['Queen'+this.mainRoom];
-        if (!queen) {
-            
+        let r: ScreepsReturnCode;
+        if (Memory.creeps['Queen'+this.mainRoom]) {
+            if (!queen) {
+                const spawnName = this.getAvailableSpawnName();
+                if (spawnName) {
+                    r = this.recycleSpawning(spawnName, 'Queen'+this.mainRoom, 'transporter')
+
+                    
+                }
+            }
+        } else {
             this.spawnQueen();
         }
-        
-        
 
-        this.spawnTaskExecution();
+        if (r != OK) this.spawnTaskExecution();
 
     }
 

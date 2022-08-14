@@ -43,7 +43,8 @@ const roles:{
                 //task no complete
                 if (contructionSide) {  //@ts-ignore
 
-                        //send logistic request
+                    //send logistic request
+                    if (!creep.memory['sendLogisticRequest']) {
                         const request: TransferRequest = {
                             'type': 'TRANSFER',
                             'target': {
@@ -52,14 +53,13 @@ const roles:{
                                 'amount': -1
                             }
                         }
-                        if (!creep.memory['sendLogisticRequest']) {
-                            sendLogisticTask(creep.memory['roomName'], logisticTaskName(request), request);
-                            creep.memory['sendLogisticRequest'] = true;
-                        }
+                        creep.say('LogisticTask Sended')
+                        sendLogisticTask(creep.memory['roomName'], logisticTaskName(request), request);
+                        creep.memory['sendLogisticRequest'] = true;
+                    }
                         //@ts-ignore
                     if (creep.pos.inRangeTo(contructionSide, 3)) return true; 
                     else {      //@ts-ignore
-
                         creep.moveTo(contructionSide)
                         return false;
                     }
@@ -71,35 +71,32 @@ const roles:{
                     return false;
                 }
             }
-            else {  //no target
-                if (!creep.memory['sleeping']) {
-                    console.log(1111111);
+            else {  //no target, try to find a target
+                if (Game.time % 13 == 0) {
                     
                     const closeContructionSide = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
                     if (closeContructionSide) {
-                        console.log(creep.memory['task']['target']['id']);
-                        
+                        //console.log(creep.memory['task']['target']['id']);
                         
                         creep.memory['task']['target']['id'] = closeContructionSide.id;
                         creep.memory['task']['target']['pos'] = [closeContructionSide.pos.x, closeContructionSide.pos.y];
                         creep.memory['task']['target']['roomName'] = closeContructionSide.room;
-
+                        
                     }
                     else {
                         //send task request to dpt_work
-                        creep.memory['sleeping'] = true;
+                        //this request will be delete if departament do not have task to ofer
+                        sendRequest(creep.memory['roomName'], 'dpt_work', creep.name);  
                     }
                 }
                 else creep.say('💤');
                 return false;
             }
 
-        // 自己身上的能量装满了，返回 true（切换至 target 阶段）
-        return creep.store.getFreeCapacity() <= 0;
+
         },
         target: creep => {
             const target = Game.getObjectById(creep.memory['task']['target']['id'] as Id<ConstructionSite>);
-            console.log(target);
             
             if (target) {
                 
@@ -108,7 +105,7 @@ const roles:{
                 
                 return false;
             }
-            else {      //contructionside complete, change to source
+            else {      //contructionside complete, change state to source to get new task
                 
                 creep.memory['task']['target']['id'] = null;
                 creep.memory['task']['target']['pos'] = null;
@@ -254,11 +251,14 @@ const roles:{
 
                     //save id to planning model
                     const sourceContainer1Index = getContainerIndex(creep.room.name, 'container_source1');
+                    console.log(sourceContainer1Index);
+                    
+                    
                     saveStructureID(creep.room.name, 'container', sourceContainer1Index, containers[0].id);
 
                     const sourceContainer2Index = getContainerIndex(creep.room.name, 'container_source2');
                     saveStructureID(creep.room.name, 'container', sourceContainer2Index, containers[1].id);
-                    
+
                     creep.memory['role'] = 'transporter';   //change queen role to transporter
                     
                 }

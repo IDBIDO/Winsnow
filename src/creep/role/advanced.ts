@@ -56,6 +56,7 @@ const roles: {
                     creep.say('💤')
                 }
                 else {
+                    creep.say('✉️')
                     sendRequest(creep.memory['roomName'], 'dpt_logistic', creep.name);
                     creep.memory['sendTaskRequest'] = true;
                 }
@@ -67,8 +68,11 @@ const roles: {
             
  
             const taskType:string = creep.memory['task']['type'];
+            
             if (taskType) {
-                return transferTaskOperations[taskType].source(creep)
+ 
+                
+                return transferTaskOperations[taskType].target(creep)
             }
             else return true;       //get new task
             
@@ -78,6 +82,75 @@ const roles: {
 
 export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskOperation
 } = {
+    FILL: {
+        source: (creep:Creep) => {
+            
+            const source = Game.getObjectById(creep.memory['task']['source']);
+            //@ts-ignore
+            if (creep.withdraw(source, 'energy') == ERR_NOT_IN_RANGE) { //@ts-ignore
+                creep.moveTo(source);
+            }
+
+
+            return creep.store.getFreeCapacity() <= 0;
+        },
+        target: (creep:Creep) => {
+            const targetID =  creep.memory['task']['target'];
+            let target: StructureExtension
+            if (targetID) {
+                target = <StructureExtension>Game.getObjectById(targetID)
+                if (!target || target.structureType !== STRUCTURE_EXTENSION || target.store.getFreeCapacity(RESOURCE_ENERGY) <= 0) {
+                    delete creep.memory['task']['target']
+                    target = undefined
+                }
+            }
+                           // 没缓存就重新获取
+            if (!target) {
+                
+                
+                // 获取有需求的建筑
+                target = <StructureExtension>creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+                    // extension 中的能量没填满
+                    filter: s => ((s.structureType == STRUCTURE_EXTENSION || s.structureType == STRUCTURE_SPAWN) && (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0))
+                })
+                
+                if (!target) {
+                    // 都填满了，任务完成
+                    //creep.room.deleteCurrentRoomTransferTask()
+                    //set fill task to true
+                    Memory['colony'][creep.memory['roomName']]['dpt_logistic']['fillTask'] = false;
+                    creep.memory['task']['type'] = null;
+                    creep.memory['sendTaskRequest'] = false;
+                    return true
+                }
+
+                // 写入缓存
+                creep.memory['task']['target'] = target.id
+
+            }
+            
+
+            /*
+            const target = <StructureExtension>creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+                filter: s => ((s.structureType == STRUCTURE_EXTENSION || s.structureType == STRUCTURE_SPAWN) && (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0))
+            })
+            */
+
+            creep.moveTo(target.pos)
+            const result = creep.transfer(target, RESOURCE_ENERGY)
+            if (result === ERR_NOT_ENOUGH_RESOURCES || result === ERR_FULL) return true
+            else if (result != OK && result != ERR_NOT_IN_RANGE) creep.say(`拓展填充 ${result}`)
+
+            if (creep.store[RESOURCE_ENERGY] === 0) return true
+            
+
+            return false;
+        }
+        
+    },
+    
+
+
     MOVE: {
         source: (creep:Creep) => {
             creep.say('💤');
@@ -95,19 +168,22 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
             //CHECK IF CREEP STORAGE IS EMPTY
 
             //@ts-ignore
-            if (creep.withdraw(source, creep.memory['target']['resourceType']) == ERR_NOT_IN_RANGE) {//@ts-ignore
+            if (creep.withdraw(source, creep.memory['task']['target']['resourceType']) == ERR_NOT_IN_RANGE) {//@ts-ignore
                 creep.moveTo(source)
             }
             return creep.store.getFreeCapacity() <= 0;
         },
         target: (creep:Creep) => {
             const target = Game.getObjectById(creep.memory['task']['target']['id']);
+            
             if (target) {    //@ts-ignore
                 const transfer = creep.transfer(target, creep.memory['task']['target']['resourceType']);
+                
                 const creepStorageIni = creep.store.getUsedCapacity();
                 if (transfer == ERR_NOT_IN_RANGE) {
-                    const pos = new RoomPosition(creep.memory['task']['target']['pos'][0], creep.memory['task']['target']['pos'][1], creep.memory['task']['target']['roomName']);
-                    creep.moveTo(pos);
+                    //const pos = new RoomPosition(creep.memory['task']['target']['pos'][0], creep.memory['task']['target']['pos'][1], creep.memory['task']['target']['roomName']);
+                    //@ts-ignore
+                    creep.moveTo(target);
                 }
                 else if (transfer == OK) {
                     creep.memory['amountDone'] = creep.memory['amountDone'] + creepStorageIni;
@@ -126,6 +202,8 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
             }
             else {  //reset task
                 creep.memory['task']['type'] = null;
+                creep.memory['sendTaskRequest'] = false;
+                creep.say('❌')
                 return true;
             }
 

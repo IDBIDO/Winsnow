@@ -48,6 +48,8 @@ export class OperationReserch {
     /** fase 1 */
     private buildSourceContainers() {
         
+
+
         const sourceContainer1Pos = planningUtils.getContainerPos(this.mainRoom, "container_source1");
         //Game.rooms[this.mainRoom].createConstructionSite(sourceContainer1Pos[0], sourceContainer1Pos[1], 'container');
         const constructionSideID1 = planningUtils.getConstructionSideID(this.mainRoom, sourceContainer1Pos);
@@ -112,7 +114,7 @@ export class OperationReserch {
         console.log('FASE 2: BUILD UPGRADER CONTAINER');
         
         //5 transporter and 3 builders (including the queen)
-        for (let i = 0; i < 1; ++i) {
+        for (let i = 0; i < 6; ++i) {
             if ( i == 0  || i == 2 || i == 5)  {
                 //create builder
                 const creepName = names.creepName();
@@ -137,7 +139,7 @@ export class OperationReserch {
                     }, 
                     target: null
                 };
-                //this.sendToSpawnInitializacion(creepName, 'transporter', data, 'dpt_transporter');
+                this.sendToSpawnInitializacion(creepName, 'transporter', data, 'dpt_logistic');
             }
         }
         

@@ -62,10 +62,16 @@ type TaskRequest =
 
 /************* LOGISTIC REQUEST  *************/
 type LogisticTaskType = 
-    'MOVE' | 'TRANSFER' | 'WITHDRAW'
+    'MOVE' | 'TRANSFER' | 'WITHDRAW' | 'FILL'
 
 type LogisticTaskRequest = 
     MoveRequest | TransferRequest | WithdrawRequest
+
+interface FillTask {
+    type: 'FILL',
+    source: string,
+    target: string
+}
 
     
 interface MoveRequestData{

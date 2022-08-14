@@ -18,7 +18,7 @@ module.exports.loop = function() {
 
   ColonyApi;
 
-  const colony = new Colony('W2N5');
+  const colony = new Colony('W7N9');
   colony.run();
 
   //const creepSpawning = new CreepSpawning('W8N7');
@@ -36,5 +36,5 @@ module.exports.loop = function() {
     
    // Game.creeps['C8U4V6EMR'].memory['role'] = 'builder'
    // Game.creeps['C8U4V6EMR'].memory['department'] = 'dpt_work'
-
+    //ColonyApi.deleteColony('W7N9')
 }

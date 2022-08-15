@@ -43,9 +43,11 @@ export class Mem {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_work'] = {};
         colonyMem['dpt_work']['creep'] = {};
-        colonyMem['dpt_work']['buildTask'] = [];
-        colonyMem['dpt_work']['repairTask'] = [];
         colonyMem['dpt_work']['ticksToSpawn'] = {};
+        colonyMem['dpt_work']['buildTask'] = {};
+        colonyMem['dpt_work']['completeBuildTask'] = {};
+        colonyMem['dpt_work']['repairTask'] = {};
+        colonyMem['dpt_work']['completeRepairTask'] = {};
         this.initializeWorkerCreepsMem();
     }
 
@@ -62,12 +64,24 @@ export class Mem {
         const colonyMem = Memory['colony'][this.mainRoom];
 
         colonyMem['state'] = {};
-        colonyMem['state']['currentRCL'] = 1;
+
+        colonyMem['state']['buildColony'] = {}
+
+        colonyMem['state']['buildColony']['buildRCL'] = 0;
+        colonyMem['state']['buildColony']['fase'] = 0;
+        colonyMem['state']['buildColony']['working'] = false;
+        colonyMem['state']['buildColony']['task'] = {}
+        colonyMem['state']['buildColony']['task']['building'] = false;
+        colonyMem['state']['buildColony']['task']['levelUP'] = false;
+        
+        colonyMem['state']['import'] = {}
+
         colonyMem['state']['updateRoomPlanning'] = true;
         colonyMem['state']['updateCreepNum'] = true;
         colonyMem['state']['updateCreepNumWorker'] = true;
         
         colonyMem['state']['updateCreepNum'] = 1;
+
         //save roomPlaning Block
         let planning: TranslatePlanning = new TranslatePlanning(this.mainRoom);
         planning.savePlanningModel();
@@ -77,6 +91,8 @@ export class Mem {
         colonyMem['creepSpawning']['task'] = {};
         colonyMem['creepSpawning']['completeTask'] = {};
 
+        colonyMem['state']['controller'] = {};
+        colonyMem['state']['controller']['fillTaskTTL'] = -1;
 
         this.initializeDptHarvest();
         this.initializeDptLogistic();
@@ -89,7 +105,9 @@ export class Mem {
     private initializeDptLogistic() {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_logistic'] = {};
-        colonyMem['dpt_logistic']['state'] = '';
+        colonyMem['dpt_logistic']['storage'] = [];
+
+        colonyMem['dpt_logistic']['fillTask'] = false;
 
         colonyMem['dpt_logistic']['request'] = [];
         
@@ -98,6 +116,9 @@ export class Mem {
 
         colonyMem['dpt_logistic']['creep'] = {};
         colonyMem['dpt_logistic']['ticksToSpawn'] = {};
+
+        colonyMem['sourceContainer'] = [];
+        colonyMem['controllerContainer'] = [];
     }
 
     private initializeDptHarvest() {

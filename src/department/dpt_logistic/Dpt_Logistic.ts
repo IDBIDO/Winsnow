@@ -36,11 +36,40 @@ export default class Dpt_Logistic extends Department {
 
     private getSourceTask() {
         const requestList = this.memory['sourceTask'];
-        if (Object.keys(requestList).length === 0) {
+        const keys = Object.keys(requestList);
+        if (keys.length === 0) {
             return null;
         }
-        else return requestList[0];
+        else return requestList[keys[0]];
     }
+
+    private getTransferTask() {
+        const requestList = this.memory['transferTask'];
+        const keys = Object.keys(requestList);
+        if (keys.length === 0) {
+            return null;
+        }
+        else return requestList[keys[0]];
+    }
+
+    private getStorageID(): string {
+        const storageList = this.memory['storage'];
+        if (storageList.length == 1) {
+            return storageList[0];
+        }
+        else {
+            let maxCapacityUsedStorageIndex = 0;
+            for (let i = 1; i < storageList.length; ++i) {
+                const storage= Game.getObjectById(storageList[i]);// @ts-ignore
+                const actualStorage= Game.getObjectById(storageList[maxCapacityUsedStorageIndex]);// @ts-ignore
+
+                if (storage.store.getUsedCapacity() > actualStorage.store.getUsedCapacity()) {
+                    maxCapacityUsedStorageIndex = i;
+                }
+            }
+            return storageList[maxCapacityUsedStorageIndex];
+        }
+    }   
 
     /** Dpt_logistic creaat move task to reply a request */
     private creatMoveTask(moveTask: MoveRequest): LogisticMoveTask {
@@ -75,14 +104,91 @@ export default class Dpt_Logistic extends Department {
         
     }
 
+    private getMaxCapacityStorageID(): string{
+        const storages = this.memory['storage'];
+        if (storages.length == 2) {
+            const c1 = Game.getObjectById(storages[0]);
+            console.log(c1);
+            
+            const c2 = Game.getObjectById(storages[1]);
+            //@ts-ignore
+            if (c1.store.getUsedCapacity() > c2.store.getUsedCapacity()) {
+                return c1.id;
+            }
+            else return c2.id;
+        }
+        else if (storages.length == 1) return storages[0].id
+        else return null
+    }
+
+    private createTransferTask(transferRequest: TransferRequest): TransferTask {
+        
+        const r: TransferTask = {
+            type: 'TRANSFER',
+            source: this.getMaxCapacityStorageID(),
+            target: transferRequest.target,
+            amountDone: 0
+        }
+        return r;
+    }
+
+    private assigTargetTask(creepName: string): boolean {
+        const targetTaskList = this.memory['targetTask'];
+        for (let request in targetTaskList) {
+            if (request) {
+                const task = this.createTransferTask(targetTaskList[request]);
+                delete this.memory['targetTask'][request];
+                Game.creeps[creepName].memory['task'] = task;
+                return true;
+            }
+        }
+        
+        return false;       //no task found
+    }
+
+    private assigSourceTask(creepName: string): boolean {
+        return false;
+    }
+
+    private createFillTask(): FillTask {
+        const task: FillTask = {
+            'type': 'FILL',
+            'source': this.getMaxCapacityStorageID(),
+            'target': null
+        }
+        return task;
+    }
+
+    private assigFillTask(creepName: string): void {
+        Memory.creeps[creepName]['task'] = this.createFillTask();
+    }
+
     private processRequest() {
         const requestList = this.memory['request'];
+        const sourceTaskList = this.memory['sourceTask'];
+        const targetTaskList = this.memory['targetTask'];
+        for (let i = requestList.length-1; i >= 0; --i) {
+            
+            if (this.memory['fillTask']) {
+                this.assigFillTask(requestList[i]);
+                this.memory['fillTask'] = false;
+            }
+
+            else if (this.assigTargetTask(requestList[i])) {
+                this.memory['request'].pop();
+                console.log('poped');
+                
+            }
 
 
+       
+        }
+    
+        
     }
 
     public run() {
-
+        this.processRequest();
     }
 
 }

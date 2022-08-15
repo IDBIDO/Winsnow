@@ -1,10 +1,41 @@
 
 /********************* ROLE DATA ****************/
+interface InitializerData {
+    source: string;
+    target: {
+        id: string,
+        pos:[number, number]
+    }
+}
+
+
 
 interface HarvesterData{
     source: string;
     target: string;
 }
+
+/*****************WORKER**************** */
+interface WorkerData {
+    source: string;
+    target: {
+        id: string;
+        pos: string;
+        roomName: string;
+    }
+}
+
+type WorkerTaskType = 
+    'BUILD' | 'REPAIR'
+
+interface workerTaskOperation {
+        // creep 工作时执行的方法
+   target: (creep: Creep) => boolean
+   // creep 非工作(收集资源时)执行的方法
+   source: (creep: Creep) => boolean
+}
+ 
+/*********************************** */
 
 interface LogisticData {
     source: LogisticSourceTask,
@@ -25,24 +56,29 @@ interface Task {
 }
 
 
-
 /****************************REQUEST ***********************/
 type TaskRequest = 
     LogisticTaskRequest
 
 /************* LOGISTIC REQUEST  *************/
 type LogisticTaskType = 
-    'MOVE' | 'TRANSFER' | 'WITHDRAW'
+    'MOVE' | 'TRANSFER' | 'WITHDRAW' | 'FILL'
 
 type LogisticTaskRequest = 
     MoveRequest | TransferRequest | WithdrawRequest
 
+interface FillTask {
+    type: 'FILL',
+    source: string,
+    target: string
+}
+
+    
 interface MoveRequestData{
     id: string;                 //object id
     pos: [number, number];      //position to move
     roomName: string;           //position's room
-}
-
+}   
 interface MoveRequest {
     type: 'MOVE',
     source: MoveRequestData
@@ -53,17 +89,22 @@ interface TransferRequestData {
     resourceType: ResourceConstant,
     amount: number
 }
-
 interface TransferRequest {
     type: 'TRANSFER',
     target: TransferRequestData
+}
+
+interface TransferTask {
+    type: 'TRANSFER',
+    source: string,
+    target: TransferRequestData
+    amountDone: number;
 }
 
 interface WithdrawRequestData {
     id: string, 
     resourceType: ResourceConstant
 }
-
 interface WithdrawRequest {
     type: 'WITHDRAW',
     source: WithdrawRequestData
@@ -150,12 +191,15 @@ type BaseRoleConstant =
     //'miner' |
     //'upgrader' |
     //'filler' |
-    'builder' 
-    //'repairer'
+    'builder' |
+    //'repairer' |
+    'initializer'|
+    'iniQueen'
     
 type AdvancedRoleConstant =
     'manager'|
-    'transporter'
+    'transporter'|
+    'worker'
     
 type CreepWork = {
     [role in CreepRoleConstant]: (data: {}) => ICreepConfig
@@ -177,4 +221,7 @@ type LinkFunction =
     'link_source2' |
     'link_controller1'|
     'link_center'
+
+
+/************************ BUILD COLONY TASK TYPE ************************ */
 

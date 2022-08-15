@@ -8,16 +8,11 @@ global.ColonyApi = {
 
         return "Colony " + roomName + " created."
 
-        /*
-        let request: LogisticTaskRequest = {
-            type: 'MOVE',
-            data: {
-                id: 'sss',
-                pos: [1,2],
-                roomName: 'dddd'
-            }
-        }
-        */
+
+    },
+    deleteColony(roomName: string):string {
+        delete Memory['colony'][roomName];
+        return "Colony " + roomName + " deleted" ;
     },
 
     sendTaskRequest(roomName: string ,dpt: string, request: TaskRequest) {

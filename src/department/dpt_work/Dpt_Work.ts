@@ -84,20 +84,7 @@ export default class Dpt_Work extends Department {
         }
     }
 
-    private creepExecution() {
-        for (let creepName in this.memory['creep']) {
-            const creep = Game.creeps[creepName];
-            if (creep) {
-                let data: SourceTargetData = {
-                    'source': '0d080772ccae8f2',
-                    'target': 'qq'
-                }
-                let role = 'colonizer';
-                creep['work'](data, role);
-                
-            }
-        }
-    }
+    
 
     public run(): void {
         /*

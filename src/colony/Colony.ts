@@ -1,7 +1,7 @@
 import {Mem} from "./Memory"
-import Dpt_Work from "@/department/dpt_work/Dpt_Work";
+import Dpt_build from "@/department/dpt_build/Dpt_Build";
 import { CreepSpawning } from "@/structure/CreepSpawning";
-import Dpt_harvest from "@/department/dpt_harvest/Dpt_harvest";
+import Dpt_harvest from "@/department/dpt_harvest/Dpt_Harvest";
 import { OperationReserch } from "@/operationResearch/OperationReserch";
 import Dpt_Logistic from "@/department/dpt_logistic/Dpt_Logistic";
 import { ControllerOrder } from "@/structure/ControllerOrder";
@@ -15,13 +15,13 @@ export class Colony {
 
     mainRoom: string;  //main roomName
     /* Colony property */
-    //dpt_work: Dpt_Work;
+    //dpt_build: dpt_build;
     //creepSpawning: CreepSpawning;
 
     constructor(mainRoom: string) {
         this.mainRoom = mainRoom;
         //this.memory = new Mem(mainRoom);
-        //this.dpt_work = new Dpt_Work(mainRoom);
+        //this.dpt_build = new dpt_build(mainRoom);
         //this.creepSpawning = new CreepSpawning(mainRoom);
     }
 
@@ -58,5 +58,7 @@ export class Colony {
 
 //Memory['colony']['W7N9']['creepSpawning']['spawn'].push('Spawn1')
 //ColonyApi.createColony('W7N9')
+//ColonyApi.deleteColony('W7N9')
+//Memory.creeps = {}
 
-//Memory['colony']['W7N7']['dpt_work']['ticksToSpawn']['W7N7_dptWork_1'] = Game.time + 10;
+//Memory['colony']['W7N7']['dpt_build']['ticksToSpawn']['W7N7_dptWork_1'] = Game.time + 10;

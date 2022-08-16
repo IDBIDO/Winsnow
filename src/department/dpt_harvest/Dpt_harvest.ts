@@ -4,7 +4,7 @@ import { moveRequest, sendLogisticTask } from "@/colony/dpt_comunication";
 import { logisticTaskName } from "@/colony/nameManagement";
 
 
-export default class Dpt_Work extends Department {
+export default class Dpt_Harvest extends Department {
     
     
     constructor(dptRoom: string) {

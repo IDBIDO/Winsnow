@@ -2,6 +2,7 @@ import * as planningUtils from "./planningUtils";
 import * as roomUtils from "../colony/planningUtils"
 import * as names from "../colony/nameManagement"
 import { sendBuildTask } from "@/colony/dpt_comunication";
+import { CreepSpawning } from "@/structure/CreepSpawning";
 
 /** CONTROL ALL DEPARTMENT */
 export class OperationReserch {
@@ -15,7 +16,7 @@ export class OperationReserch {
     }    
 
     /** Funtion to control creep numbers, only used for OR */
-    private sendToSpawnInitializacion(creepName: string, role: string,  task: {}, dpt: string) {
+    private sendToSpawnInitializacion(creepName: string, role: string,  task: {}, dpt: string, pull: boolean) {
         Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName] ={};
         
         const spawnTask = Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName];
@@ -25,6 +26,7 @@ export class OperationReserch {
         spawnTask['roomName'] = this.mainRoom;
         spawnTask['department'] = dpt;
         spawnTask['task'] = task;
+        spawnTask['dontPullMe'] = pull;
 
     }
 
@@ -90,7 +92,9 @@ export class OperationReserch {
         for (let i = 0; i < totalNum; ++i) {
             const creepName = names.creepName();
             if (par) {
-                this.sendToSpawnInitializacion(creepName, 'initializer',  data1, 'dpt_harvest')
+                //this.sendToSpawnInitializacion(creepName, 'initializer',  data1, 'dpt_harvest')
+                CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName, 'initializer',  data1, 'dpt_harvest', true);
+
                 par = false;
 
                 //save creep name to check task completation
@@ -98,7 +102,8 @@ export class OperationReserch {
 
             }
             else  {
-                this.sendToSpawnInitializacion(creepName, 'initializer',  data2, 'dpt_harvest');
+                CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName, 'initializer',  data2, 'dpt_harvest', true);
+                //this.sendToSpawnInitializacion(creepName, 'initializer',  data2, 'dpt_harvest');
                 par = true;
             }
             
@@ -127,7 +132,9 @@ export class OperationReserch {
                     },
    
                 }
-                this.sendToSpawnInitializacion(creepName, 'builder', data, 'dpt_work');
+                CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName, 'builder', data, 'dpt_build', false);
+
+                //this.sendToSpawnInitializacion(creepName, 'builder', data, 'dpt_build');
             }
             else {
                 const creepName = names.creepName();
@@ -139,19 +146,22 @@ export class OperationReserch {
                     }, 
                     target: null
                 };
-                this.sendToSpawnInitializacion(creepName, 'transporter', data, 'dpt_logistic');
+                CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName,  'transporter', data, 'dpt_logistic', false);
+
+                //this.sendToSpawnInitializacion(creepName, 'transporter', data, 'dpt_logistic');
             }
         }
         
         //set logistic storage storage
+        /*
         const sourceContainer1ID = planningUtils.getContainerID(this.mainRoom, 'container_source1');
         const sourceContainer2ID = planningUtils.getContainerID(this.mainRoom, 'container_source2');
         Memory['colony'][this.mainRoom]['dpt_logistic']['storage'].push(sourceContainer1ID);
         Memory['colony'][this.mainRoom]['dpt_logistic']['storage'].push(sourceContainer2ID);
-
-        //send upgraderContainer build task to dpt_worker
+        */
+        //send upgraderContainer build task to dpt_builder
         const upgraderContainerList = Game.rooms[this.mainRoom].find(FIND_CONSTRUCTION_SITES);
-        //sendBuildTask(this.mainRoom, upgraderContainerList[0].id, [upgraderContainerList[0].pos.x, upgraderContainerList[0].pos.y]);
+        sendBuildTask(this.mainRoom, upgraderContainerList[0].id, upgraderContainerList[0].structureType,  [upgraderContainerList[0].pos.x, upgraderContainerList[0].pos.y]);
 
 
     }
@@ -170,7 +180,7 @@ export class OperationReserch {
             case 0:        //new colony, only have a spawn
                 if(fase == 0) this.putSourceUpgraderContainers();         
                 else if (fase == 1) this.buildSourceContainers();         //building Task controlled by iniQueen
-                else if (fase == 2) this.buildUpgraderContainer();        //buildingTask controlled by dpt_worker
+                else if (fase == 2) this.buildUpgraderContainer();        //buildingTask controlled by dpt_builder
                 else this.level2AndBuildRoad();                           //levelUpTask controlled by Controller
                 break;
                 

@@ -98,11 +98,17 @@ export function sendORLevelUpTaskCompletation(roomName: string): void {
     Memory['colony'][roomName]['state']['buildColony']['task']['levelUp'] = true;
 }
 
-export function sendBuildTask(roomName: string, constructionSideID: string, pos: [number,number]):void {
-    //Memory['colony'][roomName]['dpt_work']['buildTask'][constructionSideID] = {
-    //    'pos': pos,
-    //    'roomName': roomName
-    //}
+export function sendBuildTask(roomName: string, constructionSideID: string, type: BuildableStructureConstant, pos: [number,number]):void {
+    Memory['colony'][roomName]['dpt_build']['buildTask'][constructionSideID] = {
+        'type': type,
+        'pos': pos,
+        'roomName': roomName
+
+    }
+    //actualize build cost
+    const buildCost = Memory['colony'][roomName]['dpt_build']['buildCost'];
+    Memory['colony'][roomName]['dpt_build']['buildCost'] = buildCost + CONSTRUCTION_COST[type];
+    
 }
 
 

@@ -37,15 +37,15 @@ export function positionToHarvest(roomName: string, pos: [number, number]): [num
 
 
 export const permmanentCreepsRoleNum = {
-    dpt_work: {
+    dpt_build: {
         role: 'worker',
         numConfig: [2, 2, 2, 2, 2, 2, 2, 2]
     }
 }
 
 export const permanentNumConfigs = {
-    dpt_work: [2, 2, 2, 2, 2, 2, 2, 2],
-    dpt_harvester:[2, 2, 2, 2, 2, 2, 2, 2]
+    dpt_build: [2, 2, 2, 2, 2, 2, 2, 2],
+    dpt_harvest:[2, 2, 2, 2, 2, 2, 2, 2]
     
 
 }

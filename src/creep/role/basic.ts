@@ -57,10 +57,11 @@ const roles:{
                         sendLogisticTask(creep.memory['roomName'], logisticTaskName(request), request);
                         creep.memory['sendLogisticRequest'] = true;
                     }
+
                         //@ts-ignore
                     if (creep.pos.inRangeTo(contructionSide, 3)) return true; 
                     else {      //@ts-ignore
-                        creep.moveTo(contructionSide)
+                        creep.moveTo(contructionSide, {ignoreCreeps: false})
                         return false;
                     }
                 }
@@ -84,9 +85,9 @@ const roles:{
                         
                     }
                     else {
-                        //send task request to dpt_work
-                        //this request will be delete if departament do not have task to ofer
-                        sendRequest(creep.memory['roomName'], 'dpt_work', creep.name);  
+                        //send task request to dpt_build
+                        //this request will be delete if departament do not have task to offer
+                        //sendRequest(creep.memory['roomName'], 'dpt_build', creep.name);  
                     }
                 }
                 else creep.say('💤');
@@ -99,9 +100,9 @@ const roles:{
             const target = Game.getObjectById(creep.memory['task']['target']['id'] as Id<ConstructionSite>);
             
             if (target) {
-                
-                if (creep.build(target) == ERR_NOT_ENOUGH_ENERGY) creep.say('⚡')
-              
+                const r = creep.build(target);
+                if (r == ERR_NOT_ENOUGH_ENERGY) creep.say('⚡')
+                else if (r == ERR_NOT_IN_RANGE) creep.moveTo(target, {ignoreCreeps: true})
                 
                 return false;
             }
@@ -259,9 +260,12 @@ const roles:{
                     const sourceContainer2Index = getContainerIndex(creep.room.name, 'container_source2');
                     saveStructureID(creep.room.name, 'container', sourceContainer2Index, containers[1].id);
 
+                    Memory['colony'][creep.memory['roomName']]['dpt_logistic']['storage'].push(containers[0].id);
+                    Memory['colony'][creep.memory['roomName']]['dpt_logistic']['storage'].push(containers[1].id);
+
                     creep.memory['role'] = 'transporter';   //change queen role to transporter
                     
-                }
+                }   
             };
             
 

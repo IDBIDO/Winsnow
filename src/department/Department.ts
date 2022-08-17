@@ -20,9 +20,9 @@ export abstract class Department {
         const spawnTask: SpawnTask = {
             creepName: creepName,
             role: roleType,
-            dpt: 'dpt_work'
+            dpt: 'dpt_build'
         }
-        Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName] = {'role': roleType, 'dpt': 'dpt_work'}
+        Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName] = {'role': roleType, 'dpt': 'dpt_build'}
 
             //Memory['colony'][this.mainRoom]['creepSpawning']['task'].push(spawnTask);
     
@@ -32,7 +32,7 @@ export abstract class Department {
         
     }
 
-    protected abstract actualizeCreepNumber();
+    //protected abstract actualizeCreepNumber();
 
     protected sendToSpawnInitializacion(creepName: string, role: string,  data: {}, dpt: string) {
         Memory['colony'][this.mainRoom]['creepSpawning']['task'][creepName] ={};

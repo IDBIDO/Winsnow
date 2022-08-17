@@ -19,38 +19,17 @@ const roles: {
         }
     }),
 
-    worker: (data: string): ICreepConfig => ({
-        source: creep => {
-            const task = creep.memory['task'];
-            if (task['target']['id'] == null) {
-                if (creep.memory['waiting'])  creep.say('zz');
-                else {
-                    sendRequest(creep.memory['roomName'], 'dpt_work', creep.name);
-                    creep.memory['waiting'] = true;        //dpt_work will change to false
-                }
-                return false;
-            }
-            else {
-                const taskType:WorkerTaskType = task['type'];
-                return workerTaskOperation[taskType].source(creep)
-            }
-
-        },
-        target: creep => {
-            const taskType = creep.memory['task']['type'];
-
-            return workerTaskOperation[taskType].target(creep);
-        }
-    }),
-
     transporter: (data: {}): ICreepConfig => ({
         source: creep => {
-
+            
+            
             const taskType = creep.memory['task']['type'];
             if (taskType) {
+                
                 return transferTaskOperations[taskType].source(creep)
             }
             else {
+                
                 //send task 
                 if (creep.memory['sendTaskRequest']) {
                     creep.say('💤')
@@ -89,6 +68,7 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
             //@ts-ignore
             if (creep.withdraw(source, 'energy') == ERR_NOT_IN_RANGE) { //@ts-ignore
                 creep.moveTo(source);
+            
             }
 
 
@@ -224,35 +204,6 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
 
 }
 
-export const workerTaskOperation: { [task in WorkerTaskType]: workerTaskOperation
-} = {
-    BUILD: {
-        source: (creep: Creep) => {
-            const pos = creep.memory['task']['target']['pos'];
-            const targetPos = new RoomPosition(pos[0], pos[1], creep.memory['roomName']);
-            if (creep.pos.inRangeTo(targetPos, 3)) return true;
-            else return false;
-        },
-        target: (creep: Creep) => {
-            const target = Game.getObjectById(creep.memory['task']['target']['id']);
-            if (target) {   //@ts-ignore
-                creep.build(target);
-                return false;
-            }
-            else {
-                //notify contruction completation
-            }
-        }
-    },
-    REPAIR:{
-        source: (creep: Creep) => {
-            return false;
-        },
-        target: (creep: Creep) => {
-            return false;
-        }
-    }
-}
 
 
 export default roles;

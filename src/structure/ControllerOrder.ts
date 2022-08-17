@@ -27,9 +27,9 @@ export class ControllerOrder {
 
     public run() {
         if (Game.time % 7 == 0) {
-            if (Game.time > this.memory['fillTaskTTL']) {
+            //if (Game.time > this.memory['fillTaskTTL']) {
                 this.checkRoomEnergy();
-            }
+            //}
         } 
 
 

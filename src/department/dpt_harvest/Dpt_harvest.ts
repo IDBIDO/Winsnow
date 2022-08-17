@@ -4,7 +4,7 @@ import { moveRequest, sendLogisticTask } from "@/colony/dpt_comunication";
 import { logisticTaskName } from "@/colony/nameManagement";
 
 
-export default class Dpt_Work extends Department {
+export default class Dpt_Harvest extends Department {
     
     
     constructor(dptRoom: string) {
@@ -73,13 +73,7 @@ export default class Dpt_Work extends Department {
         
 
     public run() {
-        /*
-        if (Memory['colony'][this.mainRoom]['state']['updateCreepNum']) {
-            this.actualizeCreepNumber();
-            Memory['colony'][this.mainRoom]['state']['updateCreepNum']= false;
-        }
-        */
-        this.processRequest();
+        
     }
 
 

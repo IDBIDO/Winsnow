@@ -62,7 +62,14 @@ export const bodyComponentNum = {
     },
     builder: {
         1: [1, 3, 1],
-        2: [2, 3, 2]
+        2: [1, 3, 1],
+        3: [1, 3, 1],
+        4: [1, 3, 1],
+        5: [2, 4, 2],
+        6: [3, 5, 3],
+        7: [5, 7, 5],
+        8: [7, 9, 7]
+
     },
 
     transporter: {
@@ -74,7 +81,7 @@ export const bodyComponentNum = {
         1: [2, 1, 1]
     },
     iniQueen: {
-        1: [2, 2],
+        1: [3, 3],
     }
 
 }
@@ -103,6 +110,9 @@ export const numConfigs = {
         worker: 2
     }
 }
+
+
+
 
 export function workerSourceConfigUpdate(energyRCL: number, roomName: string): void {
     console.log(energyRCL);

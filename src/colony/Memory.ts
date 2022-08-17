@@ -7,7 +7,7 @@ Memory.colony.
         mainRoom.
             state{}
             roomPlanning{}
-            dpt_work{}
+            dpt_build{}
 */
 
 /*
@@ -27,29 +27,19 @@ export class Mem {
     
     private initializeWorkerCreepsMem():void {
 
-        //initialize dpt_workers creeps
+        //initialize dpt_builders creeps
         const colonyMem = Memory['colony'][this.mainRoom];
         const namePrefix = this.mainRoom;
-        colonyMem['dpt_work']['creep'][namePrefix+'_dptWork_1'] = {};
-        colonyMem['dpt_work']['creep'][namePrefix+'_dptWork_1']['active'] = false;
-        colonyMem['dpt_work']['creep'][namePrefix+'_dptWork_1']['setting'] = {};
+        colonyMem['dpt_build']['creep'][namePrefix+'_dptWork_1'] = {};
+        colonyMem['dpt_build']['creep'][namePrefix+'_dptWork_1']['active'] = false;
+        colonyMem['dpt_build']['creep'][namePrefix+'_dptWork_1']['setting'] = {};
 
-        colonyMem['dpt_work']['creep'][namePrefix+'_dptWork_2'] = {};
-        colonyMem['dpt_work']['creep'][namePrefix+'_dptWork_2']['active'] = false;
-        colonyMem['dpt_work']['creep'][namePrefix+'_dptWork_2']['setting'] = {};
+        colonyMem['dpt_build']['creep'][namePrefix+'_dptWork_2'] = {};
+        colonyMem['dpt_build']['creep'][namePrefix+'_dptWork_2']['active'] = false;
+        colonyMem['dpt_build']['creep'][namePrefix+'_dptWork_2']['setting'] = {};
     }
 
-    private initializeDptWork():void {
-        const colonyMem = Memory['colony'][this.mainRoom];
-        colonyMem['dpt_work'] = {};
-        colonyMem['dpt_work']['creep'] = {};
-        colonyMem['dpt_work']['ticksToSpawn'] = {};
-        colonyMem['dpt_work']['buildTask'] = {};
-        colonyMem['dpt_work']['completeBuildTask'] = {};
-        colonyMem['dpt_work']['repairTask'] = {};
-        colonyMem['dpt_work']['completeRepairTask'] = {};
-        this.initializeWorkerCreepsMem();
-    }
+
 
     /*
         request mem for a new colony
@@ -133,6 +123,17 @@ export class Mem {
         colonyMem['dpt_harvest']['creep'] = {};
             //'id': [Pos1, Pos2, Pos3...]
         colonyMem['dpt_harvest']['ticksToSpawn'] = {};
+    }
+
+    private initializeDptWork():void {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        colonyMem['dpt_build'] = {};
+        colonyMem['dpt_build']['creep'] = {};
+        colonyMem['dpt_build']['ticksToSpawn'] = {};
+        colonyMem['dpt_build']['buildCost'] = 0;
+        colonyMem['dpt_build']['buildTask'] = {};
+        colonyMem['dpt_build']['request'] = [];
+        this.initializeWorkerCreepsMem();
     }
 
 }

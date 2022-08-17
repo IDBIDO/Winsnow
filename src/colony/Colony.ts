@@ -37,8 +37,6 @@ export class Colony {
 
 
     public run() {
-        const operationResearch = new OperationReserch(this.mainRoom);
-        operationResearch.run();
 
         const dpt_harvest = new Dpt_Harvest(this.mainRoom);
         dpt_harvest.run();
@@ -54,6 +52,9 @@ export class Colony {
 
         const controller = new ControllerOrder(this.mainRoom);
         controller.run();
+
+        const operationResearch = new OperationReserch(this.mainRoom);
+        operationResearch.run();
     }
     
 }

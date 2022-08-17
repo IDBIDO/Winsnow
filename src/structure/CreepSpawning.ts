@@ -37,25 +37,27 @@ export class CreepSpawning {
         //console.log(energyRCL);
         
         const creepBody = setting.getBody(creepRole, energyRCL);
-
-        return spawn.spawnCreep(creepBody, creepName, {
-            memory: {
-                role: creepRole, 
-                department: dpt,
-                roomName: this.mainRoom,
-                task: creepData,
-                dontPullMe: pull
-            }
-        })
         
+        if (creepData != null) {
+            return spawn.spawnCreep(creepBody, creepName, {
+                memory: {
+                    role: creepRole, 
+                    department: dpt,
+                    roomName: this.mainRoom,
+                    task: creepData,
+                    dontPullMe: pull
+                }
+            })
+        }
+        else return spawn.spawnCreep(creepBody, creepName);
     }
 
-        /** Funtion to control creep numbers, only used for OR */
+
+    /** send a creep spawning task. In case of recycle creep, param task must be null*/
     static sendToSpawnInitializacion(roomName: string, creepName: string, role: string,  task: {}, dpt: string, pull: boolean) {
-         Memory['colony'][roomName]['creepSpawning']['task'][creepName] ={};
+        Memory['colony'][roomName]['creepSpawning']['task'][creepName] ={};
             
         const spawnTask = Memory['colony'][roomName]['creepSpawning']['task'][creepName];
-        //console.log(creepName);
             
         spawnTask['role'] = role;
         spawnTask['roomName'] = roomName;
@@ -134,10 +136,12 @@ export class CreepSpawning {
             
         }
     }
-    private initializeCreepState(creepName: string) {
+    static initializeCreepState(creepName: string) {
         Memory.creeps[creepName]['ready'] = false;
         Memory.creeps[creepName]['working'] = false;
-        Memory.creeps[creepName]['sendLogisticRequest'] = false;
+        if (Memory.creeps[creepName]['sendLogisticRequest']) {
+            Memory.creeps[creepName]['sendLogisticRequest'] = false;
+        }
 
     }
 
@@ -146,7 +150,7 @@ export class CreepSpawning {
 
         const energyRCL = setting.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
         const creepBody = setting.getBody(creepRole, energyRCL);
-        this.initializeCreepState(creepName);
+        CreepSpawning.initializeCreepState(creepName);
 
         return spawn.spawnCreep(creepBody, creepName)
         
@@ -162,12 +166,14 @@ export class CreepSpawning {
                 const spawnName = this.getAvailableSpawnName();
                 if (spawnName) {
                     r = this.recycleSpawning(spawnName, 'Queen'+this.mainRoom, 'transporter')
-
+                    console.log(r);
+                    
                     
                 }
             }
         } else {
             this.spawnQueen();
+            
         }
 
         if (r != OK) this.spawnTaskExecution();

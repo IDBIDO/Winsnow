@@ -2,6 +2,8 @@ import { Department } from "../Department";
 import * as dpt_config from "@/department/dpt_config"
 import { moveRequest, sendLogisticTask } from "@/colony/dpt_comunication";
 import { logisticTaskName } from "@/colony/nameManagement";
+import { ticksToSpawn } from "@/creep/setting";
+import { CreepSpawning } from "@/structure/CreepSpawning";
 
 
 export default class Dpt_Harvest extends Department {
@@ -70,10 +72,78 @@ export default class Dpt_Harvest extends Department {
         //clear request
         this.memory['request'] = [];
     }
+
+    static assigHarvesterToSource(roomName: string, source: "source1" | "source2", creepName: string) {
+        if (source == "source1") {
+            Memory['colony'][roomName]['dpt_harvest']['source1']['creeps'].push(creepName);
+        }
+        else {
+            Memory['colony'][roomName]['dpt_harvest']['source2']['creeps'].push(creepName);
+        }
+    }
+
+    private getHarvesterNeeded(): number {
         
+        const availableEnergy = Game.rooms[this.mainRoom].energyCapacityAvailable;
+        const energyRCL = dpt_config.getEnergyRCL(availableEnergy);
+        if (energyRCL == 1) return 3;
+        else if (energyRCL == 2) {
+            return 2;
+        }
+        else if (energyRCL == 3) {
+            return 2;
+        }
+        else  {
+            return 1;
+        }
+
+
+    }
+        
+    private checkCreepNum():void {
+        const creepsSource1 = this.memory['source1']['creeps'];
+        const creepsSource2 = this.memory['source2']['creeps'];
+
+        const harvesterNeeded = this.getHarvesterNeeded();
+
+        let toDelete = creepsSource1.length - harvesterNeeded;
+        while (toDelete) {
+            const creepDeleted = creepsSource1[creepsSource1.length-1];
+            delete this.memory['ticksToSpawn'][creepDeleted];
+            creepsSource1.pop();
+            --toDelete;
+        }
+
+        toDelete = creepsSource2.length - harvesterNeeded;
+        while (toDelete) {
+            const creepDeleted = creepsSource2[creepsSource1.length-1];
+            delete this.memory['ticksToSpawn'][creepDeleted];
+            creepsSource2.pop();
+            --toDelete;
+        }
+
+
+    }
+
+    private recycleCreep() {
+        const creepList = this.memory['ticksToSpawn'];
+        for (let creepName in creepList) {
+
+            if (creepList[creepName] && creepList[creepName] <= Game.time) {
+                CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName, 'harvester', null, null, null);
+                this.memory['ticksToSpawn'][creepName] = null;
+            }
+        }
+    }
 
     public run() {
-        
+        if (Game.time % 13 == 0 && Memory['colony'][this.mainRoom]['state']['actualize']) {
+            this.checkCreepNum();
+        }
+        if (Game.time % 23 == 0) {
+            this.recycleCreep();
+        }
+
     }
 
 

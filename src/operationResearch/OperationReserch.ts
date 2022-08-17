@@ -3,6 +3,7 @@ import * as roomUtils from "../colony/planningUtils"
 import * as names from "../colony/nameManagement"
 import { sendBuildTask } from "@/colony/dpt_comunication";
 import { CreepSpawning } from "@/structure/CreepSpawning";
+import Dpt_Harvest from "@/department/dpt_harvest/Dpt_Harvest";
 
 /** CONTROL ALL DEPARTMENT */
 export class OperationReserch {
@@ -94,7 +95,7 @@ export class OperationReserch {
             if (par) {
                 //this.sendToSpawnInitializacion(creepName, 'initializer',  data1, 'dpt_harvest')
                 CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName, 'initializer',  data1, 'dpt_harvest', true);
-
+                Dpt_Harvest.assigHarvesterToSource(this.mainRoom, "source1", creepName);
                 par = false;
 
                 //save creep name to check task completation
@@ -103,6 +104,8 @@ export class OperationReserch {
             }
             else  {
                 CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName, 'initializer',  data2, 'dpt_harvest', true);
+                Dpt_Harvest.assigHarvesterToSource(this.mainRoom, "source2", creepName);
+
                 //this.sendToSpawnInitializacion(creepName, 'initializer',  data2, 'dpt_harvest');
                 par = true;
             }
@@ -113,11 +116,17 @@ export class OperationReserch {
 
 
     }
+    private setCreepActualization() {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        colonyMem['dpt_build']['actualize'] = true;
+
+    }
 
     /** fase 2 */
     private buildUpgraderContainer() {
         console.log('FASE 2: BUILD UPGRADER CONTAINER');
         
+        this.setCreepActualization();
         /*
         //5 transporter and 3 builders (including the queen)
         for (let i = 0; i < 6; ++i) {
@@ -153,7 +162,7 @@ export class OperationReserch {
             }
         }
         */
-
+        
 
         
         //set logistic storage storage

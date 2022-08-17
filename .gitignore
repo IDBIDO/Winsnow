@@ -1,0 +1,3 @@
+echo debug.log >> .gitignore
+git rm --cached debug.log
+rm 'debug.log'

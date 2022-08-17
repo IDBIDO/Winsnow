@@ -166,12 +166,14 @@ export class CreepSpawning {
                 const spawnName = this.getAvailableSpawnName();
                 if (spawnName) {
                     r = this.recycleSpawning(spawnName, 'Queen'+this.mainRoom, 'transporter')
-
+                    console.log(r);
+                    
                     
                 }
             }
         } else {
             this.spawnQueen();
+            
         }
 
         if (r != OK) this.spawnTaskExecution();

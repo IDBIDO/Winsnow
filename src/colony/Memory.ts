@@ -93,7 +93,11 @@ export class Mem {
     
     private initializeDptLogistic() {
         const colonyMem = Memory['colony'][this.mainRoom];
+        
         colonyMem['dpt_logistic'] = {};
+
+        colonyMem['dpt_logistic']['actualize'] = false;
+
         colonyMem['dpt_logistic']['storage'] = [];
 
         colonyMem['dpt_logistic']['fillTask'] = false;
@@ -114,6 +118,7 @@ export class Mem {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_harvest'] = {};
 
+        colonyMem['dpt_harvest']['actualize'] = false;
 
         colonyMem['dpt_harvest']['source1'] = {};
         colonyMem['dpt_harvest']['source1']['id'] = '';
@@ -137,6 +142,7 @@ export class Mem {
     private initializeDptWork():void {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_build'] = {};
+        colonyMem['dpt_build']['actualize'] = false;
         colonyMem['dpt_build']['creep'] = {};
         colonyMem['dpt_build']['ticksToSpawn'] = {};
         colonyMem['dpt_build']['buildCost'] = 0;

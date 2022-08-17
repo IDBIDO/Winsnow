@@ -116,11 +116,17 @@ export class OperationReserch {
 
 
     }
+    private setCreepActualization() {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        colonyMem['dpt_build']['actualize'] = true;
+
+    }
 
     /** fase 2 */
     private buildUpgraderContainer() {
         console.log('FASE 2: BUILD UPGRADER CONTAINER');
         
+        this.setCreepActualization();
         /*
         //5 transporter and 3 builders (including the queen)
         for (let i = 0; i < 6; ++i) {

@@ -179,8 +179,13 @@ export default class Dpt_Build extends Department {
 
         if (Game.time%7) this.recycleCreepsDead();
 */  
-        if (Memory['colony'][this.mainRoom]['state']['actualize'] && Game.time%23 == 0) {
+        if (this.memory['actualize'] && Game.time%23 == 0) {
             this.checkCreepNum();
+            this.memory['actualize'] = false;
+        }
+
+        if (Game.time % 13 == 0)  {
+            //this.recycleCreepsDead();
         }
 
     }

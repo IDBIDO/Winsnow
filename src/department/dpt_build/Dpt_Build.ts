@@ -12,47 +12,7 @@ export default class Dpt_Build extends Department {
     }
     
 
-    private getNumActiveCreeps() {
-        const creepsList = this.memory['creeps'];
-        let cont = 0;
-        for (let creepName in creepsList) {
-            if (creepsList[creepName]['active']) ++cont;
-        }
-        return cont;
-    }
-
-    private activateCreeps(num: number): void {
-        const creepsList = this.memory['creep'];
-        
-        
-        for (let creepName in creepsList) {
-          
-            if (num && creepsList[creepName]['active'] == false) {
-                this.sendSpawnTask(creepName, 'worker');
-                --num;
-
-            }
-        }
-    }
-    /*
-    actualizeCreepNumber(): void {
-        const activeCreeps = this.getNumActiveCreeps();
-        const rclEnergy = dpt_config.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
-        const numCreepsNeeded = dpt_config.permanentNumConfigs.dpt_build[rclEnergy];
-
-        let dif = numCreepsNeeded - activeCreeps;
-        
-        if (dif > 0 ) {
-            this.activateCreeps(dif);
-        }
-        else if (dif < 0) {
-
-        }
-
-        setting.workerSourceConfigUpdate(rclEnergy, this.mainRoom);
-
-    }*/
-
+  
     public recycleCreepsDead() {
         const ticksToSpawn = this.memory['ticksToSpawn'];
         for (let creepName in ticksToSpawn) {
@@ -90,28 +50,29 @@ export default class Dpt_Build extends Department {
         const buildCost:number = this.memory['buildCost'];
         const availableEnergy = Game.rooms[this.mainRoom].energyCapacityAvailable;
         const energyRCL = dpt_config.getEnergyRCL(availableEnergy);
+        
         if (energyRCL <= 4) {
-            const num = Math.trunc(buildCost/1000)
+            const num = Math.trunc(buildCost/1000) + 1;
             if (num > 5) return 5;
             else return num;
         }
         else if (energyRCL == 5) {
-            const num = Math.trunc(buildCost/2/1000)
+            const num = Math.trunc(buildCost/2/1000) + 1;
             if (num > 5) return 5;
             else return num;
         }
         else if (energyRCL == 6) {
-            const num = Math.trunc(buildCost/3/1000)
+            const num = Math.trunc(buildCost/3/1000) + 1;
             if (num > 5) return 5;
             else return num;
         }
         else if (energyRCL == 7) {
-            const num = Math.trunc(buildCost/5/1000)
+            const num = Math.trunc(buildCost/5/1000) + 1;
             if (num > 5) return 5;
             else return num;
         }
         else {
-            const num = Math.trunc(buildCost/7/1000)
+            const num = Math.trunc(buildCost/7/1000) + 1;
             if (num > 5) return 5;
             else return num;
         }
@@ -218,7 +179,7 @@ export default class Dpt_Build extends Department {
 
         if (Game.time%7) this.recycleCreepsDead();
 */  
-        if (Game.time%23 == 0) {
+        if (Memory['colony'][this.mainRoom]['state']['actualize'] && Game.time%23 == 0) {
             this.checkCreepNum();
         }
 

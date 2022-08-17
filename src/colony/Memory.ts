@@ -54,7 +54,6 @@ export class Mem {
         const colonyMem = Memory['colony'][this.mainRoom];
 
         colonyMem['state'] = {};
-
         colonyMem['state']['buildColony'] = {}
 
         colonyMem['state']['buildColony']['buildRCL'] = 0;
@@ -114,14 +113,24 @@ export class Mem {
     private initializeDptHarvest() {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_harvest'] = {};
+
+
+        colonyMem['dpt_harvest']['source1'] = {};
+        colonyMem['dpt_harvest']['source1']['id'] = '';
+        colonyMem['dpt_harvest']['source1']['outRampart'] = true;
+        colonyMem['dpt_harvest']['source1']['creeps'] = [];
+
+        colonyMem['dpt_harvest']['source2'] = {};
+        colonyMem['dpt_harvest']['source2']['id'] = '';
+        colonyMem['dpt_harvest']['source2']['outRampart'] = true;
+        colonyMem['dpt_harvest']['source2']['creeps'] = [];
+
+        colonyMem['dpt_harvest']['mineral'] = {};
+        colonyMem['dpt_harvest']['mineral']['id'] = '';
+        colonyMem['dpt_harvest']['mineral']['outRampart'] = true;
+        colonyMem['dpt_harvest']['mineral']['creeps'] = [];
         
-        //harvesters collect energy request 
-        colonyMem['dpt_harvest']['request'] = [];
-
-
-
         colonyMem['dpt_harvest']['creep'] = {};
-            //'id': [Pos1, Pos2, Pos3...]
         colonyMem['dpt_harvest']['ticksToSpawn'] = {};
     }
 

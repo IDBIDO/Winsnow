@@ -53,7 +53,14 @@ export const bodyComponentNum = {
     //WORK  CARRY   MOVE
     harvester:{
         1: [2, 1, 1],
-        2: [4, 1, 2]
+        2: [3, 1, 2],
+        3: [4, 1, 2],
+        4: [5, 1, 2],
+        5: [5, 2, 3],
+        6: [6, 4, 3],
+        7: [6, 6, 3],
+        8: [6, 6, 3],
+
     },
 
     worker: {

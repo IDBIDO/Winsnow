@@ -1,10 +1,10 @@
 import {Mem} from "./Memory"
-import Dpt_build from "@/department/dpt_build/Dpt_Build";
 import { CreepSpawning } from "@/structure/CreepSpawning";
-import Dpt_harvest from "@/department/dpt_harvest/Dpt_Harvest";
 import { OperationReserch } from "@/operationResearch/OperationReserch";
 import Dpt_Logistic from "@/department/dpt_logistic/Dpt_Logistic";
 import { ControllerOrder } from "@/structure/ControllerOrder";
+import Dpt_Build from "@/department/dpt_build/Dpt_Build";
+import Dpt_Harvest from "@/department/dpt_harvest/Dpt_Harvest";
 
 
 /** 
@@ -40,8 +40,11 @@ export class Colony {
         const operationResearch = new OperationReserch(this.mainRoom);
         operationResearch.run();
 
-        const dpt_harvest = new Dpt_harvest(this.mainRoom);
-        //dpt_harvest.run();
+        const dpt_harvest = new Dpt_Harvest(this.mainRoom);
+        dpt_harvest.run();
+
+        const dpt_build = new Dpt_Build(this.mainRoom);
+        dpt_build.run();
 
         const dpt_logistic = new Dpt_Logistic(this.mainRoom);
         dpt_logistic.run();

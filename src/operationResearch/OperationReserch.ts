@@ -118,12 +118,13 @@ export class OperationReserch {
     private buildUpgraderContainer() {
         console.log('FASE 2: BUILD UPGRADER CONTAINER');
         
+        /*
         //5 transporter and 3 builders (including the queen)
         for (let i = 0; i < 6; ++i) {
             if ( i == 0  || i == 2 || i == 5)  {
                 //create builder
                 const creepName = names.creepName();
-                const data: WorkerData = {
+                const data: BuilderData = {
                     source: null,
                     target: {
                         id: null,
@@ -151,6 +152,9 @@ export class OperationReserch {
                 //this.sendToSpawnInitializacion(creepName, 'transporter', data, 'dpt_logistic');
             }
         }
+        */
+
+
         
         //set logistic storage storage
         /*

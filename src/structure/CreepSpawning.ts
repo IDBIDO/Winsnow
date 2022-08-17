@@ -51,19 +51,20 @@ export class CreepSpawning {
     }
 
         /** Funtion to control creep numbers, only used for OR */
-        static sendToSpawnInitializacion(roomName: string, creepName: string, role: string,  task: {}, dpt: string, pull: boolean) {
-            Memory['colony'][roomName]['creepSpawning']['task'][creepName] ={};
+    static sendToSpawnInitializacion(roomName: string, creepName: string, role: string,  task: {}, dpt: string, pull: boolean) {
+         Memory['colony'][roomName]['creepSpawning']['task'][creepName] ={};
             
-            const spawnTask = Memory['colony'][roomName]['creepSpawning']['task'][creepName];
-            //console.log(creepName);
+        const spawnTask = Memory['colony'][roomName]['creepSpawning']['task'][creepName];
+        //console.log(creepName);
             
-            spawnTask['role'] = role;
-            spawnTask['roomName'] = roomName;
-            spawnTask['department'] = dpt;
-            spawnTask['task'] = task;
-            spawnTask['dontPullMe'] = pull;
+        spawnTask['role'] = role;
+        spawnTask['roomName'] = roomName;
+        spawnTask['department'] = dpt;
+        spawnTask['task'] = task;
+        spawnTask['dontPullMe'] = pull;
     
-        }
+    }
+
 
     private spawnTaskExecution() {
      
@@ -84,7 +85,7 @@ export class CreepSpawning {
               if (this.spawn(spawnName, creepName, creepRole, creepData, creepDpt, pull) == OK) {
                 delete spawnTask[creepName];
 
-                this.notifyTaskComplete(creepName, creepRole, creepDpt);
+                if (Memory['colony'][this.mainRoom][creepDpt]) this.notifyTaskComplete(creepName, creepRole, creepDpt);
               }
               
               ++spawnIndex;

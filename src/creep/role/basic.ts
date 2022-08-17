@@ -1,6 +1,7 @@
 import { sendLogisticTask, sendORBuildingTaskCompletation, sendRequest } from "@/colony/dpt_comunication";
 import { logisticTaskName } from "@/colony/nameManagement";
 import { getContainerIndex, saveStructureID } from "@/colony/planningUtils";
+import Dpt_build from "@/department/dpt_build/Dpt_Build";
 import * as publisher from "../taskPublisher";
 
 const roles:{
@@ -107,10 +108,11 @@ const roles:{
                 return false;
             }
             else {      //contructionside complete, change state to source to get new task
-                
+                Dpt_build.deleteBuildTask(creep.memory['roomName'], creep.memory['task']['target']['id']);
                 creep.memory['task']['target']['id'] = null;
                 creep.memory['task']['target']['pos'] = null;
                 creep.memory['task']['target']['roomName'] = null;
+                
                 return true;
             }
 

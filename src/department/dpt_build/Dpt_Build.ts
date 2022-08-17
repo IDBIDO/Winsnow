@@ -4,7 +4,7 @@ import * as setting from "@/creep/setting";
 import * as names from "@/colony/nameManagement"
 import { CreepSpawning } from "@/structure/CreepSpawning";
 
-export default class Dpt_build extends Department {
+export default class Dpt_Build extends Department {
     
     
     constructor(dptRoom: string) {
@@ -126,7 +126,22 @@ export default class Dpt_build extends Department {
         }
         return n;
     }
+
+
     
+    static deleteBuildTask(roomName: string, id: string) {
+        if (Memory['colony'][roomName]['dpt_build']['buildTask'][id]) {
+
+            const type:BuildableStructureConstant = Memory['colony'][roomName]['dpt_build']['buildTask'][id]['type'];
+            const buildCost = Memory['colony'][roomName]['dpt_build']['buildCost'];
+            Memory['colony'][roomName]['dpt_build']['buildCost'] = buildCost - CONSTRUCTION_COST[type];
+
+            delete Memory['colony'][roomName]['dpt_build']['buildTask'][id];
+            
+        }
+
+    }
+
     private creepsSavedDeath(): Array<string> {
         const creepList = this.memory['ticksToSpawn'];
         let creepsDeadName = [];
@@ -138,7 +153,7 @@ export default class Dpt_build extends Department {
     }
 
     private checkCreepNum(): void {
-
+    
         const buildTaskID = Object.keys(this.memory['buildTask']);
         if (buildTaskID.length <= 0) return;
 
@@ -147,6 +162,20 @@ export default class Dpt_build extends Department {
             const creepAlive = this.getAliveCreeps();
 
             let needToSpawn = buildersNeeded - creepAlive;
+            //spawn no saved transporter
+            for (let i = 0; i < needToSpawn; ++i) {
+                const creepName = names.creepName();
+                const data: LogisticData = {
+                    source: {
+                        id: null,
+                        roomName: this.mainRoom,
+                        pos: null
+                    }, 
+                    target: null
+                };
+                CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName,  'transporter', data, '-', false);
+            }
+
             if (needToSpawn <= 0) return ;
             else {
                 const buildersSaved = this.creepsSavedDeath();
@@ -159,7 +188,7 @@ export default class Dpt_build extends Department {
    
                         //create builder
                     const creepName = names.creepName();
-                    const data: WorkerData = {
+                    const data: BuilderData = {
                         source: null,
                         target: {
                             id: null,
@@ -168,7 +197,6 @@ export default class Dpt_build extends Department {
                         },
                     }
                     CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName, 'builder', data, 'dpt_build', true);
-                    //this.sendToSpawnInitializacion(creepName, 'builder', data, 'dpt_build');
                     --needToSpawn;
                 }
             }

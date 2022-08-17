@@ -25,15 +25,17 @@ interface WorkerData {
     }
 }
 
-type WorkerTaskType = 
-    'BUILD' | 'REPAIR'
-
-interface workerTaskOperation {
-        // creep 工作时执行的方法
-   target: (creep: Creep) => boolean
-   // creep 非工作(收集资源时)执行的方法
-   source: (creep: Creep) => boolean
+interface BuilderData {
+    source: string;
+    target: {
+        id: string;
+        pos: string;
+        roomName: string;
+    }
 }
+
+
+
  
 /*********************************** */
 
@@ -198,8 +200,7 @@ type BaseRoleConstant =
     
 type AdvancedRoleConstant =
     'manager'|
-    'transporter'|
-    'worker'
+    'transporter'
     
 type CreepWork = {
     [role in CreepRoleConstant]: (data: {}) => ICreepConfig

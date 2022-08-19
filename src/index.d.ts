@@ -32,8 +32,16 @@ interface BuilderData {
         pos: string;
         roomName: string;
     }
+    logisticCreepName: string,
 }
 
+interface BuildTask {
+    type: BuildableStructureConstant,
+    pos: [number, number],
+    roomName: string,
+    modelReference: number
+    
+}
 
 
  

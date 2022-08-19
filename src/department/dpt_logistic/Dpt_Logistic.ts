@@ -132,12 +132,25 @@ export default class Dpt_Logistic extends Department {
         return r;
     }
 
+    private notifyCreepNameToObject(objectID: string, creepName: string) {
+        //@ts-ignore
+        const object = Game.getObjectById(objectID);
+        if (object instanceof Creep) {
+            object.memory['logisticCreepName'] = creepName;
+        }
+
+
+    }
+
     private assigTargetTask(creepName: string): boolean {
         const targetTaskList = this.memory['targetTask'];
         for (let request in targetTaskList) {
             if (request) {
                 const task = this.createTransferTask(targetTaskList[request]);
+                //notify task object the creep assigned to it
+                this.notifyCreepNameToObject(task.target.id, creepName);
                 delete this.memory['targetTask'][request];
+                //assig task to logistic creep
                 Game.creeps[creepName].memory['task'] = task;
                 return true;
             }

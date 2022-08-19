@@ -39,14 +39,33 @@ export class TranslatePlanning {
             this.linkReference(roomStructsData['structMap']['link']);
             this.roadReference(roomStructsData['structMap']['road']);
             this.labReference(roomStructsData['structMap']['lab']);
-
-            //let roadList =  utils.transformRoadToAdjacentList( roomStructsData['structMap']['road']);
-            
-            
+            this.generateTemporal();
+            /*
+                {
+                    'road'{
+                        9: [x, y],
+                        8: [x, y]
+                    },
+                    'extension' {
+                        
+                    }
+                }
+            */
+            this.constructionSideRefAndPos();
 
             return true;
         }
         return false;
+    }
+
+    private constructionSideRefAndPos() {
+        Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'] = {};
+
+        const constructionSideRefPos = Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'];
+        const model = Memory['colony'][this.mainRoom]['roomPlanning']['model'];
+        for (let structureType in model) {
+            constructionSideRefPos[structureType] = {};
+        }
     }
 
     private labReference(labList:[]){
@@ -169,52 +188,25 @@ export class TranslatePlanning {
         Memory['colony'][this.mainRoom]['roomPlanning']['model']['source'].push(
             {'id': utils.getId(this.mainRoom, mPos, 'mineral'), 'pos': mPos}
         )
-
-
-
     }
 
+    private generateTemporal() {
+        Memory['colony'][this.mainRoom]['roomPlanning']['temp'] = {};
+        const temp = Memory['colony'][this.mainRoom]['roomPlanning']['temp'];
 
 
+        const roadList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['road'];
+        temp['road'] = {};
+        for (let i = 0; i < roadList.length; ++i) {
+            temp['road'][i] = roadList[i]['pos'];
+        }
 
+        const extensionList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['extension'];
+        temp['extension'] = {};
+        for (let i = 0; i < extensionList.length; ++i) {
+            temp['extension'][i] = extensionList[i]['pos'];
+        }
 
-
-    private savePlanningForEveryRCL(roadList: number[][]): void {
-        const memRoomPlanning = Memory['colony'][this.mainRoom]['roomPlanning'];
-        this.stage1(roadList);
     }
-
-    private stage1(roadList: number[][]) {
-        const memRoomPlanning = Memory['colony'][this.mainRoom]['roomPlanning'];
-
-        //get the first spawn location from the model
-        memRoomPlanning['stage'] = {};
-        memRoomPlanning['stage']['spawn'] = [];
-        memRoomPlanning['stage']['spawn'].push( memRoomPlanning['model']['spawn'][0]);
-
-        //add container
-        let containerList = memRoomPlanning['model']['container'];
-
-        let posSource1:[number, number] = memRoomPlanning['model']['source'][0];
-        let posSource2:[number, number] = memRoomPlanning['model']['source'][1];
-        let posController:[number, number] = memRoomPlanning['model']['source'][2];
-
-        let containerSourcel = utils.minDistance(posSource1, containerList);
-        let containerSource2 = utils.minDistance(posSource2, containerList);
-        let containerController = utils.minDistance(posController, containerList);
-
-        memRoomPlanning['stage']['container'] = [];
-        memRoomPlanning['stage']['container'].push( containerSourcel);
-        memRoomPlanning['stage']['container'].push( containerSource2);
-        memRoomPlanning['stage']['container'].push( containerController);
-
-
-        
-    }
-
-
-
-
-
 
 }

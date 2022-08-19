@@ -59,8 +59,11 @@ const roles:{
                         creep.memory['sendLogisticRequest'] = true;
                     }
 
+                    const logisticCreep = Game.creeps[creep.memory['logisticCreepName']]    //@ts-ignore
+                    const range = creep.pos.getRangeTo(contructionSide)
                         //@ts-ignore
-                    if (creep.pos.inRangeTo(contructionSide, 3)) return true; 
+        
+                    if (range <= 3 && logisticCreep) return true; 
                     else {      //@ts-ignore
                         creep.moveTo(contructionSide, {ignoreCreeps: false})
                         return false;
@@ -102,13 +105,27 @@ const roles:{
             
             if (target) {
                 const r = creep.build(target);
-                if (r == ERR_NOT_ENOUGH_ENERGY) creep.say('⚡')
+                if (r == ERR_NOT_ENOUGH_ENERGY) {
+                    creep.say('⚡');
+                    if(Game.time%13 == 0) { 
+                        const logisticCreepName = creep.memory['task']['logisticCreepName'];
+                        if (logisticCreepName) {
+                            const logisticCreep = Game.creeps[logisticCreepName];
+                            if (!logisticCreep) {
+                                creep.memory['sendLogisticRequest'] = false;
+                                creep.suicide();
+                                return true;    //change state to end logistic request
+                            }
+                        }
+                    }
+                } 
                 else if (r == ERR_NOT_IN_RANGE) creep.moveTo(target, {ignoreCreeps: true})
                 
                 return false;
             }
             else {      //contructionside complete, change state to source to get new task
-                Dpt_build.deleteBuildTask(creep.memory['roomName'], creep.memory['task']['target']['id']);
+                Dpt_build.deleteBuildTask(creep.memory['roomName'], creep.memory['task']['target']['id'],creep.memory['task']['target']['pos'] );
+
                 creep.memory['task']['target']['id'] = null;
                 creep.memory['task']['target']['pos'] = null;
                 creep.memory['task']['target']['roomName'] = null;
@@ -196,11 +213,11 @@ const roles:{
 
                 }
                 else {      //CHANGE ROLE TO HARVESTER
-                    
+                    if (data.target.pos) {
                         const pos = new RoomPosition(data.target.pos[0], data.target.pos[1], creep.memory['roomName']);
                         const container = pos.lookFor(LOOK_STRUCTURES)[0];
                         creep.memory['task']['target'] = container.id;
-
+                    }
                         creep.memory['role'] = 'harvester'
                     
                 }

@@ -38,7 +38,7 @@ export class CreepSpawning {
         
         const creepBody = setting.getBody(creepRole, energyRCL);
         
-        if (creepData != null) {
+        if (creepData) {
             return spawn.spawnCreep(creepBody, creepName, {
                 memory: {
                     role: creepRole, 
@@ -48,10 +48,19 @@ export class CreepSpawning {
                     dontPullMe: pull
                 }
             })
-        }
+        } 
         else return spawn.spawnCreep(creepBody, creepName);
     }
 
+    static sendToSpawnRecycle(roomName: string, creepName: string, role: string) {
+        Memory['colony'][roomName]['creepSpawning']['task'][creepName] ={};
+            
+        const spawnTask = Memory['colony'][roomName]['creepSpawning']['task'][creepName];
+            
+        spawnTask['role'] = role;
+        spawnTask['roomName'] = roomName;
+
+    }
 
     /** send a creep spawning task. In case of recycle creep, param task must be null*/
     static sendToSpawnInitializacion(roomName: string, creepName: string, role: string,  task: {}, dpt: string, pull: boolean) {
@@ -106,14 +115,6 @@ export class CreepSpawning {
 
     }
 
-    /**Creep Queen must be spawned or spawing */
-    private renewQueen(): boolean {
-        const queen = Game.creeps['Queen'+this.mainRoom];
-        if (queen) {
-            if (queen.spawning) return false;
-            else if (queen.ticksToLive < 200) return true;
-        }
-    }
 
     private spawnQueen() {
         const spawnName = this.getAvailableSpawnName();

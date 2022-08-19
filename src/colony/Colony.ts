@@ -55,6 +55,8 @@ export class Colony {
 
         const operationResearch = new OperationReserch(this.mainRoom);
         operationResearch.run();
+
+        
     }
     
 }

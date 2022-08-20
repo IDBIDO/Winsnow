@@ -19,7 +19,6 @@ export class CreepSpawning {
 
 
     private notifyTaskComplete(name: string, role: string, dpt: string) {
-        const completeTaskList = this.memory['completeTask'];
         const energyRCL = setting.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
 
         Memory['colony'][this.mainRoom][dpt]['ticksToSpawn'][name] = Game.time + setting.ticksToSpawn(role, energyRCL) + 1500 + 10;
@@ -52,14 +51,14 @@ export class CreepSpawning {
         else return spawn.spawnCreep(creepBody, creepName);
     }
 
-    static sendToSpawnRecycle(roomName: string, creepName: string, role: string) {
+    static sendToSpawnRecycle(roomName: string, creepName: string, role: string, dpt: string) {
         Memory['colony'][roomName]['creepSpawning']['task'][creepName] ={};
             
         const spawnTask = Memory['colony'][roomName]['creepSpawning']['task'][creepName];
             
         spawnTask['role'] = role;
         spawnTask['roomName'] = roomName;
-
+        spawnTask['department'] = dpt;
     }
 
     /** send a creep spawning task. In case of recycle creep, param task must be null*/
@@ -76,6 +75,12 @@ export class CreepSpawning {
     
     }
 
+    private notifyOneTimeTRansporter(creepName:string, creepRole: string) {
+        const energyRCL = setting.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
+
+        Memory['colony'][this.mainRoom]['dpt_logistic']['oneTimeCreeps'][creepName] = Game.time + setting.ticksToSpawn(creepRole, energyRCL) + 1500 + 10;
+        
+    }
 
     private spawnTaskExecution() {
      
@@ -97,6 +102,7 @@ export class CreepSpawning {
                 delete spawnTask[creepName];
 
                 if (Memory['colony'][this.mainRoom][creepDpt]) this.notifyTaskComplete(creepName, creepRole, creepDpt);
+                else if (creepRole == 'transporter') this.notifyOneTimeTRansporter(creepName, creepRole);
               }
               
               ++spawnIndex;
@@ -143,17 +149,27 @@ export class CreepSpawning {
         if (Memory.creeps[creepName]['sendLogisticRequest']) {
             Memory.creeps[creepName]['sendLogisticRequest'] = false;
         }
+        //transporter
+        if (Memory.creeps[creepName]['sendTaskRequest']) {
+            Memory.creeps[creepName]['sendTaskRequest'] = false;
+        }
 
     }
 
-    private recycleSpawning(spawnName: string, creepName: string, creepRole: string): ScreepsReturnCode {
+    private recycleQueenSpawning(spawnName: string, creepName: string, creepRole: string): ScreepsReturnCode {
         const spawn = Game.spawns[spawnName];
 
         const energyRCL = setting.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
         const creepBody = setting.getBody(creepRole, energyRCL);
         CreepSpawning.initializeCreepState(creepName);
-
-        return spawn.spawnCreep(creepBody, creepName)
+        
+        const rcode =  spawn.spawnCreep(creepBody, creepName);
+        if (rcode == OK) {
+            CreepSpawning.initializeCreepState(creepName);
+            Memory.creeps[creepName]['task']= {};
+            Memory.creeps[creepName]['task']['type'] = null;
+        }
+        return rcode
         
     }
 
@@ -166,7 +182,7 @@ export class CreepSpawning {
             if (!queen) {
                 const spawnName = this.getAvailableSpawnName();
                 if (spawnName) {
-                    r = this.recycleSpawning(spawnName, 'Queen'+this.mainRoom, 'transporter')
+                    r = this.recycleQueenSpawning(spawnName, 'Queen'+this.mainRoom, 'transporter')
                     console.log(r);
                     
                     

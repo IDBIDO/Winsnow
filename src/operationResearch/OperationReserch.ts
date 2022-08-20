@@ -186,6 +186,11 @@ export class OperationReserch {
 
     /** fase 3 */
     private createSpawnToSourceRoad() {
+        //save controller container to dpt_upgrader
+        const controllerContainer = planningUtils.getContainerID(this.mainRoom, 'container_controller');
+        Memory['colony'][this.mainRoom]['dpt_upgrade']['storage'].push(controllerContainer);
+
+
         const spawn0ToSource1RoadRef = Memory['colony'][this.mainRoom]['roomPlanning']['roadReference']['spawn0ToSource1']
         for (let i = 0; i < spawn0ToSource1RoadRef.length; ++i) {
             this.buildReference('road', spawn0ToSource1RoadRef[i])
@@ -265,6 +270,11 @@ export class OperationReserch {
         this.sendConstructionSideToBuildTask('road');
     }
 
+
+    private buildExtensionsAndAdjacentsRoads() {
+
+    }
+
     private buildColony() {
         const rcl:number = this.memory['buildColony']['buildRCL'];
         const fase:number = this.memory['buildColony']['fase'];
@@ -274,11 +284,12 @@ export class OperationReserch {
                 else if (fase == 1) this.buildSourceContainers();         //building Task controlled by iniQueen
                 else if (fase == 2) this.buildUpgraderContainer();        //buildingTask controlled by dpt_builder
                 else if (fase == 3) this.createSpawnToSourceRoad();                           //levelUpTask controlled by Controller
-                else {this.sendBuildTaskRCL0fase4()};
+                else this.sendBuildTaskRCL0fase4();
+    
                 break;
                 
             case 1:        
-                
+                if (fase == 0) this.buildExtensionsAndAdjacentsRoads();
                 break;
             case 2:
                 break;
@@ -312,6 +323,10 @@ export class OperationReserch {
         return this.memory['buildColony']['task']['building'];
     }
 
+    private checkLevelUpTaskDonde(): boolean {
+        return this.memory['buildColony']['task']['levelUP'];
+    }
+
     private resetFaseValues() {
         this.memory['buildColony']['working'] = false;      //tell OR to run next fase
         this.memory['buildColony']['task']['building'] = false;
@@ -319,6 +334,7 @@ export class OperationReserch {
 
         
     }
+
 
     private faseComplete():boolean {
         const rcl:number = this.memory['buildColony']['buildRCL'];
@@ -339,12 +355,17 @@ export class OperationReserch {
                         this.resetFaseValues();
                     }
                 }
-                else {
+                //fase 3 will jamp atomaty to fase 4
 
+                //fase 4 complete if road build and rcl level 2
+                else if (fase == 4) {
+                    if (this.checkBuildTaskDone() && this.checkLevelUpTaskDonde()) {
+                        this.memory['buildColony']['buildRCL'] = 1;
+                        this.memory['buildColony']['fase'] = 0;
+                    }
                 }
-
             case 1:        
-
+                
                 break;
             case 2:
                 break;

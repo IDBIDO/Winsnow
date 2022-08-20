@@ -23,6 +23,16 @@ global.ColonyApi = {
     //************* DEBUG ************** */
     setWorkingFaseToFalse(roomName: string) {
         Memory['colony'][roomName]['state']['buildColony']['working'] = false;
+    },
+
+    destroyAllBuilding(roomName: string) {
+        const building = Game.rooms[roomName].find(FIND_STRUCTURES, 
+        {filter: (structure)=> structure.structureType != 'spawn'}    
+        )
+        for (let i = 0; i < building.length; ++i) {
+            building[i].destroy();
+        }
+
     }
 
 }

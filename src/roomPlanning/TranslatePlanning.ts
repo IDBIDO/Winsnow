@@ -203,9 +203,41 @@ export class TranslatePlanning {
 
         const extensionList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['extension'];
         temp['extension'] = {};
+
+        const spawn0Pos:[number, number] = Memory['colony'][this.mainRoom]['roomPlanning']['model']['spawn'][0]['pos'];
+        let array = Array<arrayPos>(extensionList.length);
         for (let i = 0; i < extensionList.length; ++i) {
-            temp['extension'][i] = extensionList[i]['pos'];
+            //temp['extension'][i] = extensionList[i]['pos'];
+            const distance = utils.distanceTwoPoints(spawn0Pos, extensionList[i]['pos']);
+            const temp: arrayPos = {
+                'ref': i.toString(),
+                'pos': extensionList[i]['pos'],
+                'distance': distance
+            }
+            array[i] = temp;
         }
+        array.sort(function (a, b) {
+            if (a.distance > b.distance) {
+              return 1;
+            }
+            if (a.distance < b.distance) {
+              return -1;
+            }
+            // a must be equal to b
+            return 0;
+        });
+
+        for (let i = 0; i < extensionList.length; ++i) {
+            temp['extension'][i] = array[i].pos;
+
+        }
+
+        //change model extension
+        const modelExtension = Memory['colony'][this.mainRoom]['roomPlanning']['model']['extension'];
+        for (let i = 0; i < modelExtension.length; ++i) {
+            modelExtension[i]['pos'] = temp['extension'][i];
+        }
+        
 
     }
 

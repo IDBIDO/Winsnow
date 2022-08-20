@@ -108,7 +108,7 @@ export default class Dpt_Logistic extends Department {
         const storages = this.memory['storage'];
         if (storages.length == 2) {
             const c1 = Game.getObjectById(storages[0]);
-            console.log(c1);
+            //console.log(c1);
             
             const c2 = Game.getObjectById(storages[1]);
             //@ts-ignore
@@ -181,16 +181,19 @@ export default class Dpt_Logistic extends Department {
         const sourceTaskList = this.memory['sourceTask'];
         const targetTaskList = this.memory['targetTask'];
         for (let i = requestList.length-1; i >= 0; --i) {
-            if (this.memory['fillTask']) {
-                this.assigFillTask(requestList[i]);
-                this.memory['fillTask'] = false;
-                this.memory['request'].pop();
-            }
+            if (Memory.creeps[requestList[i]]) {
 
-            else if (this.assigTargetTask(requestList[i])) {
-                this.memory['request'].pop();                
-            }
+                if (this.memory['fillTask']) {
+                    this.assigFillTask(requestList[i]);
+                    this.memory['fillTask'] = false;
+                    this.memory['request'].pop();
+                }
 
+                else if (this.assigTargetTask(requestList[i])) {
+                    this.memory['request'].pop();                
+                }
+            }
+            else this.memory['request'].pop(); 
 
        
         }
@@ -198,8 +201,23 @@ export default class Dpt_Logistic extends Department {
         
     }
 
+    private deleteDeadOneTimeCreeps() {
+        const oneTimeCreeps = this.memory['oneTimeCreeps'];
+        for (let creepName in oneTimeCreeps) {
+            if (oneTimeCreeps[creepName] <= Game.time) {
+                delete this.memory['oneTimeCreeps'][creepName];
+                delete Memory.creeps[creepName];
+            }
+        }
+    }
+
     public run() {
         this.processRequest();
+
+        if (Game.time% 97) {
+            this.deleteDeadOneTimeCreeps();
+        }
+
     }
 
 }

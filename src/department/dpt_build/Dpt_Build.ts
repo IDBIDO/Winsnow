@@ -155,6 +155,7 @@ export default class Dpt_Build extends Department {
                     }, 
                     target: null
                 };
+                //this.memory['transporterCreeps'][creepName] = '';
                 CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName,  'transporter', data, '-', false);
             }
 
@@ -164,7 +165,7 @@ export default class Dpt_Build extends Department {
                 const buildersSaved = this.creepsSavedDeath();
                 //spawn saved builders
                 for (let i = 0; i < buildersSaved.length && needToSpawn; ++i) {
-                    CreepSpawning.sendToSpawnRecycle(this.mainRoom, buildersSaved[i], 'builder')
+                    CreepSpawning.sendToSpawnRecycle(this.mainRoom, buildersSaved[i], 'builder', 'dpt_build')
                     //this.sendSpawnTask(buildersSaved[i], 'builder');
                     this.memory['ticksToSpawn'][buildersSaved[i]] = null;
                     --needToSpawn;
@@ -191,6 +192,8 @@ export default class Dpt_Build extends Department {
         }
     }
 
+
+
     public run(): void {
         /*
         if (Memory['colony'][this.mainRoom]['state']['updateCreepNumWorker']) {
@@ -215,6 +218,7 @@ export default class Dpt_Build extends Department {
         if (Game.time % 13 == 0)  {
             //this.recycleCreepsDead();
         }
+
 
     }
 }

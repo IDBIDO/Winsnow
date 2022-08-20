@@ -24,21 +24,6 @@ export class Mem {
     }
 
 
-    
-    private initializeWorkerCreepsMem():void {
-
-        //initialize dpt_builders creeps
-        const colonyMem = Memory['colony'][this.mainRoom];
-        const namePrefix = this.mainRoom;
-        colonyMem['dpt_build']['creep'][namePrefix+'_dptWork_1'] = {};
-        colonyMem['dpt_build']['creep'][namePrefix+'_dptWork_1']['active'] = false;
-        colonyMem['dpt_build']['creep'][namePrefix+'_dptWork_1']['setting'] = {};
-
-        colonyMem['dpt_build']['creep'][namePrefix+'_dptWork_2'] = {};
-        colonyMem['dpt_build']['creep'][namePrefix+'_dptWork_2']['active'] = false;
-        colonyMem['dpt_build']['creep'][namePrefix+'_dptWork_2']['setting'] = {};
-    }
-
 
 
     /*
@@ -86,8 +71,17 @@ export class Mem {
         this.initializeDptHarvest();
         this.initializeDptLogistic();
         this.initializeDptWork();
-
+        this.initializeDptUpgrader();
         
+
+    }
+
+    private initializeDptUpgrader() {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        colonyMem['dpt_upgrade'] = {};
+        colonyMem['dpt_upgrade']['actualize'] = false;
+        colonyMem['dpt_upgrade']['storage'] = [];
+        colonyMem['dpt_upgrade']['ticksToSpawn'] = {};
 
     }
     
@@ -107,11 +101,9 @@ export class Mem {
         colonyMem['dpt_logistic']['sourceTask'] = {};
         colonyMem['dpt_logistic']['targetTask'] = {};
 
-        colonyMem['dpt_logistic']['creep'] = {};
+        colonyMem['dpt_logistic']['oneTimeCreeps'] = {};
         colonyMem['dpt_logistic']['ticksToSpawn'] = {};
 
-        colonyMem['sourceContainer'] = [];
-        colonyMem['controllerContainer'] = [];
     }
 
     private initializeDptHarvest() {
@@ -143,12 +135,11 @@ export class Mem {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_build'] = {};
         colonyMem['dpt_build']['actualize'] = false;
-        colonyMem['dpt_build']['creep'] = {};
         colonyMem['dpt_build']['ticksToSpawn'] = {};
         colonyMem['dpt_build']['buildCost'] = 0;
         colonyMem['dpt_build']['buildTask'] = {};
         colonyMem['dpt_build']['request'] = [];
-        this.initializeWorkerCreepsMem();
+        colonyMem['dpt_build']['transporterCreeps'] = {}
     }
 
 }

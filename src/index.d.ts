@@ -1,4 +1,10 @@
 
+
+interface arrayPos {
+    ref: string,
+    pos: [number, number]
+    distance: number
+}
 /********************* ROLE DATA ****************/
 interface InitializerData {
     source: string;
@@ -41,6 +47,12 @@ interface BuildTask {
     roomName: string,
     modelReference: number
     
+}
+
+//////**************  upgrader ****/
+interface Upgrader_baseData {
+    source: string;
+    logisticCreepName: string
 }
 
 
@@ -199,7 +211,7 @@ type BaseRoleConstant =
     'colonizer' |
     //'collector' |
     //'miner' |
-    //'upgrader' |
+    'upgrader_base' |
     //'filler' |
     'builder' |
     //'repairer' |

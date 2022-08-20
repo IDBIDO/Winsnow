@@ -105,7 +105,8 @@ export default class Dpt_Harvest extends Department {
         const creepsSource2 = this.memory['source2']['creeps'];
 
         const harvesterNeeded = this.getHarvesterNeeded();
-
+        console.log(harvesterNeeded);
+        
         let toDelete = creepsSource1.length - harvesterNeeded;
         while (toDelete) {
             const creepDeleted = creepsSource1[creepsSource1.length-1];
@@ -130,7 +131,7 @@ export default class Dpt_Harvest extends Department {
         for (let creepName in creepList) {
 
             if (creepList[creepName] && creepList[creepName] <= Game.time) {
-                CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName, 'harvester', null, null, null);
+                CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName, 'harvester',  null,'dpt_harvest', null);
                 this.memory['ticksToSpawn'][creepName] = null;
             }
         }
@@ -140,7 +141,8 @@ export default class Dpt_Harvest extends Department {
         if (Game.time % 13 == 0 && Memory['colony'][this.mainRoom]['state']['actualize']) {
             this.checkCreepNum();
         }
-        if (Game.time % 23 == 0) {
+        if (Game.time % 1 == 0) {
+            
             this.recycleCreep();
         }
 

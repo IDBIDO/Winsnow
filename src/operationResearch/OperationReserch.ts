@@ -188,7 +188,7 @@ export class OperationReserch {
     private createSpawnToSourceRoad() {
         //save controller container to dpt_upgrader
         const controllerContainer = planningUtils.getContainerID(this.mainRoom, 'container_controller');
-        Memory['colony'][this.mainRoom]['dpt_upgrade']['storage'].push(controllerContainer);
+        Memory['colony'][this.mainRoom]['dpt_upgrade']['storage']['id'] = controllerContainer;
 
 
         const spawn0ToSource1RoadRef = Memory['colony'][this.mainRoom]['roomPlanning']['roadReference']['spawn0ToSource1']
@@ -272,7 +272,20 @@ export class OperationReserch {
 
 
     private buildExtensionsAndAdjacentsRoads() {
+        const rcl = Game.rooms[this.mainRoom].controller.level;
+        const actualExtensionAvailable = CONTROLLER_STRUCTURES['extension'][rcl];
+        const previousExtensionAvailable = CONTROLLER_STRUCTURES['extension'][rcl-1];
 
+        let extensionBuildable = actualExtensionAvailable - previousExtensionAvailable;
+        const tempExt = Memory['colony'][this.mainRoom]['roomPlannig']['temp']['extension'];
+        for (let extRef in tempExt) {
+            const pos = new RoomPosition(tempExt[extRef][0], tempExt[extRef][1], this.mainRoom);
+            const rcode = pos.createConstructionSite(STRUCTURE_EXTENSION);
+            if (rcode == OK) {
+                const constructionSideRefPos = Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'];
+                constructionSideRefPos[STRUCTURE_EXTENSION][extRef] = [pos.x, pos.y]
+            }
+        }
     }
 
     private buildColony() {

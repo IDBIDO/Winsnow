@@ -45,6 +45,7 @@ const roles:{
                 if (contructionSide) {  //@ts-ignore
 
                     //send logistic request
+                    
                     if (!creep.memory['sendLogisticRequest']) {
                         const request: TransferRequest = {
                             'type': 'TRANSFER',
@@ -59,7 +60,9 @@ const roles:{
                         creep.memory['sendLogisticRequest'] = true;
                     }
 
-                    const logisticCreep = Game.creeps[creep.memory['logisticCreepName']]    //@ts-ignore
+                    const logisticCreep = Game.creeps[creep.memory['logisticCreepName']]    
+                    
+                    //@ts-ignore
                     const range = creep.pos.getRangeTo(contructionSide)
                     /*
                     if (range <= 3 && logisticCreep) return true; 
@@ -70,7 +73,7 @@ const roles:{
                     */
                    //@ts-ignore
                    if (creep.moveTo(contructionSide) != OK) {
-                        if (range <= 3 && logisticCreep) return true;
+                        if (range <= 3) return true;
                         return false
                    }
                    //@ts-ignore
@@ -259,12 +262,16 @@ const roles:{
         target: creep => {
             const nearSpawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
             if (nearSpawn) {
+                /*
                 if (nearSpawn.store.getFreeCapacity('energy') > 0) {
                     
                     if (creep.transfer(nearSpawn, 'energy') == ERR_NOT_IN_RANGE) {
                         creep.moveTo(nearSpawn);
 
                     }
+                }*/
+                if (creep.moveTo(nearSpawn) != OK) {
+                    if (nearSpawn.store.getFreeCapacity('energy') > 0) creep.transfer(nearSpawn, 'energy')
                 }
             }
 
@@ -305,7 +312,7 @@ const roles:{
         source: creep => {
             const source = Game.getObjectById(creep.memory['task']['source']); //@ts-ignore
            if (creep.withdraw(source, 'energy') == ERR_NOT_IN_RANGE) creep.moveTo(source);
-        
+        /*
            if (!creep.memory['sendLogisticRequest']) {
             const request: TransferRequest = {
                 'type': 'TRANSFER',
@@ -318,7 +325,7 @@ const roles:{
             creep.say('LogisticTask Sended')
             sendLogisticTask(creep.memory['roomName'], logisticTaskName(request), request);
             creep.memory['sendLogisticRequest'] = true;
-        }
+        }*/
             return creep.store.getFreeCapacity() <= 0;
         },
         target: creep => {

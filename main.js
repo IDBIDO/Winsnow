@@ -1956,7 +1956,12 @@ class Mem {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_upgrade'] = {};
         colonyMem['dpt_upgrade']['actualize'] = false;
-        colonyMem['dpt_upgrade']['storage'] = [];
+        colonyMem['dpt_upgrade']['storage'] = {};
+        colonyMem['dpt_upgrade']['storage']['id'] = null;
+        colonyMem['dpt_upgrade']['container'] = {};
+        colonyMem['dpt_upgrade']['container']['stage1'] = 0;
+        colonyMem['dpt_upgrade']['container']['stage2'] = 0;
+        colonyMem['dpt_upgrade']['container']['stage3'] = 0;
         colonyMem['dpt_upgrade']['ticksToSpawn'] = {};
     }
     initializeDptLogistic() {
@@ -2691,7 +2696,7 @@ class OperationReserch {
     createSpawnToSourceRoad() {
         //save controller container to dpt_upgrader
         const controllerContainer = getContainerID(this.mainRoom, 'container_controller');
-        Memory['colony'][this.mainRoom]['dpt_upgrade']['storage'].push(controllerContainer);
+        Memory['colony'][this.mainRoom]['dpt_upgrade']['storage']['id'] = controllerContainer;
         const spawn0ToSource1RoadRef = Memory['colony'][this.mainRoom]['roomPlanning']['roadReference']['spawn0ToSource1'];
         for (let i = 0; i < spawn0ToSource1RoadRef.length; ++i) {
             this.buildReference('road', spawn0ToSource1RoadRef[i]);
@@ -2768,6 +2773,18 @@ class OperationReserch {
         this.sendConstructionSideToBuildTask('road');
     }
     buildExtensionsAndAdjacentsRoads() {
+        const rcl = Game.rooms[this.mainRoom].controller.level;
+        CONTROLLER_STRUCTURES['extension'][rcl];
+        CONTROLLER_STRUCTURES['extension'][rcl - 1];
+        const tempExt = Memory['colony'][this.mainRoom]['roomPlannig']['temp']['extension'];
+        for (let extRef in tempExt) {
+            const pos = new RoomPosition(tempExt[extRef][0], tempExt[extRef][1], this.mainRoom);
+            const rcode = pos.createConstructionSite(STRUCTURE_EXTENSION);
+            if (rcode == OK) {
+                const constructionSideRefPos = Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'];
+                constructionSideRefPos[STRUCTURE_EXTENSION][extRef] = [pos.x, pos.y];
+            }
+        }
     }
     buildColony() {
         const rcl = this.memory['buildColony']['buildRCL'];
@@ -3261,10 +3278,45 @@ class Dpt_Upgrader extends Department {
     constructor(dptRoom) {
         super(dptRoom, 'dpt_upgrade');
     }
-    containerStage() {
-        if (!this.memory['storage'][0])
+    sendTransferTaskContainer() {
+        const request = {
+            'type': 'TRANSFER',
+            'target': {
+                'id': this.memory['storage']['id'],
+                'resourceType': 'energy',
+                'amount': 1
+            }
+        };
+        sendLogisticTask(this.mainRoom, logisticTaskName(request), request);
+    }
+    container_controllerRealiseTask() {
+        const container = Game.getObjectById(this.memory['storage']['id']);
+        if (!container)
             return;
-        const containerID = this.memory['storage'][0];
+        const containerMem = Memory['colony'][this.mainRoom]['dpt_upgrade']['container']; //@ts-ignore
+        const stage = Math.trunc((2000 - container.store['energy']) / 500);
+        console.log(stage);
+        //stage1:   < 1500 
+        //stage2:   < 1000
+        //stage3:   < 500
+        if (stage >= 1 && Game.time >= containerMem['stage1']) {
+            this.sendTransferTaskContainer();
+            containerMem['stage1'] = Game.time + 50;
+        }
+        if (stage >= 2 && Game.time >= containerMem['stage2']) {
+            this.sendTransferTaskContainer();
+            containerMem['stage2'] = Game.time + 50;
+        }
+        if (stage >= 3 && Game.time >= containerMem['stage3']) {
+            this.sendTransferTaskContainer();
+            containerMem['stage3'] = Game.time + 50;
+        }
+    }
+    containerStage() {
+        if (!this.memory['storage']['id'])
+            return;
+        this.container_controllerRealiseTask();
+        const containerID = this.memory['storage']['id'];
         //calculate energy in container
         const containerID1 = getContainerID(this.mainRoom, 'container_source1');
         const containerID2 = getContainerID(this.mainRoom, 'container_source2');
@@ -3274,16 +3326,19 @@ class Dpt_Upgrader extends Department {
         const energyInContainers = container1.store[RESOURCE_ENERGY] + container2.store[RESOURCE_ENERGY];
         if (energyInContainers > 3000) {
             //create a transporter
-            const nameT = creepName();
-            const dataT = {
-                source: {
-                    id: null,
-                    roomName: this.mainRoom,
-                    pos: null
-                },
-                target: null
-            };
-            CreepSpawning.sendToSpawnInitializacion(this.mainRoom, nameT, 'transporter', dataT, '-', false);
+            const numBuilders = Object.keys(this.memory['ticksToSpawn']).length;
+            if (numBuilders % 2 == 0) { //every 2 builders a transporter
+                const nameT = creepName();
+                const dataT = {
+                    source: {
+                        id: null,
+                        roomName: this.mainRoom,
+                        pos: null
+                    },
+                    target: null
+                };
+                CreepSpawning.sendToSpawnInitializacion(this.mainRoom, nameT, 'transporter', dataT, '-', false);
+            }
             //create a upgrader
             const name = creepName();
             const data = {
@@ -3293,23 +3348,11 @@ class Dpt_Upgrader extends Department {
             CreepSpawning.sendToSpawnInitializacion(this.mainRoom, name, 'upgrader_base', data, 'dpt_upgrade', false);
             this.memory['ticksToSpawn'][name] = null;
         }
-        /*
-            const savedUpgrader = this.memory['ticksToSpawn'];
-            const numUpgraderSaved = Object.keys(savedUpgrader);
-            if (numUpgraderSaved.length < 5) {
-                const numToSpawn = 5 - numUpgraderSaved.length;
-                
-                for (let i = 0; i < numToSpawn; ++i) {
-                    const name =  creepName();
-                    const data: Upgrader_baseData = {
-                        'source': containerID,
-                        'logisticCreepName': null
-                    };
-                    CreepSpawning.sendToSpawnInitializacion(this.mainRoom, name, 'upgrader_base', data, 'dpt_upgrade', false);
-                    this.memory['ticksToSpawn'][name] = null;
-                }
-            }
-        */
+    }
+    containerStage1() {
+        if (!this.memory['storage']['id'])
+            return;
+        this.memory['storage']['id'];
     }
     clearMemory() {
         const savedUpgrader = this.memory['ticksToSpawn'];
@@ -3488,7 +3531,8 @@ const roles$1 = {
                         sendLogisticTask(creep.memory['roomName'], logisticTaskName(request), request);
                         creep.memory['sendLogisticRequest'] = true;
                     }
-                    const logisticCreep = Game.creeps[creep.memory['logisticCreepName']]; //@ts-ignore
+                    Game.creeps[creep.memory['logisticCreepName']];
+                    //@ts-ignore
                     const range = creep.pos.getRangeTo(contructionSide);
                     /*
                     if (range <= 3 && logisticCreep) return true;
@@ -3499,7 +3543,7 @@ const roles$1 = {
                     */
                     //@ts-ignore
                     if (creep.moveTo(contructionSide) != OK) {
-                        if (range <= 3 && logisticCreep)
+                        if (range <= 3)
                             return true;
                         return false;
                     }
@@ -3646,10 +3690,17 @@ const roles$1 = {
         target: creep => {
             const nearSpawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
             if (nearSpawn) {
+                /*
                 if (nearSpawn.store.getFreeCapacity('energy') > 0) {
+                    
                     if (creep.transfer(nearSpawn, 'energy') == ERR_NOT_IN_RANGE) {
                         creep.moveTo(nearSpawn);
+
                     }
+                }*/
+                if (creep.moveTo(nearSpawn) != OK) {
+                    if (nearSpawn.store.getFreeCapacity('energy') > 0)
+                        creep.transfer(nearSpawn, 'energy');
                 }
             }
             if (Game.time % 7 == 0) {
@@ -3677,19 +3728,20 @@ const roles$1 = {
             const source = Game.getObjectById(creep.memory['task']['source']); //@ts-ignore
             if (creep.withdraw(source, 'energy') == ERR_NOT_IN_RANGE)
                 creep.moveTo(source);
-            if (!creep.memory['sendLogisticRequest']) {
-                const request = {
+            /*
+               if (!creep.memory['sendLogisticRequest']) {
+                const request: TransferRequest = {
                     'type': 'TRANSFER',
                     'target': {
                         'id': source.id,
                         'resourceType': 'energy',
                         'amount': -1
                     }
-                };
-                creep.say('LogisticTask Sended');
+                }
+                creep.say('LogisticTask Sended')
                 sendLogisticTask(creep.memory['roomName'], logisticTaskName(request), request);
                 creep.memory['sendLogisticRequest'] = true;
-            }
+            }*/
             return creep.store.getFreeCapacity() <= 0;
         },
         target: creep => {
@@ -5400,11 +5452,13 @@ module.exports = {
 module.exports.loop = function () {
     MemHack.pretick();
     mountCreep();
-    new Colony('W1N7');
-    //colony.run();
+    const colony = new Colony('W1N7');
+    colony.run();
     const creep = Memory['creeps'];
     for (let creepName in creep) {
-        if (Game.creeps[creepName]) ;
+        if (Game.creeps[creepName]) {
+            Game.creeps[creepName]['work']();
+        }
     }
     //Memory['colony']['W1N7']['creepSpawning']['spawn'].push('Spawn1')
     //ColonyApi.createColony('W1N7')

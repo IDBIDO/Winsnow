@@ -80,7 +80,14 @@ export class Mem {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_upgrade'] = {};
         colonyMem['dpt_upgrade']['actualize'] = false;
-        colonyMem['dpt_upgrade']['storage'] = [];
+        colonyMem['dpt_upgrade']['storage'] = {};
+        colonyMem['dpt_upgrade']['storage']['id'] = null;
+        colonyMem['dpt_upgrade']['container'] = {};
+        colonyMem['dpt_upgrade']['container']['stage1'] = 0;
+        colonyMem['dpt_upgrade']['container']['stage2'] = 0;
+        colonyMem['dpt_upgrade']['container']['stage3'] = 0;
+
+
         colonyMem['dpt_upgrade']['ticksToSpawn'] = {};
 
     }

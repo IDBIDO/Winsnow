@@ -23,7 +23,6 @@ export default class Dpt_Build extends Department {
             if (Game.time >= ticksToSpawn[creepName]) {
                 this.sendSpawnTask(creepName, 'worker');
                 delete ticksToSpawn[creepName];
-                console.log(111111111111111111);
                 
             }
         }
@@ -39,7 +38,6 @@ export default class Dpt_Build extends Department {
                 
                 for (let j = 0; j < memReference[structureName].length; ++j) {
                     const pos = new RoomPosition(memReference[structureName][j][0], memReference[structureName][j][1], this.mainRoom);
-                    console.log(pos);
                     
                     pos.createConstructionSite(structureName as BuildableStructureConstant);
                 }
@@ -113,8 +111,8 @@ export default class Dpt_Build extends Department {
             
         }
         //check if all task complete
-        console.log('Total build cost: ');
-        console.log(Memory['colony'][roomName]['dpt_build']['buildCost']);
+        //console.log('Total build cost: ');
+        //console.log(Memory['colony'][roomName]['dpt_build']['buildCost']);
         
         
         if (Memory['colony'][roomName]['dpt_build']['buildCost'] == 0) {

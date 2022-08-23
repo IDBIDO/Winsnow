@@ -72,13 +72,22 @@ const roles:{
                     }
                     */
                    //@ts-ignore
-                   if (creep.moveTo(contructionSide) != OK) {
+                   const rcode = creep.moveTo(contructionSide);
+
+                    if (range <= 2) {
+                        return true;
+                    }
+                    return false;
+                   /*
+                   console.log(rcode);
+                   
+                   if (rcode != OK) {
                         if (range <= 3) return true;
                         return false
                    }
                    //@ts-ignore
                    if (creep.pos.isEqualTo(contructionSide.pos)) return true;
-
+                   */
                 }
                 else {    //constructionSide complete, delete creep.memory
                     creep.memory['task']['target']['id'] = null;
@@ -96,7 +105,8 @@ const roles:{
                         
                         creep.memory['task']['target']['id'] = closeContructionSide.id;
                         creep.memory['task']['target']['pos'] = [closeContructionSide.pos.x, closeContructionSide.pos.y];
-                        creep.memory['task']['target']['roomName'] = closeContructionSide.room;
+                        creep.memory['task']['target']['roomName'] = closeContructionSide.room.name;
+
                         
                     }
                     else {
@@ -204,7 +214,7 @@ const roles:{
             
             const queen = Game.creeps['Queen' + creep.room.name];
             
-                if (queen && creep.pos.isNearTo(queen.pos)) {
+                if (queen && creep.pos.isNearTo(queen.pos) && queen.store.getFreeCapacity() > 0) {
                     
                     
                     creep.transfer(queen, 'energy');
@@ -255,6 +265,12 @@ const roles:{
                 
                 creep.moveTo(nearInitializer);
             }
+            const containers = creep.room.find(FIND_STRUCTURES, {
+                filter:{structureType: STRUCTURE_CONTAINER}
+            })
+            if (containers.length >= 2) {       //fase 1 finished
+                return true;
+            }
 
         // 自己身上的能量装满了，返回 true（切换至 target 阶段）
         return creep.store.getFreeCapacity() <= 0;
@@ -262,17 +278,15 @@ const roles:{
         target: creep => {
             const nearSpawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
             if (nearSpawn) {
-                /*
+                
                 if (nearSpawn.store.getFreeCapacity('energy') > 0) {
                     
                     if (creep.transfer(nearSpawn, 'energy') == ERR_NOT_IN_RANGE) {
                         creep.moveTo(nearSpawn);
 
                     }
-                }*/
-                if (creep.moveTo(nearSpawn) != OK) {
-                    if (nearSpawn.store.getFreeCapacity('energy') > 0) creep.transfer(nearSpawn, 'energy')
                 }
+
             }
 
             if (Game.time % 7 == 0) {

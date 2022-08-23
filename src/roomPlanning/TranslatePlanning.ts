@@ -190,17 +190,8 @@ export class TranslatePlanning {
         )
     }
 
-    private generateTemporal() {
-        Memory['colony'][this.mainRoom]['roomPlanning']['temp'] = {};
+    private tempExtension() {
         const temp = Memory['colony'][this.mainRoom]['roomPlanning']['temp'];
-
-
-        const roadList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['road'];
-        temp['road'] = {};
-        for (let i = 0; i < roadList.length; ++i) {
-            temp['road'][i] = roadList[i]['pos'];
-        }
-
         const extensionList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['extension'];
         temp['extension'] = {};
 
@@ -237,6 +228,32 @@ export class TranslatePlanning {
         for (let i = 0; i < modelExtension.length; ++i) {
             modelExtension[i]['pos'] = temp['extension'][i];
         }
+    }
+
+    private generateTemporal() {
+        Memory['colony'][this.mainRoom]['roomPlanning']['temp'] = {};
+        const temp = Memory['colony'][this.mainRoom]['roomPlanning']['temp'];
+        const model = Memory['colony'][this.mainRoom]['roomPlanning']['model'];
+
+        //copy model to temp
+        for (let structureName in model) {
+            Memory['colony'][this.mainRoom]['roomPlanning']['temp'][structureName] = {}
+            for (let i in model[structureName])
+                Memory['colony'][this.mainRoom]['roomPlanning']['temp'][structureName][i] =
+                    model[structureName][i]
+                
+        }
+
+        /*
+        const roadList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['road'];
+        temp['road'] = {};
+        for (let i = 0; i < roadList.length; ++i) {
+            temp['road'][i] = roadList[i]['pos'];
+        }
+        */
+        
+        //modify extension order
+        this.tempExtension();
         
 
     }

@@ -29,7 +29,7 @@ export default class Dpt_Upgrader extends Department {
         if (!container) return
         const containerMem = Memory['colony'][this.mainRoom]['dpt_upgrade']['container'];   //@ts-ignore
         const stage = Math.trunc((2000 - container.store['energy']) / 500);
-        console.log(stage);
+        //console.log(stage);
         
             //stage1:   < 1500 
             //stage2:   < 1000
@@ -70,27 +70,28 @@ export default class Dpt_Upgrader extends Department {
             //create a transporter
             
             const numBuilders = Object.keys(this.memory['ticksToSpawn']).length;
-            if (numBuilders%2 == 0) {       //every 2 builders a transporter
-                const nameT = creepName();
-                const dataT: LogisticData = {
-                    source: {
-                        id: null,
-                        roomName: this.mainRoom,
-                        pos: null
-                    }, 
-                    target: null
-                };
-                CreepSpawning.sendToSpawnInitializacion(this.mainRoom, nameT,  'transporter', dataT, '-', false);
+            if (numBuilders <= 4) {
+                if (numBuilders%2 == 0) {       //every 2 builders a transporter
+                    const nameT = creepName();
+                    const dataT: LogisticData = {
+                        source: {
+                            id: null,
+                            roomName: this.mainRoom,
+                            pos: null
+                        }, 
+                        target: null
+                    };
+                    CreepSpawning.sendToSpawnInitializacion(this.mainRoom, nameT,  'transporter', dataT, '-', false);
+                }
+                //create a upgrader
+                const name =  creepName();
+                    const data: Upgrader_baseData = {
+                        'source': containerID,
+                        'logisticCreepName': null
+                    };
+                CreepSpawning.sendToSpawnInitializacion(this.mainRoom, name, 'upgrader_base', data, 'dpt_upgrade', false);
+                this.memory['ticksToSpawn'][name] = null;
             }
-            //create a upgrader
-            const name =  creepName();
-                const data: Upgrader_baseData = {
-                    'source': containerID,
-                    'logisticCreepName': null
-                };
-            CreepSpawning.sendToSpawnInitializacion(this.mainRoom, name, 'upgrader_base', data, 'dpt_upgrade', false);
-            this.memory['ticksToSpawn'][name] = null;
-
         }
 
 

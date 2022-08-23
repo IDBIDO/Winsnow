@@ -105,7 +105,7 @@ export default class Dpt_Harvest extends Department {
         const creepsSource2 = this.memory['source2']['creeps'];
 
         const harvesterNeeded = this.getHarvesterNeeded();
-        console.log(harvesterNeeded);
+        //console.log(harvesterNeeded);
         
         let toDelete = creepsSource1.length - harvesterNeeded;
         while (toDelete) {

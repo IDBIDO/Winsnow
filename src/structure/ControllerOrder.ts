@@ -18,19 +18,31 @@ export class ControllerOrder {
         const energyAvailable = Game.rooms[this.mainRoom].energyAvailable;
         if (energyAvailable < energyCapacity) {
             this.sendFillTask();
-            this.memory['fillTaskTTL'] = Game.time + 50;
+            //this.memory['fillTaskTTL'] = Game.time + 50;
         }
         else {
-            this.memory['fillTaskTTL'] = -1;
+            //this.memory['fillTaskTTL'] = -1;
+        }
+    }
+
+    private checkRCL() {
+        const actualRCL = this.memory['actualRCL'];
+        const rcl = Game.rooms[this.mainRoom].controller.level
+        if (rcl > actualRCL) {
+            this.memory['actualRCL'] = rcl;
+            Memory['colony'][this.mainRoom]['state']['buildColony']['task']['levelUP'] = true;
         }
     }
 
     public run() {
-        if (Game.time % 7 == 0) {
-            //if (Game.time > this.memory['fillTaskTTL']) {
-                this.checkRoomEnergy();
-            //}
+        if (Game.time % 3 == 0) {
+            this.checkRoomEnergy();
         } 
+
+        if (Game.time % 53 == 0) {
+            this.checkRCL();
+        }
+
 
 
     }

@@ -138,7 +138,7 @@ export class CreepSpawning {
                 target: null
             }
             let r = this.spawn(spawnName, 'Queen'+ this.mainRoom, 'iniQueen', data, 'dpt_logistic', false);
-            console.log(r);
+            //console.log(r);
             
             
         }
@@ -183,7 +183,7 @@ export class CreepSpawning {
                 const spawnName = this.getAvailableSpawnName();
                 if (spawnName) {
                     r = this.recycleQueenSpawning(spawnName, 'Queen'+this.mainRoom, 'transporter')
-                    console.log(r);
+                    //console.log(r);
                     
                     
                 }

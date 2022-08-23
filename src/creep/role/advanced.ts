@@ -80,7 +80,7 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
             if (targetID) {
                 target = <StructureExtension>Game.getObjectById(targetID)
                 if (!target || target.structureType !== STRUCTURE_EXTENSION || target.store.getFreeCapacity(RESOURCE_ENERGY) <= 0) {
-                    delete creep.memory['task']['target']
+                    creep.memory['task']['target'] = null;
                     target = undefined
                 }
             }
@@ -166,14 +166,15 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
                     creep.moveTo(target);
                 }
                 else if (transfer == OK) {
-                    creep.memory['amountDone'] = creep.memory['amountDone'] + creepStorageIni;
+                    creep.memory['task']['amountDone'] = creep.memory['task']['amountDone'] + creepStorageIni;
                 }
                 
 
                 const amountNeeded:number = creep.memory['task']['target']['amount'];
                 if (amountNeeded != -1) {
-                    if (creep.memory['amountDone'] >= amountNeeded) {   //task complete
+                    if (creep.memory['task']['amountDone'] >= amountNeeded) {   //task complete
                         creep.memory['task']['type'] = null;
+                        creep.memory['sendTaskRequest'] = false;
                         return true;
                     }else return (creep.store.getUsedCapacity() <= 0);
                 }

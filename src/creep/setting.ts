@@ -133,7 +133,7 @@ export const numConfigs = {
 
 
 export function workerSourceConfigUpdate(energyRCL: number, roomName: string): void {
-    console.log(energyRCL);
+    //console.log(energyRCL);
     
     if (energyRCL == 1) {
         const colonyMem = Memory['colony'][roomName];
@@ -149,7 +149,7 @@ export function workerSourceConfigUpdate(energyRCL: number, roomName: string): v
         const s1 = source1Pos.lookFor(LOOK_SOURCES);
         const s2 = source2Pos.lookFor(LOOK_SOURCES);
 
-        console.log(s1);
+        //console.log(s1);
         
         colonyMem['dpt_work']['creep'][namePrefix+'_dptWork_1']['setting']['source'] = s1[0].id;
 

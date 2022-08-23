@@ -48,13 +48,10 @@ export class Mem {
         colonyMem['state']['buildColony']['task']['building'] = false;
         colonyMem['state']['buildColony']['task']['levelUP'] = false;
         
-        colonyMem['state']['import'] = {}
+        colonyMem['state']['controller'] = {};
+        colonyMem['state']['controller']['fillTaskTTL'] = -1;
+        colonyMem['state']['controller']['actualRCL'] = 1;
 
-        colonyMem['state']['updateRoomPlanning'] = true;
-        colonyMem['state']['updateCreepNum'] = true;
-        colonyMem['state']['updateCreepNumWorker'] = true;
-        
-        colonyMem['state']['updateCreepNum'] = 1;
 
         //save roomPlaning Block
         let planning: TranslatePlanning = new TranslatePlanning(this.mainRoom);
@@ -65,8 +62,7 @@ export class Mem {
         colonyMem['creepSpawning']['task'] = {};
         colonyMem['creepSpawning']['completeTask'] = {};
 
-        colonyMem['state']['controller'] = {};
-        colonyMem['state']['controller']['fillTaskTTL'] = -1;
+
 
         this.initializeDptHarvest();
         this.initializeDptLogistic();

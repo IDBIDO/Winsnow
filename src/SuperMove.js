@@ -51,7 +51,6 @@ changelog:
         提供deletePathInRoom接口（使用方式见下方ps），print()中增加平均每次查找缓存时检查的路径数量统计，
         findRoute遇到过道新手墙时bugfix，偏移路径bugfix
 0.9.5： TODO：ignoreSwamp避开路，提供deletePathFromRoom、deletePathToRoom接口，增加自动visual，betterMove
-0.9.6 :Sokranotes： 修改为ts版本
 
 
 ps:
@@ -1444,6 +1443,148 @@ observers = observers.reduce((temp, id) => {
 Creep.prototype.moveTo = wrapFn(config.changeMoveTo ? betterMoveTo : originMoveTo, 'moveTo');
 // RoomPosition.prototype.findClosestByPath = wrapFn(config.changeFindClostestByPath? betterFindClosestByPath : originFindClosestByPath, 'findClosestByPath');
 // Creep.prototype.flee()和RoomPosition.prototype.findClosestByPath()将在v0.9或v1.0版本加入
+
+let pro = {
+    setChangeMove: function (bool) {
+        //Creep.prototype.move = wrapFn(bool? betterMove : originMove, 'move');
+        analyzeCPU.move = { sum: 0, calls: 0 };
+        return OK;
+    },
+    setChangeMoveTo: function (bool) {
+        Creep.prototype.moveTo = wrapFn(bool ? betterMoveTo : originMoveTo, 'moveTo');
+        analyzeCPU.moveTo = { sum: 0, calls: 0 };
+        testCacheHits = 0;
+        testCacheMiss = 0;
+        testNormal = 0;
+        testNearStorageCheck = 0;
+        testNearStorageSwap = 0;
+        testTrySwap = 0;
+        testBypass = 0;
+        normalLogicalCost = 0;
+        cacheHitCost = 0;
+        cacheMissCost = 0;
+        return OK;
+    },
+    setChangeFindClostestByPath: function (bool) {
+        // RoomPosition.prototype.findClosestByPath = wrapFn(bool? betterFindClosestByPath : originFindClosestByPath, 'findClosestByPath');
+        analyzeCPU.findClosestByPath = { sum: 0, calls: 0 };
+        return OK;
+    },
+    setPathClearDelay: function (number) {
+        if (typeof number == "number" && number > 0) {
+            pathClearDelay = Math.ceil(number);
+            return OK;
+        } else if (number === undefined) {
+            pathClearDelay = undefined;
+        }
+        return ERR_INVALID_ARGS;
+    },
+    setHostileCostMatrixClearDelay: function (number) {
+        if (typeof number == "number" && number > 0) {
+            hostileCostMatrixClearDelay = Math.ceil(number);
+            return OK;
+        } else if (number === undefined) {
+            hostileCostMatrixClearDelay = undefined;
+            return OK;
+        }
+        return ERR_INVALID_ARGS;
+    },
+    deleteCostMatrix: function (roomName) {
+        delete costMatrixCache[roomName];
+        return OK;
+    },
+    deltePath: function (fromPos, toPos, opts) {   // TODO
+        //if(!(fromPos instanceof RoomPosition))
+        return 'not implemented'
+    },
+    addAvoidRooms: function (roomName) {
+        let splited = reg1.exec(roomName);
+        if (splited && splited.length == 5) {
+            avoidRooms[roomName] = 1;
+            return OK;
+        } else {
+            return ERR_INVALID_ARGS;
+        }
+    },
+    deleteAvoidRooms: function (roomName) {
+        let splited = reg1.exec(roomName);
+        if (splited && splited.length == 5) {
+            delete avoidRooms[roomName];
+            return OK;
+        } else {
+            return ERR_INVALID_ARGS;
+        }
+    },
+    deletePathInRoom: function (roomName) {
+        let splited = reg1.exec(roomName);
+        if (splited && splited.length == 5) {
+            this.deleteCostMatrix(roomName);
+            let fromalCentralPos = formalize({ x: 25, y: 25, roomName: roomName });
+            minX = fromalCentralPos.x + fromalCentralPos.y - 48;
+            maxX = fromalCentralPos.x + fromalCentralPos.y + 48;
+            minY = minX;
+            maxY = maxX;
+            for (combinedX = minX; combinedX <= maxX; combinedX++) {
+                if (combinedX in globalPathCache) {
+                    for (combinedY = minY; combinedY <= maxY; combinedY++) {
+                        if (combinedY in globalPathCache[combinedX]) {
+                            for (let path of globalPathCache[combinedX][combinedY]) {     // 这个数组应该会很短
+                                let posArray = path.posArray;
+                                if (posArray[0].roomName == roomName && posArray[posArray.length - 1].roomName == roomName) {     // 是这个房间的路
+                                    deletePath(path);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return OK;
+        } else {
+            return ERR_INVALID_ARGS;
+        }
+    },
+    addAvoidExits: function (fromRoomName, toRoomName) {    // 【未启用】
+        let splited1 = reg1.exec(fromRoomName);
+        let splited2 = reg1.exec(toRoomName);
+        if (splited1 && splited1.length == 5 && splited2 && splited2.length == 5) {
+            avoidExits[fromRoomName] ? avoidExits[fromRoomName][toRoomName] = 1 : avoidExits[fromRoomName] = { [toRoomName]: 1 };
+            return OK;
+        } else {
+            return ERR_INVALID_ARGS;
+        }
+    },
+    deleteAvoidExits: function (fromRoomName, toRoomName) { // 【未启用】
+        let splited1 = reg1.exec(fromRoomName);
+        let splited2 = reg1.exec(toRoomName);
+        if (splited1 && splited1.length == 5 && splited2 && splited2.length == 5) {
+            if (fromRoomName in avoidExits && toRoomName in avoidExits[fromRoomName]) {
+                delete avoidExits[fromRoomName][toRoomName];
+            }
+            return OK;
+        } else {
+            return ERR_INVALID_ARGS;
+        }
+    },
+    print: function () {
+        let text = '\navarageTime\tcalls\tFunctionName';
+        for (let fn in analyzeCPU) {
+            text += `\n${(analyzeCPU[fn].sum / analyzeCPU[fn].calls).toFixed(5)}\t\t${analyzeCPU[fn].calls}\t\t${fn}`;
+        }
+        let hitCost = cacheHitCost / testCacheHits;
+        let missCost = cacheMissCost / testCacheMiss;
+        let missRate = testCacheMiss / (testCacheMiss + testCacheHits);
+        text += `\nnormal logical cost: ${(normalLogicalCost / testNormal).toFixed(5)}, total cross rate: ${(testTrySwap / analyzeCPU.moveTo.calls).toFixed(4)}, total bypass rate:  ${(testBypass / analyzeCPU.moveTo.calls).toFixed(4)}`
+        text += `\nnear storage check rate: ${(testNearStorageCheck / analyzeCPU.moveTo.calls).toFixed(4)}, near storage cross rate: ${(testNearStorageSwap / testNearStorageCheck).toFixed(4)}`
+        text += `\ncache search rate: ${((testCacheMiss + testCacheHits) / analyzeCPU.moveTo.calls).toFixed(4)}, total hit rate: ${(1 - missRate).toFixed(4)}, avg check paths: ${(pathCounter / (testCacheMiss + testCacheHits)).toFixed(3)}`;
+        text += `\ncache hit avg cost: ${(hitCost).toFixed(5)}, cache miss avg cost: ${(missCost).toFixed(5)}, total avg cost: ${(hitCost * (1 - missRate) + missCost * missRate).toFixed(5)}`;
+        return text;
+    },
+    clear: () => { }
+    // clear: clearUnused
+}
+
+export let options = pro;
+
 module.exports = {
     setChangeMove: function (bool) {
         //Creep.prototype.move = wrapFn(bool? betterMove : originMove, 'move');

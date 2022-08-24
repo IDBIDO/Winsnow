@@ -78,16 +78,7 @@ const roles:{
                         return true;
                     }
                     return false;
-                   /*
-                   console.log(rcode);
-                   
-                   if (rcode != OK) {
-                        if (range <= 3) return true;
-                        return false
-                   }
-                   //@ts-ignore
-                   if (creep.pos.isEqualTo(contructionSide.pos)) return true;
-                   */
+
                 }
                 else {    //constructionSide complete, delete creep.memory
                     creep.memory['task']['target']['id'] = null;
@@ -128,17 +119,17 @@ const roles:{
                 const r = creep.build(target);
                 if (r == ERR_NOT_ENOUGH_ENERGY) {
                     creep.say('⚡');
-                    if(Game.time%13 == 0) { 
-                        const logisticCreepName = creep.memory['task']['logisticCreepName'];
-                        if (logisticCreepName) {
-                            const logisticCreep = Game.creeps[logisticCreepName];
-                            if (!logisticCreep) {
-                                creep.memory['sendLogisticRequest'] = false;
-                                creep.suicide();
-                                return true;    //change state to end logistic request
-                            }
+                    
+                    const logisticCreepName = creep.memory['logisticCreepName'];
+                    if (logisticCreepName) {                            
+                        const logisticCreep = Game.creeps[logisticCreepName];
+                        if (!logisticCreep) {
+                            creep.memory['sendLogisticRequest'] = false;
+                            creep.suicide();
+                            return true;    //change state to end logistic request
                         }
                     }
+                    
                 } 
                 else if (r == ERR_NOT_IN_RANGE) creep.moveTo(target, {ignoreCreeps: true})
                 
@@ -350,23 +341,6 @@ const roles:{
         }
     }),
 
-//Game.creeps['QueenW2N5'].memory['role] = 'iniQueen
-    /*
-    transporter: (data: LogisticData): ICreepConfig => ({
-        source: creep => {
-            const sourceID = creep.memory['data']['source']['id'];
-            const source = Game.getObjectById(sourceID);
-            if (source instanceof Creep) {
-                creep.moveTo(source);
-            }
-    
-            return false;
-        },
-        target: creep => {
-            return false;
-        }
 
-    }),
-    */
 }
 export default roles;

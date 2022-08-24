@@ -1,3 +1,4 @@
+import { OperationReserch } from "@/operationResearch/OperationReserch";
 import {Colony} from "./Colony"
 
 global.ColonyApi = {
@@ -33,6 +34,11 @@ global.ColonyApi = {
             building[i].destroy();
         }
 
+    },
+
+    constructAdjacentRoad(roomName: string, pos: [number, number]) {
+        const a = new OperationReserch(roomName);
+        a.constructAdjacentRoad(pos);
     }
 
 }

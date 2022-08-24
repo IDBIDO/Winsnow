@@ -68,7 +68,28 @@ export class Mem {
         this.initializeDptLogistic();
         this.initializeDptWork();
         this.initializeDptUpgrader();
+        this.initializeTowersMem();
+
+    }
+
+    private initializeTowersMem() {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        colonyMem['tower'] = {};
+        colonyMem['tower']['data'] = {};
+        colonyMem['tower']['healTask'] = {};
+        colonyMem['tower']['attackTask'] = {};
+        colonyMem['tower']['repairRoad'] = {};
+        colonyMem['tower']['repairRampart'] = {};
+    
+
+    }
+
+
+    private initializeCentralCluster() {
         
+    }
+
+    private initializeLabMem() {
 
     }
 
@@ -132,6 +153,9 @@ export class Mem {
         
         colonyMem['dpt_harvest']['creep'] = {};
         colonyMem['dpt_harvest']['ticksToSpawn'] = {};
+
+        colonyMem['dpt_harvest']['container'] = {};
+
     }
 
     private initializeDptWork():void {

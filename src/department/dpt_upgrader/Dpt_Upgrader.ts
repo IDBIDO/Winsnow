@@ -114,8 +114,12 @@ export default class Dpt_Upgrader extends Department {
     }
 
     public run() {
-        if (Game.time % 83 == 0 && Game.rooms[this.mainRoom].controller.level <= 3) {
-            this.containerStage();
+        if (Game.rooms[this.mainRoom].controller.level <= 3) {
+            const buildTask = Memory['colony'][this.mainRoom]['dpt_build']['buildTask'];
+            if (!Object.keys(buildTask)[0]) {
+                if(Game.time % 53 == 0) this.containerStage();
+                if (Game.time % 53 == 0) this.container_controllerRealiseTask();
+            }
         }
 
         if (Game.time % 23 == 0) {

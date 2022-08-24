@@ -244,5 +244,26 @@ type LinkFunction =
     'link_center'
 
 
-/************************ BUILD COLONY TASK TYPE ************************ */
+/************* STRUCTURE ******************/
+interface towerData {
+    energyPetition: boolean,
+    task: towerTask,
+    pos: [number, number]
+}
 
+type towerTask = towerRepairTask | towerRepairTask | towerHeal;
+
+interface towerRepairTask {
+    id: string, 
+    hits: number
+}
+
+interface towerAttack {
+    id: string, 
+
+}
+
+interface towerHeal {
+    id: string, 
+    hits: number
+}

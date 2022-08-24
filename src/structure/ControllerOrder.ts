@@ -34,14 +34,27 @@ export class ControllerOrder {
         }
     }
 
+    private checkRoads() {
+
+    }
+
     public run() {
+        //realise fill task
         if (Game.time % 3 == 0) {
             this.checkRoomEnergy();
         } 
 
+        // room fase change
         if (Game.time % 53 == 0) {
             this.checkRCL();
         }
+
+        //road repair
+        if (Game.time % 7919 == 0) {
+            this.checkRoads();
+        }
+
+        
 
 
 

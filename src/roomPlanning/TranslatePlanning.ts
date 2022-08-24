@@ -208,14 +208,16 @@ export class TranslatePlanning {
             array[i] = temp;
         }
         array.sort(function (a, b) {
-            if (a.distance > b.distance) {
-              return 1;
+
+            if (a.distance > b.distance) {  //si a es mayor, retornar 1
+            return 1;
             }
-            if (a.distance < b.distance) {
-              return -1;
+            if (a.distance < b.distance) {  //si a es memor, retornar -1
+            return -1;
             }
             // a must be equal to b
             return 0;
+            
         });
 
         for (let i = 0; i < extensionList.length; ++i) {
@@ -240,7 +242,7 @@ export class TranslatePlanning {
             Memory['colony'][this.mainRoom]['roomPlanning']['temp'][structureName] = {}
             for (let i in model[structureName])
                 Memory['colony'][this.mainRoom]['roomPlanning']['temp'][structureName][i] =
-                    model[structureName][i]
+                    model[structureName][i]['pos']
                 
         }
 

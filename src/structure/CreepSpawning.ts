@@ -60,7 +60,7 @@ export class CreepSpawning {
         spawnTask['roomName'] = roomName;
         spawnTask['department'] = dpt;
     }
-
+  
     /** send a creep spawning task. In case of recycle creep, param task must be null*/
     static sendToSpawnInitializacion(roomName: string, creepName: string, role: string,  task: {}, dpt: string, pull: boolean) {
         Memory['colony'][roomName]['creepSpawning']['task'][creepName] ={};

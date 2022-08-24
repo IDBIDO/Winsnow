@@ -181,7 +181,7 @@ export default class Dpt_Logistic extends Department {
         const sourceTaskList = this.memory['sourceTask'];
         const targetTaskList = this.memory['targetTask'];
         for (let i = requestList.length-1; i >= 0; --i) {
-            if (Memory.creeps[requestList[i]]) {
+            if (Game.creeps[requestList[i]]) {
 
                 if (this.memory['fillTask']) {
                     this.assigFillTask(requestList[i]);

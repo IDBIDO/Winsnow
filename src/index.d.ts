@@ -125,7 +125,8 @@ interface TransferTask {
 
 interface WithdrawRequestData {
     id: string, 
-    resourceType: ResourceConstant
+    roomName: string, 
+    pos: [number, number]
 }
 interface WithdrawRequest {
     type: 'WITHDRAW',
@@ -267,3 +268,9 @@ interface towerHeal {
     id: string, 
     hits: number
 }
+
+
+/*********************** */
+
+type TransferTarget = StructureTower | Creep | StructureContainer | StructureLab | StructureStorage
+type WithDrawTarget = StructureContainer | StructureStorage | StructureLab | Tombstone | Ruin

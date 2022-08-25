@@ -1,7 +1,7 @@
 import { sendLogisticTask } from "@/colony/dpt_comunication";
-import { logisticTaskName } from "@/colony/nameManagement";
+import { logisticTaskName, towerTask } from "@/colony/nameManagement";
 
-export class CreepSpawning {
+export class Tower {
     mainRoom: string;       
     memory: {};
 
@@ -68,21 +68,70 @@ export class CreepSpawning {
                 attacked = true;
             }
             else {
-                missingCreepsId.push(attackTarget[taskName]);
+                missingCreepsId.push(taskName);
             }
             
         }
+
+        for (let i = 0; i < missingCreepsId.length; ++i) {
+            delete this.memory['attackTask'][missingCreepsId[i]];
+        }
+
         return attacked;
         
     }
 
+    static sendRoadRepairTask(roomName: string, roadId: string) {
+        const taskname = towerTask();
+        Memory['colony'][roomName]['tower']['repairRoad'][taskname] = roadId;
+    }
+
+    static cleanTowerEnergyPetition(roomName: string, towerId: string) {
+        Memory['colony'][roomName]['tower']['data'][towerId]['energyPetition'] = false;
+
+    }
+
+    static sendRampartRepairTask(roomName: string, rampartId: string) {
+        const taskname = towerTask();
+        Memory['colony'][roomName]['tower']['repairRampart'][taskname] = rampartId;
+    }    
+
+    static sendAttackTask(roomName: string, creepId: string) {
+        const taskName = towerTask();
+        Memory['colony'][roomName]['tower']['attackTask'][taskName] = creepId;
+    }
+
     private towerRepair() {
         const repairRoad = this.memory['repairRoad'];
+        const towersData = this.memory['data'];
+        const towersId = Object.keys(towersData);
+        let i = 0;
+        let deleteRepairTask = [];
         for (let taskName in repairRoad) {
-            const road = Game.getObjectById(repairRoad[taskName])
-            
+            if (i < towersId.length) break;
+
+            const road = Game.getObjectById<StructureContainer|StructureRoad>(repairRoad[taskName]);
+            let repairTime = ~~((road.hitsMax - road.hits)/800);
+
+            while(i < towersId.length && repairTime) {
+                const tower = Game.getObjectById(towersId[i] as Id<StructureTower>);
+                tower.repair(road);
+                --repairTime;
+                ++i;
+            }
+            if (!repairTime) {
+                deleteRepairTask.push(this.memory['repairRoad'][taskName]);
+            }
 
         }
+
+        //delete road or container tasks
+        for (let j = 0; j < deleteRepairTask.length; ++j) {
+            delete repairRoad[deleteRepairTask[j]];
+        }
+
+        //repair rampart task
+        
     }
 
     private towerTaskExecution() {

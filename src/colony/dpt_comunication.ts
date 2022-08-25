@@ -31,12 +31,13 @@ export function transferRequest(id: string, resourceType: ResourceConstant ,amou
     return r;
 }
 
-export function withdrawRequest(id: string, resourceType: ResourceConstant): WithdrawRequest {
+export function withdrawRequest(id: string, roomName: string, pos:[number, number]): WithdrawRequest {
     const r: WithdrawRequest = {
         type: 'WITHDRAW',
         source: {
             id: id, 
-            resourceType: resourceType
+            'roomName': roomName,
+            'pos': pos
         }
     }
     return r;
@@ -64,13 +65,8 @@ export function task(request: TaskRequest) {
     /* Fase2.2:  SEND LOGISTIC TASK */
 export function sendLogisticTask(roomName: string , taskName: string ,request: TaskRequest) {
     
-    if (request.type == 'MOVE' || request.type == 'WITHDRAW') {
-        Memory['colony'][roomName]['dpt_logistic']['sourceTask'][taskName] = request;
-    }
-    else {
-        Memory['colony'][roomName]['dpt_logistic']['targetTask'][taskName] = request;
-
-    }
+    Memory['colony'][roomName]['dpt_logistic']['targetTask'][taskName] = request;
+    
 }
 
 /** Game time to resend request */

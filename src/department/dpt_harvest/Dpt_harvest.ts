@@ -137,18 +137,25 @@ export default class Dpt_Harvest extends Department {
         }
     }
 
+    static cleanContainerWithdrawPetition(roomName: string, containerId: string) {
+        Memory['colony'][roomName]['dpt_harvest']['container'][containerId]['withdrawPetition'] = false;
+    }
+
     private checkContainerEnergy() {
         const containerList = this.memory['container'];
         for (let id in containerList) {
            
             if (! containerList[id]['withdrawPetition']) {   //@ts-ignore
-                const container = Game.getObjectById(id);   //@ts-ignore
+                const container = Game.getObjectById(id as Id<StructureContainer>);   
                 if (container.store.getFreeCapacity() < 1000) {
                     const withdrawTask: WithdrawRequest = {
                         'type': 'WITHDRAW',
                         'source': {
-                            'id': id,               //@ts-ignore
-                            'resourceType': Object.keys(container.store)[0]
+                            'id': id,               
+                            'roomName': container.room.name,
+                            'pos': [container.pos.x, container.pos.y]
+                            //'resourceType': Object.keys(container.store)[0],
+                            
                         }
                     }
                     sendLogisticTask(this.mainRoom, logisticTaskName(withdrawTask), withdrawTask);

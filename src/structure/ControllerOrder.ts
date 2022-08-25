@@ -1,3 +1,7 @@
+import { towerTask } from "@/colony/nameManagement";
+import { Tower } from "./Tower";
+
+
 export class ControllerOrder {
     private mainRoom: string;
     private controller: StructureController;
@@ -35,7 +39,39 @@ export class ControllerOrder {
     }
 
     private checkRoads() {
+        const roadList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['road'];
+        for (let i = 0; i < roadList.length; ++i) {
+            const roadId = roadList[i]['id'];
+            if (roadId) {
+                const road = Game.getObjectById(roadId as Id<StructureRoad>);
+                if (road.hits < road.hitsMax - 800) {
+                    Tower.sendRoadRepairTask(this.mainRoom, roadId);
+                }
+            }
+        }
 
+        //check Container
+        const containerList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['container'];
+        for (let i = 0; i < containerList.length; ++i) {
+            const containerId = containerList[i]['id'];
+            if (containerId) {
+                const container = Game.getObjectById(containerId as Id<StructureContainer>);
+                if (container.hits < container.hitsMax - 800) {
+                    Tower.sendRoadRepairTask(this.mainRoom, containerId);
+                }
+            }
+        }
+
+
+    }
+
+    private findHostileCreeps() {
+        const room = Game.rooms[this.mainRoom];
+        const targets = room.find(FIND_HOSTILE_CREEPS);
+
+        for (let i = 0; i < targets.length; ++i) {
+            Tower.sendAttackTask(this.mainRoom, targets[i].id);
+        }
     }
 
     public run() {
@@ -43,6 +79,10 @@ export class ControllerOrder {
         if (Game.time % 3 == 0) {
             this.checkRoomEnergy();
         } 
+
+        if (Game.time % 7 == 0) {
+            this.findHostileCreeps();
+        }
 
         // room fase change
         if (Game.time % 53 == 0) {

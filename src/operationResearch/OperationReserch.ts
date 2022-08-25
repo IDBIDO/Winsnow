@@ -303,7 +303,7 @@ export class OperationReserch {
         const tempExt = Memory['colony'][this.mainRoom]['roomPlanning']['temp'][structureType];
         for (let extRef in tempExt) {
             const pos = new RoomPosition(tempExt[extRef][0], tempExt[extRef][1], this.mainRoom);
-            if (!this.posInControllerRange(pos)) {
+            if (Game.rooms[this.mainRoom].controller.level == 8 || !this.posInControllerRange(pos)) {
                 const rcode = pos.createConstructionSite(structureType);
                 if (rcode == OK) {
                     const constructionSideRefPos = Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'];
@@ -408,10 +408,10 @@ export class OperationReserch {
                     for (let i = 0; i < logisticStorage.length; ++i) {
                         Memory['colony'][this.mainRoom]['Dpt_harvest']['container'][logisticStorage[i]] = {
                             withdrawPetition: false,
-                            repairPetition: false,
                         }
                         
                     }
+
                     Memory['colony'][this.mainRoom]['Dpt_logistic']['storage'] = [];
 
                     Memory['colony'][this.mainRoom]['Dpt_logistic']['storage'].push(Game.rooms[this.mainRoom].storage.id)

@@ -152,6 +152,7 @@ export default class Dpt_Logistic extends Department {
                 delete this.memory['targetTask'][request];
                 //assig task to logistic creep
                 Game.creeps[creepName].memory['task'] = task;
+                Game.creeps[creepName].memory['sendTaskRequest'] = false;
                 return true;
             }
         }

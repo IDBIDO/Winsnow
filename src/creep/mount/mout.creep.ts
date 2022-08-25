@@ -10,7 +10,7 @@ export default class CreepExtension extends Creep {
     public work(): void {
         //let data: SourceTargetData = {"target": "aaa", "source": "ddd"};
         //const config: ICreepConfig = worker['builder'](s);
-        let role = '';
+        if (this.spawning) return;
         //---------------- GET CREEP LOGIC --------------------
         //console.log(this.memory['role']);
         //console.log(this.memory['data'])

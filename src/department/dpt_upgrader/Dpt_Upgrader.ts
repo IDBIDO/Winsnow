@@ -64,15 +64,24 @@ export default class Dpt_Upgrader extends Department {
         this.container_controllerRealiseTask();
         const containerID = this.memory['storage']['id'];
  
-        //calculate energy in container
-        const containerID1 = getContainerID(this.mainRoom, 'container_source1');
-        const containerID2 = getContainerID(this.mainRoom, 'container_source2');
-        //@ts-ignore
-        const container1 = Game.getObjectById(containerID1);    //@ts-ignore
-        const container2 = Game.getObjectById(containerID2);    //@ts-ignore
-        const energyInContainers = container1.store[RESOURCE_ENERGY] + container2.store[RESOURCE_ENERGY]
-        
-        if (energyInContainers > 3000) {    
+
+        //calculate energy in container or storage
+        let energyMin = 3000;
+        let energyAvailable = 0;
+        const storage = Game.rooms[this.mainRoom].storage;
+        if (!storage) {
+            const containerID1 = getContainerID(this.mainRoom, 'container_source1');
+            const containerID2 = getContainerID(this.mainRoom, 'container_source2');
+            //@ts-ignore
+            const container1 = Game.getObjectById(containerID1);    //@ts-ignore
+            const container2 = Game.getObjectById(containerID2);    //@ts-ignore
+            energyAvailable = container1.store[RESOURCE_ENERGY] + container2.store[RESOURCE_ENERGY]
+        }
+        else {
+            energyAvailable = storage.store['energy'];
+            energyMin = 100000;
+        }
+        if (energyAvailable > 3000) {    
             //create a transporter
             
             const numBuilders = Object.keys(this.memory['ticksToSpawn']).length;
@@ -122,13 +131,28 @@ export default class Dpt_Upgrader extends Department {
         }
     }
 
+    private storageStage() {
+
+    }
+
     public run() {
-        if (Game.rooms[this.mainRoom].controller.level <= 4) {
-            const buildTask = Memory['colony'][this.mainRoom]['dpt_build']['buildTask'];
-            if (!Object.keys(buildTask)[0]) {
-                if(Game.time % 53 == 0) this.containerStage();
-                if (Game.time % 31 == 0) this.container_controllerRealiseTask();
+
+        if (Game.rooms[this.mainRoom].controller.level < 8) {
+
+            if (!Game.rooms[this.mainRoom].terminal) {
+                const buildTask = Memory['colony'][this.mainRoom]['dpt_build']['buildTask'];
+                if (!Object.keys(buildTask)[0]) {
+                    if(Game.time % 53 == 0) this.containerStage();
+                    if (Game.time % 31 == 0) this.container_controllerRealiseTask();
+                }
             }
+            else {  //super boost
+
+            }
+
+        }
+        else {
+            
         }
 
         if (Game.time % 23 == 0) {

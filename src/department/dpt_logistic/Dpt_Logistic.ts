@@ -118,7 +118,7 @@ export default class Dpt_Logistic extends Department {
             }
             else return c2.id;
         }
-        else if (storages.length == 1) return storages[0].id
+        else if (storages.length == 1) return storages[0]
         else return null
     }
 
@@ -205,7 +205,7 @@ export default class Dpt_Logistic extends Department {
         const targetTaskList = this.memory['targetTask'];
         for (let i = requestList.length-1; i >= 0; --i) {
             if (Game.creeps[requestList[i]]) {
-
+                
                 if (this.memory['fillTask']) {
                     this.assigFillTask(requestList[i]);
                     Game.creeps[requestList[i]].memory['sendTaskRequest'] = false;

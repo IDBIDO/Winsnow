@@ -4512,8 +4512,9 @@ class OperationReserch {
     }
     createBuildingsAndAdjacentsRoads(structureType) {
         const rcl = Game.rooms[this.mainRoom].controller.level;
-        CONTROLLER_STRUCTURES[structureType][rcl];
-        CONTROLLER_STRUCTURES[structureType][rcl - 1];
+        const actualExtensionAvailable = CONTROLLER_STRUCTURES[structureType][rcl];
+        const previousExtensionAvailable = CONTROLLER_STRUCTURES[structureType][rcl - 1];
+        let extensionBuildable = actualExtensionAvailable - previousExtensionAvailable;
         const tempExt = Memory['colony'][this.mainRoom]['roomPlanning']['temp'][structureType];
         for (let extRef in tempExt) {
             const pos = new RoomPosition(tempExt[extRef][0], tempExt[extRef][1], this.mainRoom);
@@ -4523,8 +4524,10 @@ class OperationReserch {
                     //const constructionSideRefPos = Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'];
                     Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'][structureType][extRef] = [pos.x, pos.y];
                     this.constructAdjacentRoad([pos.x, pos.y]);
+                    --extensionBuildable;
                 }
-                //if (!extensionBuildable) break;
+                if (!extensionBuildable)
+                    break;
             }
         }
     }
@@ -4544,6 +4547,16 @@ class OperationReserch {
                 }
             }
         }
+    }
+    createOneStructure(structureType, ref, pos) {
+        const ObjectPos = new RoomPosition(pos[0], pos[1], this.mainRoom);
+        const rcode = ObjectPos.createConstructionSite(structureType);
+        if (rcode == OK) {
+            //const constructionSideRefPos = Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'];
+            Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'][structureType][ref] = [ObjectPos.x, ObjectPos.y];
+            this.constructAdjacentRoad([ObjectPos.x, ObjectPos.y]);
+        }
+        return rcode;
     }
     buildColony() {
         const rcl = this.memory['buildColony']['buildRCL'];
@@ -4607,29 +4620,31 @@ class OperationReserch {
                 }
                 //change logistic mecanism to storage
                 //add source container to Dpt_harvest, and active withdraw tasks
-                //delete source container from Dpt_Logistic
-                //add storage to Dpt_Losgistic
                 else if (fase == 2) {
-                    console.log('CHANGING LOGISTIC MECANISM TO STORAGE');
-                    this.memory['storage'];
+                    console.log('MOVE 100K ENERGY TO STORAGE');
                     const logisticStorage = Memory['colony'][this.mainRoom]['dpt_logistic']['storage'];
                     for (let i = 0; i < logisticStorage.length; ++i) {
                         Memory['colony'][this.mainRoom]['dpt_harvest']['container'][logisticStorage[i]] = {
                             withdrawPetition: false,
                         };
                     }
+                }
+                //delete source container from Dpt_Logistic
+                //add storage to Dpt_Losgistic
+                else if (fase == 3) {
+                    console.log('CHANGE STORAGE MECANISM');
                     Memory['colony'][this.mainRoom]['dpt_logistic']['storage'] = [];
                     Memory['colony'][this.mainRoom]['dpt_logistic']['storage'].push(Game.rooms[this.mainRoom].storage.id);
-                    this.memory['buildColony']['fase'] = 3;
-                    this.memory['buildColony']['working'] = false;
-                }
-                //build extensions
-                else if (fase == 3) {
-                    this.createBuildingsAndAdjacentsRoads('extension');
                     this.memory['buildColony']['fase'] = 4;
                     this.memory['buildColony']['working'] = false;
                 }
+                //build extensions
                 else if (fase == 4) {
+                    this.createBuildingsAndAdjacentsRoads('extension');
+                    this.memory['buildColony']['fase'] = 5;
+                    this.memory['buildColony']['working'] = false;
+                }
+                else if (fase == 5) {
                     this.sendConstructionSideToBuildTask('extension');
                     this.sendConstructionSideToBuildTask('road');
                 }
@@ -4639,15 +4654,34 @@ class OperationReserch {
                 if not, create a new one and jump to Fase 6.
                 if complete jump to fase 7
                 */
-                else if (fase == 5) {
+                else if (fase == 6) {
                     const rampartList = Mem.constructionData(this.mainRoom, 'rampart');
-                    for (let i = 0; i < rampartList.length; ++i) {
+                    let newRampart = false;
+                    for (let ref = 0; ref < rampartList.length; ++ref) {
+                        if (!rampartList[ref]['id']) {
+                            const rcode = this.createOneStructure('rampart', ref, rampartList[ref]['pos']);
+                            if (rcode == OK) {
+                                newRampart = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (newRampart) {
+                        this.memory['buildColony']['fase'] = 7;
+                        this.memory['buildColony']['working'] = false;
+                    }
+                    else {
+                        this.memory['buildColony']['fase'] = 8;
+                        this.memory['buildColony']['working'] = false;
                     }
                 }
                 /*
                 Fase 6:
                 send build task, if complete jump to fase 5
                 */
+                else if (fase == 7) {
+                    this.sendConstructionSideToBuildTask('rampart');
+                }
                 else ;
                 break;
         }
@@ -4727,20 +4761,32 @@ class OperationReserch {
                 }
                 break;
             case 3:
+                //fase 0 jump auto
                 if (fase == 1) {
                     if (this.checkBuildTaskDone()) {
                         this.memory['buildColony']['fase'] = 2;
                         this.resetFaseValues();
                     }
                 }
-                //fase 2 jump atoma
-                //fase3 jump
-                else if (fase == 4) {
+                //wait to storage get 100k energy
+                else if (fase == 2) {
+                    const storage = Game.rooms[this.mainRoom].storage;
+                    if (storage.store['energy'] > 100000) {
+                        this.memory['buildColony']['fase'] = 3;
+                        this.resetFaseValues();
+                    }
+                }
+                //fase 3 jump auto
+                //fase 4 jump auto
+                //wait build extension
+                else if (fase == 5) {
                     if (this.checkBuildTaskDone()) {
                         this.memory['buildColony']['fase'] = 5;
                         this.resetFaseValues();
                     }
                 }
+                //fase 6 jump auto
+                else ;
                 break;
         }
         return false;
@@ -4863,7 +4909,7 @@ class Dpt_Logistic extends Department {
                 return c2.id;
         }
         else if (storages.length == 1)
-            return storages[0].id;
+            return storages[0];
         else
             return null;
     }
@@ -5438,14 +5484,20 @@ class Dpt_Upgrader extends Department {
             return;
         this.container_controllerRealiseTask();
         const containerID = this.memory['storage']['id'];
-        //calculate energy in container
-        const containerID1 = getContainerID(this.mainRoom, 'container_source1');
-        const containerID2 = getContainerID(this.mainRoom, 'container_source2');
-        //@ts-ignore
-        const container1 = Game.getObjectById(containerID1); //@ts-ignore
-        const container2 = Game.getObjectById(containerID2); //@ts-ignore
-        const energyInContainers = container1.store[RESOURCE_ENERGY] + container2.store[RESOURCE_ENERGY];
-        if (energyInContainers > 3000) {
+        let energyAvailable = 0;
+        const storage = Game.rooms[this.mainRoom].storage;
+        if (!storage) {
+            const containerID1 = getContainerID(this.mainRoom, 'container_source1');
+            const containerID2 = getContainerID(this.mainRoom, 'container_source2');
+            //@ts-ignore
+            const container1 = Game.getObjectById(containerID1); //@ts-ignore
+            const container2 = Game.getObjectById(containerID2); //@ts-ignore
+            energyAvailable = container1.store[RESOURCE_ENERGY] + container2.store[RESOURCE_ENERGY];
+        }
+        else {
+            energyAvailable = storage.store['energy'];
+        }
+        if (energyAvailable > 3000) {
             //create a transporter
             const numBuilders = Object.keys(this.memory['ticksToSpawn']).length;
             if (numBuilders <= 5) {
@@ -5488,14 +5540,18 @@ class Dpt_Upgrader extends Department {
             }
         }
     }
+    storageStage() {
+    }
     run() {
-        if (Game.rooms[this.mainRoom].controller.level <= 4) {
-            const buildTask = Memory['colony'][this.mainRoom]['dpt_build']['buildTask'];
-            if (!Object.keys(buildTask)[0]) {
-                if (Game.time % 53 == 0)
-                    this.containerStage();
-                if (Game.time % 31 == 0)
-                    this.container_controllerRealiseTask();
+        if (Game.rooms[this.mainRoom].controller.level < 8) {
+            if (!Game.rooms[this.mainRoom].terminal) {
+                const buildTask = Memory['colony'][this.mainRoom]['dpt_build']['buildTask'];
+                if (!Object.keys(buildTask)[0]) {
+                    if (Game.time % 53 == 0)
+                        this.containerStage();
+                    if (Game.time % 31 == 0)
+                        this.container_controllerRealiseTask();
+                }
             }
         }
         if (Game.time % 23 == 0) {
@@ -6140,7 +6196,7 @@ const transferTaskOperations = {
             }
         },
         target: (creep) => {
-            const target = Game.getObjectById(creep.memory['source']['id']);
+            const target = Game.getObjectById(creep.memory['task']['source']['id']);
             const resourceType = Object.keys(creep.store)[0];
             if (creep.transfer(target, resourceType) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(target);
@@ -6217,13 +6273,11 @@ var mountCreep = () => {
 module.exports.loop = function () {
     MemHack.pretick();
     mountCreep();
-    const colony = new Colony('W1N7');
-    colony.run();
+    new Colony('W1N7');
+    //colony.run();
     const creep = Memory['creeps'];
     for (let creepName in creep) {
-        if (Game.creeps[creepName]) {
-            Game.creeps[creepName]['work']();
-        }
+        if (Game.creeps[creepName]) ;
     }
     //Memory['colony']['W1N7']['creepSpawning']['spawn'].push('Spawn1')
     //ColonyApi.createColony('W1N7')

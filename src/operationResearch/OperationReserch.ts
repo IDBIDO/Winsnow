@@ -312,7 +312,7 @@ export class OperationReserch {
                     this.constructAdjacentRoad([pos.x, pos.y]);
                     --extensionBuildable;
                 }
-                //if (!extensionBuildable) break;
+                if (!extensionBuildable) break;
             }
         }
 
@@ -336,6 +336,19 @@ export class OperationReserch {
                 }
             }
         }
+    }
+
+    private createOneStructure(structureType: BuildableStructureConstant, ref: number, pos: [number, number]): ScreepsReturnCode {
+        const ObjectPos = new RoomPosition(pos[0], pos[1], this.mainRoom);
+        const rcode = ObjectPos.createConstructionSite(structureType);
+        if (rcode == OK) {
+            //const constructionSideRefPos = Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'];
+            Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'][structureType][ref] = [ObjectPos.x, ObjectPos.y]
+            this.constructAdjacentRoad([ObjectPos.x, ObjectPos.y]);
+        }
+
+        return rcode
+
     }
 
     private buildColony() {
@@ -405,13 +418,11 @@ export class OperationReserch {
                 }
                 //change logistic mecanism to storage
                 //add source container to Dpt_harvest, and active withdraw tasks
-                //delete source container from Dpt_Logistic
-                //add storage to Dpt_Losgistic
+
                 else if (fase == 2) {   
-                    console.log('CHANGING LOGISTIC MECANISM TO STORAGE');
+                    console.log('MOVE 100K ENERGY TO STORAGE');
                     
                     
-                    this.memory['storage'];
                     const logisticStorage = Memory['colony'][this.mainRoom]['dpt_logistic']['storage'];
                     for (let i = 0; i < logisticStorage.length; ++i) {
                         Memory['colony'][this.mainRoom]['dpt_harvest']['container'][logisticStorage[i]] = {
@@ -420,21 +431,27 @@ export class OperationReserch {
                         
                     }
 
+
+                }
+                //delete source container from Dpt_Logistic
+                //add storage to Dpt_Losgistic
+                else if (fase == 3) {
+                    console.log('CHANGE STORAGE MECANISM');
                     Memory['colony'][this.mainRoom]['dpt_logistic']['storage'] = [];
 
                     Memory['colony'][this.mainRoom]['dpt_logistic']['storage'].push(Game.rooms[this.mainRoom].storage.id)
-                    this.memory['buildColony']['fase'] = 3;
+                    this.memory['buildColony']['fase'] = 4;
                     this.memory['buildColony']['working'] = false;
                 }
 
                 //build extensions
-                else if (fase == 3) {
+                else if (fase == 4) {
                     this.createBuildingsAndAdjacentsRoads('extension');
 
-                    this.memory['buildColony']['fase'] = 4;
+                    this.memory['buildColony']['fase'] = 5;
                     this.memory['buildColony']['working'] = false;
                 }
-                else if (fase == 4) {
+                else if (fase == 5) {
                     this.sendConstructionSideToBuildTask('extension');
                     this.sendConstructionSideToBuildTask('road');
                 }
@@ -445,10 +462,25 @@ export class OperationReserch {
                 if not, create a new one and jump to Fase 6.
                 if complete jump to fase 7
                 */
-                else if (fase == 5) {
+                else if (fase == 6) {
                     const rampartList = Mem.constructionData(this.mainRoom, 'rampart');
-                    for (let i = 0; i < rampartList.length; ++i) {
-
+                    let newRampart = false;
+                    for (let ref = 0; ref < rampartList.length; ++ref) {
+                        if (!rampartList[ref]['id']) {
+                            const rcode = this.createOneStructure('rampart', ref, rampartList[ref]['pos']);
+                            if (rcode == OK) {
+                                newRampart = true;
+                                break;
+                            } 
+                        }
+                    }
+                    if (newRampart) {
+                        this.memory['buildColony']['fase'] = 7;
+                        this.memory['buildColony']['working'] = false;
+                    }
+                    else {
+                        this.memory['buildColony']['fase'] = 8;
+                        this.memory['buildColony']['working'] = false;
                     }
                 }
 
@@ -456,8 +488,12 @@ export class OperationReserch {
                 Fase 6: 
                 send build task, if complete jump to fase 5
                 */
-                else if (fase == 6) {
-                    //this.sendConstructionSideToBuildTask('rampart');
+                else if (fase == 7) {
+                    this.sendConstructionSideToBuildTask('rampart');
+
+                }
+
+                else if (fase == 8) {
 
                 }
 
@@ -564,21 +600,42 @@ export class OperationReserch {
                 break;
 
             case 3: 
+
+                //fase 0 jump auto
+            
                 if (fase == 1) {
                     if (this.checkBuildTaskDone()) {
                         this.memory['buildColony']['fase'] = 2;
                         this.resetFaseValues();
                     }
                 } 
-                //fase 2 jump atoma
 
-                //fase3 jump
+                //wait to storage get 100k energy
+                else if (fase == 2) {
+                    const storage = Game.rooms[this.mainRoom].storage;
+                    if (storage.store['energy'] > 100000) {
+                        this.memory['buildColony']['fase'] = 3;
+                        this.resetFaseValues();
+                    }
+                }
 
-                else if (fase == 4) {
+                //fase 3 jump auto
+
+                //fase 4 jump auto
+
+                //wait build extension
+                else if (fase == 5) {
                     if (this.checkBuildTaskDone()) {
                         this.memory['buildColony']['fase'] = 5;
                         this.resetFaseValues();
                     }
+                }
+
+                //fase 6 jump auto
+
+                else if (fase == 7) {
+                    //check if no constructionSide and all rampart hits > 10k
+                    
                 }
             
                 break;

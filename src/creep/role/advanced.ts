@@ -309,7 +309,7 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
 
         },
         target: (creep: Creep) => {
-            const target = Game.getObjectById(creep.memory['source']['id'] as Id<TransferTarget>);
+            const target = Game.getObjectById(creep.memory['task']['source']['id'] as Id<TransferTarget>);
             const resourceType = Object.keys(creep.store)[0]
             if (creep.transfer(target, resourceType as ResourceConstant) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(target);

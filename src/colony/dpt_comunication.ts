@@ -31,13 +31,14 @@ export function transferRequest(id: string, resourceType: ResourceConstant ,amou
     return r;
 }
 
-export function withdrawRequest(id: string, roomName: string, pos:[number, number]): WithdrawRequest {
+export function withdrawRequest(id: string, roomName: string, pos:[number, number], resourceType: ResourceConstant): WithdrawRequest {
     const r: WithdrawRequest = {
         type: 'WITHDRAW',
         source: {
             id: id, 
             'roomName': roomName,
-            'pos': pos
+            'pos': pos,
+            'resourceType':resourceType
         }
     }
     return r;

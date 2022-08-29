@@ -147,26 +147,33 @@ export default class Dpt_Harvest extends Department {
            
             if (! containerList[id]['withdrawPetition']) {   //@ts-ignore
                 const container = Game.getObjectById(id as Id<StructureContainer>);   
-                if (container.store.getFreeCapacity() < 1000) {
-                    const withdrawTask: WithdrawRequest = {
-                        'type': 'WITHDRAW',
-                        'source': {
-                            'id': id,               
-                            'roomName': container.room.name,
-                            'pos': [container.pos.x, container.pos.y]
-                            //'resourceType': Object.keys(container.store)[0],
-                            
+                const resourceList = Object.keys(container.store);
+                
+                let resourceIndex = 0;
+                while (resourceIndex < resourceList.length && !containerList[id]['withdrawPetition']) {
+                    if (container.store[resourceList[resourceIndex]] >= 900) {
+                        const withdrawRequest: WithdrawRequest = {
+                            'type': 'WITHDRAW',
+                            'source': {
+                                'id': id,     
+                                'resourceType': resourceList[resourceIndex] as ResourceConstant,
+                                'roomName': container.room.name,
+                                'pos': [container.pos.x, container.pos.y]
+                                
+                            }
                         }
+                        sendLogisticTask(this.mainRoom, logisticTaskName(withdrawRequest), withdrawRequest);
+                        containerList[id]['withdrawPetition'] = true;
                     }
-                    sendLogisticTask(this.mainRoom, logisticTaskName(withdrawTask), withdrawTask);
-                    containerList[id]['withdrawPetition'] = true;
+                    ++resourceIndex;
                 }
+                
             }
         }
     }
 
     public run() {
-        if (Game.time % 13 == 0 && Memory['colony'][this.mainRoom]['state']['actualize']) {
+        if (Game.time % 151 == 0) {
             this.checkCreepNum();
         }
         if (Game.time % 13 == 0) {

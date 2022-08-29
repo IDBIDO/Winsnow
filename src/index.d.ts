@@ -125,12 +125,20 @@ interface TransferTask {
 
 interface WithdrawRequestData {
     id: string, 
+    resourceType: ResourceConstant,
     roomName: string, 
-    pos: [number, number]
+    pos: [number, number],
+    
 }
 interface WithdrawRequest {
     type: 'WITHDRAW',
     source: WithdrawRequestData
+}
+
+interface WidrawTask {
+    type: 'WITHDRAW',
+    source: WithdrawRequestData,
+    target: string,
 }
 
 interface transferTaskOperation {
@@ -198,6 +206,8 @@ interface ICreepConfig {
     // creep 获取工作所需资源时执行的方法
     // 返回 true 则执行 target 阶段，返回其他将继续执行该方法
     */
+    prepare?: (creep: Creep) => boolean
+
     source?: (creep: Creep) => boolean;
     // creep 工作时执行的方法,
     // 返回 true 则执行 source 阶段，返回其他将继续执行该方法
@@ -215,10 +225,10 @@ type BaseRoleConstant =
     'upgrader_base' |
     //'filler' |
     'builder' |
-    //'repairer' |
+    'repairer' |
     'initializer'|
     'iniQueen'
-    
+
 type AdvancedRoleConstant =
     'manager'|
     'transporter'
@@ -230,6 +240,13 @@ type CreepWork = {
 // 所有的 creep 角色
 type CreepRoleConstant = BaseRoleConstant | AdvancedRoleConstant 
 
+interface repairerData {
+    needBost: boolean,
+    labId: string,
+    source: string,
+    target: string
+
+}
 
 /******************* STRUCTURE FUNCTION ***********************/
 type ContainerFunction = 

@@ -80,7 +80,7 @@ export class ControllerOrder {
             this.checkRoomEnergy();
         } 
 
-        if (Game.time % 7 == 0) {
+        if (Game.time % 3 == 0) {
             this.findHostileCreeps();
         }
 
@@ -90,7 +90,7 @@ export class ControllerOrder {
         }
 
         //road repair
-        if (Game.time % 7919 == 0) {
+        if (Game.time % 1009 == 0) {
             this.checkRoads();
         }
 

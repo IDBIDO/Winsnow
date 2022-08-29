@@ -44,6 +44,7 @@ export const bodyPrototype = {
     worker: [WORK, CARRY, MOVE],
     builder: [WORK, CARRY, MOVE],
     transporter: [CARRY, MOVE],
+    repairer: [WORK, CARRY, MOVE],
     initializer: [WORK, CARRY, MOVE],
     iniQueen: [CARRY, MOVE],
     upgrader_base: [WORK, CARRY, MOVE]
@@ -70,9 +71,9 @@ export const bodyComponentNum = {
     },
     builder: {
         1: [1, 3, 1],
-        2: [1, 3, 1],
-        3: [1, 3, 1],
-        4: [1, 3, 1],
+        2: [2, 3, 1],
+        3: [2, 3, 1],
+        4: [3, 4, 2],
         5: [2, 4, 2],
         6: [3, 5, 3],
         7: [5, 7, 5],
@@ -82,17 +83,27 @@ export const bodyComponentNum = {
     upgrader_base: {
         1: [2, 1, 1],
         2: [2, 1, 1],
-        3: [3, 2, 2],
-        4: [4, 2, 2],
-        5: [4, 2, 2],
-        6: [6, 2, 3],
-        7: [10, 2, 5],
-        8: [15, 3, 8]
+        3: [3, 1, 1],
+        4: [3, 1, 1],
+        5: [3, 1, 1],
+        6: [3, 1, 1],
+        7: [2, 1, 1],
+        8: [15, 5, 8]
+    },
+    repairer: {
+        3: [1, 3, 1],
+        4: [1, 3, 1],
+        5: [1, 3, 1],
+        6: [2, 6, 1]
     },
 
     transporter: {
         1: [3, 3],
-        2: [3, 3]
+        2: [6, 3],
+        3: [6, 3],
+        4: [6, 3],
+        5: [6, 3],
+        6: [10, 5],
     },
 
     initializer: {

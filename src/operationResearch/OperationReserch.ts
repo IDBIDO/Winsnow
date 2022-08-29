@@ -6,6 +6,7 @@ import { CreepSpawning } from "@/structure/CreepSpawning";
 import Dpt_Harvest from "@/department/dpt_harvest/Dpt_Harvest";
 import { distanceTwoPoints, nearPoint } from "@/roomPlanning/planningUtils";
 import * as SuperMove from "../SuperMove"
+import { Mem } from "@/colony/Memory";
 
 /** CONTROL ALL DEPARTMENT */
 export class OperationReserch {
@@ -246,9 +247,10 @@ export class OperationReserch {
                         'modelReference': parseInt(ref)
                     }
                     sendBuildTask(constructionSide[i].id, buildData);
-                    delete  Memory['colony'][this.mainRoom]['roomPlanning']['temp']['road'][ref];
+                    delete Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'][structureType][ref];
+
                     if (structureType == 'road') {
-                        delete Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'][structureType][ref];
+                        delete  Memory['colony'][this.mainRoom]['roomPlanning']['temp']['road'][ref];
                     }
                     else if (structureType == 'extension') {
                         delete Memory['colony'][this.mainRoom]['roomPlanning']['temp']['extension'][ref];
@@ -286,7 +288,6 @@ export class OperationReserch {
         const roadList = Memory['colony'][this.mainRoom]['roomPlanning']['temp']['road'];
         
         for (let ref in roadList) {
-            console.log(distanceTwoPoints(roadList[ref], pos));
             
             if (distanceTwoPoints(roadList[ref], pos) == 1) {
                 this.buildReference('road', parseInt(ref))
@@ -306,12 +307,12 @@ export class OperationReserch {
             if (Game.rooms[this.mainRoom].controller.level == 8 || !this.posInControllerRange(pos)) {
                 const rcode = pos.createConstructionSite(structureType);
                 if (rcode == OK) {
-                    const constructionSideRefPos = Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'];
-                    constructionSideRefPos[STRUCTURE_EXTENSION][extRef] = [pos.x, pos.y]
+                    //const constructionSideRefPos = Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'];
+                    Memory['colony'][this.mainRoom]['roomPlanning']['constructionSide'][structureType][extRef] = [pos.x, pos.y]
                     this.constructAdjacentRoad([pos.x, pos.y]);
                     --extensionBuildable;
                 }
-                if (!extensionBuildable) break;
+                //if (!extensionBuildable) break;
             }
         }
 
@@ -319,17 +320,18 @@ export class OperationReserch {
 
     private checkNewTower() {
         const towerList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['tower'];
-        const actualTower = Memory['colony'][this.mainRoom]['tower']['memory'];
+        const actualTower = Memory['colony'][this.mainRoom]['tower']['data'];
         for (let i = 0; i < towerList.length; ++i) {
-            const towerId = towerList['id'];
+            const towerId = towerList[i]['id'];
             if (towerId) {
+                
                 if (!actualTower[towerId]) {
                     const towerData: towerData = {
                         'energyPetition': false,
                         'task': null,
                         'pos': towerList['pos']
                     }
-                    Memory['colony'][this.mainRoom]['tower']['memory'][towerId] = towerData;
+                    Memory['colony'][this.mainRoom]['tower']['data'][towerId] = towerData;
 
                 }
             }
@@ -380,43 +382,82 @@ export class OperationReserch {
                 }
                 else if (fase == 2) {
                     this.checkNewTower();
+                    
+                    
                 }
             
                 break;
 
             case 3: 
-                if (fase == 0) {        //create storage construction side
+                //create storage construction side
+                if (fase == 0) {        
                     SuperMove.options.deletePathInRoom(this.mainRoom)
                     this.createBuildingsAndAdjacentsRoads('storage');
 
                     this.memory['buildColony']['fase'] = 1;
                     this.memory['buildColony']['working'] = false;
                 }
-                else if (fase == 1) {   //realise storage contruction task
+                //realise storage contruction task
+                else if (fase == 1) {   
                     this.sendConstructionSideToBuildTask('storage');
                     this.sendConstructionSideToBuildTask('road');
                     
                 }
+                //change logistic mecanism to storage
+                //add source container to Dpt_harvest, and active withdraw tasks
+                //delete source container from Dpt_Logistic
+                //add storage to Dpt_Losgistic
                 else if (fase == 2) {   
-                    //change logistic mecanism to storage
-                        //add source container to Dpt_harvest, and active withdraw tasks
-                        //delete source container from Dpt_Logistic
-                        //add storage to Dpt_Losgistic
+                    console.log('CHANGING LOGISTIC MECANISM TO STORAGE');
+                    
                     
                     this.memory['storage'];
-                    const logisticStorage = Memory['colony'][this.mainRoom]['Dpt_logistic']['storage'];
+                    const logisticStorage = Memory['colony'][this.mainRoom]['dpt_logistic']['storage'];
                     for (let i = 0; i < logisticStorage.length; ++i) {
-                        Memory['colony'][this.mainRoom]['Dpt_harvest']['container'][logisticStorage[i]] = {
+                        Memory['colony'][this.mainRoom]['dpt_harvest']['container'][logisticStorage[i]] = {
                             withdrawPetition: false,
                         }
                         
                     }
 
-                    Memory['colony'][this.mainRoom]['Dpt_logistic']['storage'] = [];
+                    Memory['colony'][this.mainRoom]['dpt_logistic']['storage'] = [];
 
-                    Memory['colony'][this.mainRoom]['Dpt_logistic']['storage'].push(Game.rooms[this.mainRoom].storage.id)
+                    Memory['colony'][this.mainRoom]['dpt_logistic']['storage'].push(Game.rooms[this.mainRoom].storage.id)
+                    this.memory['buildColony']['fase'] = 3;
+                    this.memory['buildColony']['working'] = false;
+                }
 
+                //build extensions
+                else if (fase == 3) {
+                    this.createBuildingsAndAdjacentsRoads('extension');
 
+                    this.memory['buildColony']['fase'] = 4;
+                    this.memory['buildColony']['working'] = false;
+                }
+                else if (fase == 4) {
+                    this.sendConstructionSideToBuildTask('extension');
+                    this.sendConstructionSideToBuildTask('road');
+                }
+
+                /*
+                Fase 5:
+                check if all rampart constructionSide are created
+                if not, create a new one and jump to Fase 6.
+                if complete jump to fase 7
+                */
+                else if (fase == 5) {
+                    const rampartList = Mem.constructionData(this.mainRoom, 'rampart');
+                    for (let i = 0; i < rampartList.length; ++i) {
+
+                    }
+                }
+
+                /*
+                Fase 6: 
+                send build task, if complete jump to fase 5
+                */
+                else if (fase == 6) {
+                    //this.sendConstructionSideToBuildTask('rampart');
 
                 }
 
@@ -526,6 +567,16 @@ export class OperationReserch {
                 if (fase == 1) {
                     if (this.checkBuildTaskDone()) {
                         this.memory['buildColony']['fase'] = 2;
+                        this.resetFaseValues();
+                    }
+                } 
+                //fase 2 jump atoma
+
+                //fase3 jump
+
+                else if (fase == 4) {
+                    if (this.checkBuildTaskDone()) {
+                        this.memory['buildColony']['fase'] = 5;
                         this.resetFaseValues();
                     }
                 }

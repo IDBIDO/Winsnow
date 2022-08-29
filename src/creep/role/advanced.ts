@@ -110,13 +110,9 @@ const roles: {
             
         },
         target: creep => {
-            
- 
             const taskType:string = creep.memory['task']['type'];
             
             if (taskType) {
- 
-                
                 return transferTaskOperations[taskType].target(creep)
             }
             else return true;       //get new task
@@ -163,11 +159,9 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
                 
                 if (!target) {
                     // 都填满了，任务完成
-                    //creep.room.deleteCurrentRoomTransferTask()
-                    //set fill task to true
+
                     Memory['colony'][creep.memory['roomName']]['dpt_logistic']['fillTask'] = false;
                     creep.memory['task']['type'] = null;
-                    //creep.memory['sendTaskRequest'] = false;
                     return true
                 }
 
@@ -275,14 +269,24 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
     },
     WITHDRAW: {
         /*
-        'type': 'WITHDRAW',
+        const r: WidrawTask = {
+            type: 'WITHDRAW',
+            source: widrawRequest.source,
+            target: this.getMaxCapacityStorageID(),
+            amountDone: 0
+        }
+        */
+        /*
         'source': {
-            'id': id,               //@ts-ignore
-            'resourceType': Object.keys(container.store)[0]
+            'id': id,     
+            'resourceType': resourceList[resourceIndex] as ResourceConstant,
+            'roomName': container.room.name,
+            'pos': [container.pos.x, container.pos.y]
+            
         }
         */
         source: (creep: Creep) => {
-            const source = Game.getObjectById(creep.memory['source']['id'] as Id<WithDrawTarget>);
+            const source = Game.getObjectById(creep.memory['task']['source']['id'] as Id<WithDrawTarget>);
             //if missing source delete task
             if (!source) {
                 creep.memory['task']['type'] = null;
@@ -291,7 +295,7 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
                 return false;
             }
 
-            const resourceType = Object.keys(source.store)[0]
+            const resourceType = creep.memory['task']['source']['resourceType']
             if (creep.withdraw(source, resourceType as ResourceConstant) == ERR_NOT_IN_RANGE) {
                 const sourceTask = creep.memory['task']['source'];
                 const sourcePos = new RoomPosition(sourceTask['pos'][0], sourceTask['pos'][1], sourceTask['roomName']);

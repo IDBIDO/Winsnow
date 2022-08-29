@@ -24,7 +24,9 @@ export class Mem {
     }
 
 
-
+    static constructionData(roomName: string, structureType: BuildableStructureConstant) {
+        return Memory['colony'][roomName]['roomPlanning']['model'][structureType];
+    }
 
     /*
         request mem for a new colony
@@ -69,6 +71,14 @@ export class Mem {
         this.initializeDptWork();
         this.initializeDptUpgrader();
         this.initializeTowersMem();
+        this.initializeDptRepair();
+    }
+
+    private initializeDptRepair() {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        colonyMem['dpt_repair'] = {};
+        
+        colonyMem['dpt_repair']['ticksToSpawn'] = {};
 
     }
 

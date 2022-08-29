@@ -27,8 +27,11 @@ export default class Dpt_Upgrader extends Department {
     private container_controllerRealiseTask() {
         const container = Game.getObjectById(this.memory['storage']['id'])
         if (!container) return
+        const logisticTaskNum = Memory['colony'][this.mainRoom]['dpt_logistic']['targetTask'];
+        const taskNum = Object.keys(logisticTaskNum).length
+        if (taskNum > 10) return;
         const containerMem = Memory['colony'][this.mainRoom]['dpt_upgrade']['container'];   //@ts-ignore
-        const stage = Math.trunc((2000 - container.store['energy']) / 500);
+        const stage = Math.trunc((2000 - container.store['energy']) / 400);
         //console.log(stage);
         
             //stage1:   < 1500 
@@ -36,15 +39,18 @@ export default class Dpt_Upgrader extends Department {
             //stage3:   < 500
         if (stage >= 1 && Game.time >= containerMem['stage1']) {
             this.sendTransferTaskContainer();
-            containerMem['stage1'] = Game.time + 50;
+            containerMem['stage1'] = Game.time + 40;
         }
         if (stage >= 2 && Game.time >= containerMem['stage2']) {
             this.sendTransferTaskContainer();
-            containerMem['stage2'] = Game.time + 50;
+            containerMem['stage2'] = Game.time + 40;
         }
         if (stage >= 3 && Game.time >= containerMem['stage3']) {
             this.sendTransferTaskContainer();
-            containerMem['stage3'] = Game.time + 50;
+            containerMem['stage3'] = Game.time + 40;
+        }
+        if (stage >= 4) {
+            this.sendTransferTaskContainer();
         }
         
 
@@ -70,8 +76,10 @@ export default class Dpt_Upgrader extends Department {
             //create a transporter
             
             const numBuilders = Object.keys(this.memory['ticksToSpawn']).length;
-            if (numBuilders <= 4) {
-                if (numBuilders%2 == 0) {       //every 2 builders a transporter
+            if (numBuilders <= 5) {
+                
+                //limit transporter num
+                if (!this.memory['spawnTransporter']) {       
                     const nameT = creepName();
                     const dataT: LogisticData = {
                         source: {
@@ -83,6 +91,8 @@ export default class Dpt_Upgrader extends Department {
                     };
                     CreepSpawning.sendToSpawnInitializacion(this.mainRoom, nameT,  'transporter', dataT, '-', false);
                 }
+                this.memory['spawnTransporter'] = !this.memory['spawnTransporter'];
+                
                 //create a upgrader
                 const name =  creepName();
                     const data: Upgrader_baseData = {
@@ -91,11 +101,10 @@ export default class Dpt_Upgrader extends Department {
                     };
                 CreepSpawning.sendToSpawnInitializacion(this.mainRoom, name, 'upgrader_base', data, 'dpt_upgrade', false);
                 this.memory['ticksToSpawn'][name] = null;
+        
             }
-        }
-
-
     }
+}
 
     private containerStage1() {
         if (!this.memory['storage']['id']) return 
@@ -103,7 +112,7 @@ export default class Dpt_Upgrader extends Department {
 
     }
 
-    private clearMemory() {
+    private cleanCreepMemory() {
         const savedUpgrader = this.memory['ticksToSpawn'];
         for (let creepName in savedUpgrader) {
             if (savedUpgrader[creepName] && savedUpgrader[creepName] < Game.time) {
@@ -114,16 +123,16 @@ export default class Dpt_Upgrader extends Department {
     }
 
     public run() {
-        if (Game.rooms[this.mainRoom].controller.level <= 3) {
+        if (Game.rooms[this.mainRoom].controller.level <= 4) {
             const buildTask = Memory['colony'][this.mainRoom]['dpt_build']['buildTask'];
             if (!Object.keys(buildTask)[0]) {
                 if(Game.time % 53 == 0) this.containerStage();
-                if (Game.time % 53 == 0) this.container_controllerRealiseTask();
+                if (Game.time % 31 == 0) this.container_controllerRealiseTask();
             }
         }
 
         if (Game.time % 23 == 0) {
-            this.clearMemory();
+            this.cleanCreepMemory();
         }
 
     }

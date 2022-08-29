@@ -154,6 +154,14 @@ export class CreepSpawning {
             Memory.creeps[creepName]['sendTaskRequest'] = false;
         }
 
+        //builder
+        const role = Memory.creeps[creepName]['role'];
+        if (role == 'builder') {
+            Memory.creeps[creepName]['task']['logisticCreepName'] = null;
+            Memory.creeps[creepName]['task']['target']['id'] = null;
+        }
+        
+
     }
 
     private recycleQueenSpawning(spawnName: string, creepName: string, creepRole: string): ScreepsReturnCode {

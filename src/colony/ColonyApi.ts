@@ -26,6 +26,11 @@ global.ColonyApi = {
         Memory['colony'][roomName]['state']['buildColony']['working'] = false;
     },
 
+
+    setWorkingFase(roomName: string, fase: number) {
+        Memory['colony'][roomName]['state']['buildColony']['fase'] = fase;
+    },
+
     destroyAllBuilding(roomName: string) {
         const building = Game.rooms[roomName].find(FIND_STRUCTURES, 
         {filter: (structure)=> structure.structureType != 'spawn'}    
@@ -39,8 +44,15 @@ global.ColonyApi = {
     constructAdjacentRoad(roomName: string, pos: [number, number]) {
         const a = new OperationReserch(roomName);
         a.constructAdjacentRoad(pos);
-    }
+    },
 
+    deleteAllLogisticTask(roomName: string) {
+        Memory['colony'][roomName]['dpt_logistic']['targetTask'] = {}
+    },
+
+    cleanBuildTask(roomName: string) {
+        Memory['colony'][roomName]['dpt_build']['buildTask'] = {}
+    }
 }
 
 

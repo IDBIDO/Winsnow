@@ -24,13 +24,10 @@ export default class CreepExtension extends Creep {
         // 没准备的时候就执行准备阶段
         if (!this.memory['ready']) {
             // 有准备阶段配置则执行
-            if (creepLogic.prepare && creepLogic.isReady) {
-                creepLogic.prepare(this)
-                this.memory['ready'] = creepLogic.isReady(this)
-            }
+            if (creepLogic.prepare) this.memory['ready'] = creepLogic.prepare(this)
             // 没有就直接准备完成
             else this.memory['ready'] = true
-            return
+
         }
 
         // ------------------------ 第三步：执行 creep 工作阶段 ------------------------

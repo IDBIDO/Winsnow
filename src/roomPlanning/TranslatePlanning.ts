@@ -232,6 +232,51 @@ export class TranslatePlanning {
         }
     }
 
+    private tempSpawn() {
+        const temp = Memory['colony'][this.mainRoom]['roomPlanning']['temp'];
+        const spawnList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['spawn'];
+        temp['spawn'] = {};
+
+        const controllerRoomPos = Game.rooms[this.mainRoom].controller.pos;
+        const controllerPos:[number, number] = [controllerRoomPos.x, controllerRoomPos.y];
+        let array = Array<arrayPos>(spawnList.length);
+        for (let i = 0; i < spawnList.length; ++i) {
+            //temp['extension'][i] = extensionList[i]['pos'];
+            const distance = utils.distanceTwoPoints(controllerPos, spawnList[i]['pos']);
+            const temp: arrayPos = {
+                'ref': i.toString(),
+                'pos': spawnList[i]['pos'],
+                'distance': distance
+            }
+            array[i] = temp;
+        }
+        array.sort(function (a, b) {
+
+            if (a.distance > b.distance) {  //si a es mayor, retornar 1
+            return 1;
+            }
+            if (a.distance < b.distance) {  //si a es memor, retornar -1
+            return -1;
+            }
+            // a must be equal to b
+            return 0;
+            
+        });
+
+        for (let i = 0; i < spawnList.length; ++i) {
+            temp['spawn'][i] = array[i].pos;
+
+        }
+
+        //change model extension
+        const modelExtension = Memory['colony'][this.mainRoom]['roomPlanning']['model']['spawn'];
+        for (let i = 0; i < modelExtension.length; ++i) {
+            modelExtension[i]['pos'] = temp['spawn'][i];
+        }
+
+        
+    }
+
     private generateTemporal() {
         Memory['colony'][this.mainRoom]['roomPlanning']['temp'] = {};
         const temp = Memory['colony'][this.mainRoom]['roomPlanning']['temp'];
@@ -246,16 +291,12 @@ export class TranslatePlanning {
                 
         }
 
-        /*
-        const roadList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['road'];
-        temp['road'] = {};
-        for (let i = 0; i < roadList.length; ++i) {
-            temp['road'][i] = roadList[i]['pos'];
-        }
-        */
-        
+        //modify spawn order
+        this.tempSpawn();
+
         //modify extension order
         this.tempExtension();
+
         
 
     }

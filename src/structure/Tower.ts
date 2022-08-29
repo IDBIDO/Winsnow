@@ -27,11 +27,12 @@ export class Tower {
     
     
     private checkTowerEnergy() {
-        const towerMem = this.memory['memory'];
+        const towerMem = this.memory['data'];
         for (let id in towerMem) {
             
-            if (!towerMem['energyPetition']) {  //@ts-ignore
-                const tower = Game.getObjectById(id);   //@ts-ignore
+            if (!towerMem[id]['energyPetition']) { 
+                const tower = Game.getObjectById(id as Id<StructureTower>);   
+                
                 if (tower.store['energy'] <= 700) {
                     //SEND TASKFER REQUEST
                     const transferTask: TransferRequest = {
@@ -39,12 +40,14 @@ export class Tower {
                         'target': {
                             'id': id,
                             'resourceType': 'energy',           //@ts-ignore
-                            'amount': tower.store.getFreeCapacity()
+                            'amount': tower.store.getFreeCapacity(RESOURCE_ENERGY)
                         }
+                        
                         
                     }
                     sendLogisticTask(this.mainRoom, logisticTaskName(transferTask), transferTask);
-                    this.memory['memory']['energyPetition'] = true;
+                    towerMem[id]['energyPetition'] = true;
+
                 }
             }
             
@@ -94,6 +97,7 @@ export class Tower {
     static sendRampartRepairTask(roomName: string, rampartId: string) {
         const taskname = towerTask();
         Memory['colony'][roomName]['tower']['repairRampart'][taskname] = rampartId;
+
     }    
 
     static sendAttackTask(roomName: string, creepId: string) {
@@ -101,18 +105,60 @@ export class Tower {
         Memory['colony'][roomName]['tower']['attackTask'][taskName] = creepId;
     }
 
-    private towerRepair() {
+    private towerRepairRampart(towerIndex: number): number {
+        
+        let i = towerIndex;
+        const rampartList = this.memory['repairRampart'];
+        const towersData = this.memory['data'];
+        const towersId = Object.keys(towersData);
+
+        let deleteRepairTask = [];
+        for (let taskName in rampartList) {
+            if (i < towersId.length) break;
+
+            const rampart = Game.getObjectById<StructureContainer|StructureRoad>(rampartList[taskName]);
+            const rampartNeedHits = 50000;
+
+            while(i < towersId.length && rampart.hits < rampartNeedHits) {
+                const tower = Game.getObjectById(towersId[i] as Id<StructureTower>);
+                tower.repair(rampart);
+                ++i;
+            }
+            if (rampart.hits > rampartNeedHits) {
+                deleteRepairTask.push(this.memory['repairRampart'][taskName]);
+            }
+
+        }
+
+        //delete road or container tasks
+        for (let j = 0; j < deleteRepairTask.length; ++j) {
+            delete rampartList[deleteRepairTask[j]];
+        }
+        
+
+        return i;
+ 
+    }
+
+    private towerRepairRoad(towerIndex: number): number {
+        
+        let i = towerIndex;
+       
+        
         const repairRoad = this.memory['repairRoad'];
         const towersData = this.memory['data'];
         const towersId = Object.keys(towersData);
-        let i = 0;
+        
+        
         let deleteRepairTask = [];
         for (let taskName in repairRoad) {
-            if (i < towersId.length) break;
-
+            
+            if (i >= towersId.length) break;
+            
+            
             const road = Game.getObjectById<StructureContainer|StructureRoad>(repairRoad[taskName]);
             let repairTime = ~~((road.hitsMax - road.hits)/800);
-
+            
             while(i < towersId.length && repairTime) {
                 const tower = Game.getObjectById(towersId[i] as Id<StructureTower>);
                 tower.repair(road);
@@ -120,15 +166,27 @@ export class Tower {
                 ++i;
             }
             if (!repairTime) {
-                deleteRepairTask.push(this.memory['repairRoad'][taskName]);
+                deleteRepairTask.push(taskName);
             }
 
         }
 
         //delete road or container tasks
         for (let j = 0; j < deleteRepairTask.length; ++j) {
-            delete repairRoad[deleteRepairTask[j]];
+            delete this.memory['repairRoad'][deleteRepairTask[j]];
         }
+        
+        
+
+        return i;
+    }
+
+    private towerRepair() {
+
+        let i = 0;
+        i = this.towerRepairRampart(i);
+        
+        i = this.towerRepairRoad(i);
 
         //repair rampart task
         
@@ -136,6 +194,8 @@ export class Tower {
 
     private towerTaskExecution() {
         if (!this.towerAttack()) {
+
+            
             this.towerRepair();
         }
     }

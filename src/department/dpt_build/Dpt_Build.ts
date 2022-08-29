@@ -45,36 +45,26 @@ export default class Dpt_Build extends Department {
         }
     }
 
+    private getBuiilderWorkBody(energyRCL: number) {
+        return setting.bodyComponentNum['builder'][energyRCL][0];
+    }
+
+    private getBuilderFactor(energyRCL: number) {
+        return 1000/this.getBuiilderWorkBody(energyRCL);
+    }
+
     private getBuildersNeeded(): number {
         const buildCost:number = this.memory['buildCost'];
         const availableEnergy = Game.rooms[this.mainRoom].energyCapacityAvailable;
         const energyRCL = dpt_config.getEnergyRCL(availableEnergy);
         
-        if (energyRCL <= 4) {
-            const num = Math.trunc(buildCost/1000) + 1;
-            if (num > 5) return 5;
-            else return num;
-        }
-        else if (energyRCL == 5) {
-            const num = Math.trunc(buildCost/2/1000) + 1;
-            if (num > 5) return 5;
-            else return num;
-        }
-        else if (energyRCL == 6) {
-            const num = Math.trunc(buildCost/3/1000) + 1;
-            if (num > 5) return 5;
-            else return num;
-        }
-        else if (energyRCL == 7) {
-            const num = Math.trunc(buildCost/5/1000) + 1;
-            if (num > 5) return 5;
-            else return num;
-        }
-        else {
-            const num = Math.trunc(buildCost/7/1000) + 1;
-            if (num > 5) return 5;
-            else return num;
-        }
+        const builderFactor = this.getBuilderFactor(energyRCL);
+
+       
+        const num = Math.trunc(buildCost/builderFactor) + 1;
+        if (num > 5) return 5;
+        else return num;
+    
 
     }
 
@@ -162,12 +152,15 @@ export default class Dpt_Build extends Department {
             else {
                 const buildersSaved = this.creepsSavedDeath();
                 //spawn saved builders
+                /*
                 for (let i = 0; i < buildersSaved.length && needToSpawn; ++i) {
                     CreepSpawning.sendToSpawnRecycle(this.mainRoom, buildersSaved[i], 'builder', 'dpt_build')
                     //this.sendSpawnTask(buildersSaved[i], 'builder');
                     this.memory['ticksToSpawn'][buildersSaved[i]] = null;
+                    CreepSpawning.initializeCreepState(buildersSaved[i]);
                     --needToSpawn;
                 }
+                */
                 while (needToSpawn) {
                     //create new builder unsaved
    
@@ -191,30 +184,26 @@ export default class Dpt_Build extends Department {
     }
 
 
+    private cleanCreepMemory() {
+        const savedUpgrader = this.memory['ticksToSpawn'];
+        for (let creepName in savedUpgrader) {
+            if (savedUpgrader[creepName] && savedUpgrader[creepName] < Game.time) {
+                delete this.memory['ticksToSpawn'][creepName];
+                delete Memory.creeps[creepName]
+            }
+        }
+    }
 
     public run(): void {
-        /*
-        if (Memory['colony'][this.mainRoom]['state']['updateCreepNumWorker']) {
-            //this.actualizeCreepNum();
-            Memory['colony'][this.mainRoom]['state']['updateCreepNumWorker'] = false;
-        }
 
-        if (Memory['colony'][this.mainRoom]['state']['updateRoomPlanning']) {
-            this.realiaseBuildTask();
-            Memory['colony'][this.mainRoom]['state']['updateRoomPlanning'] = false;
-        }
-        this.creepExecution();
-
-        if (Game.time%7) this.recycleCreepsDead();
-*/  
         if (Game.time%23 == 0) {
             this.checkCreepNum();
             
             //this.memory['actualize'] = false;
         }
 
-        if (Game.time % 13 == 0)  {
-            //this.recycleCreepsDead();
+        if (Game.time % 53 == 0)  {
+            this.cleanCreepMemory();
         }
 
 

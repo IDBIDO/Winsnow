@@ -1651,9 +1651,9 @@ function transformRoadToAdjacentList(roadList) {
     let adjacentList = [];
     for (let i = 0; i < roadList.length; ++i) {
         adjacentList.push(nearPoint(roadList[i], roadList));
-        console.log(i, nearPoint(roadList[i], roadList));
+        //console.log(i , nearPoint(roadList[i], roadList));
     }
-    console.log(adjacentList);
+    //console.log(adjacentList);
     return adjacentList;
 }
 function reconstructPath(beginPoint, endPoint, prev) {
@@ -1707,10 +1707,99 @@ function getId(roomName, pos, structureType) {
     const object = position.lookFor(structureType);
     return object[0].id;
 }
+function inMapRange(pos) {
+    if (pos[0] >= 0 && pos[0] < 50) {
+        if (pos[1] >= 0 && pos[1] < 50) {
+            return true;
+        }
+    }
+    return false;
+}
+/*
+    negative points will ignored
+*/
+function nearPosition(pos) {
+    let nearPoints = [
+        [pos[0] - 1, pos[1] + 1],
+        [pos[0] - 1, pos[1]],
+        [pos[0] - 1, pos[1] - 1],
+        [pos[0], pos[1] + 1],
+        [pos[0], pos[1] - 1],
+        [pos[0] + 1, pos[1] + 1],
+        [pos[0] + 1, pos[1]],
+        [pos[0] + 1, pos[1] - 1],
+    ];
+    let validNearPoints = [];
+    for (let i = 0; i < nearPoints.length; ++i) {
+        if (inMapRange(nearPoints[i])) {
+            validNearPoints.push(nearPoints[i]);
+        }
+    }
+    return validNearPoints;
+}
+function isRampartPos(roomName, pos) {
+    const rampartDataList = Memory['colony'][roomName]['roomPlanning']['model']['rampart'];
+    for (let i = 0; i < rampartDataList.length; ++i) {
+        if (pos[0] == rampartDataList[i]['pos'][0] && pos[1] == rampartDataList[i]['pos'][1]) {
+            return true;
+        }
+    }
+    return false;
+}
 
 function getPlanningStructurePos(roomName, structureType, index) {
     const pos = Memory['colony'][roomName]['roomPlanning']['model'][structureType][index]['pos'];
     return pos;
+}
+
+/**
+ * 把 obj2 的原型合并到 obj1 的原型上
+ * 如果原型的键以 Getter 结尾，则将会把其挂载为 getter 属性
+ * @param obj1 要挂载到的对象
+ * @param obj2 要进行挂载的对象
+ */
+const assignPrototype = function (obj1, obj2) {
+    Object.getOwnPropertyNames(obj2.prototype).forEach(key => {
+        if (key.includes('Getter')) {
+            Object.defineProperty(obj1.prototype, key.split('Getter')[0], {
+                get: obj2.prototype[key],
+                enumerable: false,
+                configurable: true
+            });
+        }
+        else
+            obj1.prototype[key] = obj2.prototype[key];
+    });
+};
+function connectedComponents(adj) {
+    var numVertices = adj.length;
+    var visited = new Array(numVertices);
+    for (var i = 0; i < numVertices; ++i) {
+        visited[i] = false;
+    }
+    var components = [];
+    for (var i = 0; i < numVertices; ++i) {
+        if (visited[i]) {
+            continue;
+        }
+        var toVisit = [i];
+        var cc = [i];
+        visited[i] = true;
+        while (toVisit.length > 0) {
+            var v = toVisit.pop();
+            var nbhd = adj[v];
+            for (var j = 0; j < nbhd.length; ++j) {
+                var u = nbhd[j];
+                if (!visited[u]) {
+                    visited[u] = true;
+                    toVisit.push(u);
+                    cc.push(u);
+                }
+            }
+        }
+        components.push(cc);
+    }
+    return components;
 }
 
 class TranslatePlanning {
@@ -1737,10 +1826,6 @@ class TranslatePlanning {
             Memory['colony'][this.mainRoom]['roomPlanning'] = {};
             //save model
             this.generateModel(roomStructsData['structMap']);
-            this.containerReference(roomStructsData['structMap']['container']);
-            this.linkReference(roomStructsData['structMap']['link']);
-            this.roadReference(roomStructsData['structMap']['road']);
-            this.labReference(roomStructsData['structMap']['lab']);
             this.generateTemporal();
             /*
                 {
@@ -1754,6 +1839,11 @@ class TranslatePlanning {
                 }
             */
             this.constructionSideRefAndPos();
+            this.inRampartPos();
+            this.containerReference(roomStructsData['structMap']['container']);
+            this.linkReference(roomStructsData['structMap']['link']);
+            this.roadReference(roomStructsData['structMap']['road']);
+            this.labReference(roomStructsData['structMap']['lab']);
             return true;
         }
         return false;
@@ -1798,6 +1888,101 @@ class TranslatePlanning {
             'spawn0ToController': spawn0ToController,
             'spawn0ToMineral': spawn0ToMineral
         };
+    }
+    roomWall() {
+        Memory['colony'][this.mainRoom]['roomPlanning']['temp']['rampart'];
+        const matrix = new Array(50).fill(true).map(() => new Array(50).fill(true));
+        const terrain = new Room.Terrain(this.mainRoom);
+        for (let i = 0; i < 50; ++i) {
+            for (let j = 0; j < 50; ++j) {
+                if (terrain.get(i, j) == TERRAIN_MASK_WALL || isRampartPos(this.mainRoom, [i, j])) {
+                    matrix[i][j] = false;
+                }
+            }
+        }
+        return matrix;
+    }
+    nearConectedPos(pos) {
+        const terrain = new Room.Terrain(this.mainRoom);
+        Memory['colony'][this.mainRoom]['roomPlanning']['temp']['rampart'];
+        const candidatePos = nearPosition(pos);
+        let r = [];
+        for (let i = 0; i < candidatePos.length; ++i) {
+            if (terrain.get(candidatePos[i][0], candidatePos[i][1]) != TERRAIN_MASK_WALL && !isRampartPos(this.mainRoom, candidatePos[i])) {
+                r.push([candidatePos[i][0], candidatePos[i][1]]);
+            }
+        }
+        return r;
+    }
+    roomWallToAdj(roomCanPass) {
+        let adjList = [];
+        let cont = 0;
+        for (let i = 0; i < roomCanPass.length; ++i) {
+            for (let j = 0; j < roomCanPass[i].length; ++j) {
+                const node = this.translatePosToNode([i, j]);
+                //console.log(node);
+                if (!roomCanPass[i][j]) {
+                    adjList[node] = [];
+                    ++cont;
+                }
+                else {
+                    const nearPos = this.nearConectedPos([i, j]);
+                    let actualNode = [];
+                    for (let i = 0; i < nearPos.length; ++i) {
+                        actualNode.push(this.translatePosToNode(nearPos[i]));
+                    }
+                    adjList[node] = actualNode;
+                }
+            }
+        }
+        console.log('walls');
+        console.log(cont);
+        /*
+         for (let i = 0; i < roomCanPass.length; ++i) {
+             for (let j = 0; j < roomCanPass[i].length; ++j) {
+                 const node = this.translatePosToNode([j, i]);
+                 //console.log(node);
+                 if (!roomCanPass[i][j]) adjList.push([]);
+                 else {
+                     const nearPos = this.nearConectedPos([j, i]);
+                     let actualNode: number[] = [];
+                     for (let i = 0; i < nearPos.length; ++i) {
+                         actualNode.push( this.translatePosToNode(nearPos[i]) )
+                     }
+                     adjList.push(actualNode);
+                 }
+ 
+             }
+         }
+         */
+        return adjList;
+    }
+    translatePosToNode(pos) {
+        return pos[0] * 50 + pos[1];
+    }
+    translateNodeToPos(node) {
+        return [Math.floor(node / 50), node % 50];
+    }
+    inRampartPos() {
+        Memory['colony'][this.mainRoom]['roomPlanning']['temp']['rampart'];
+        Memory['colony'][this.mainRoom]['roomPlanning']['temp']['spawn'][0];
+        //const matrix = new Array(50).fill(false).map(() => new Array(50).fill(false));
+        //wall pos mask false
+        const roomWall = this.roomWall();
+        let cont = 0;
+        for (let i = 0; i < roomWall.length; ++i) {
+            for (let j = 0; j < roomWall.length; ++j) {
+                if (!roomWall[i][j])
+                    ++cont;
+            }
+        }
+        console.log(cont);
+        const adjacentList = this.roomWallToAdj(roomWall);
+        const cc = connectedComponents(adjacentList);
+        //console.log(adjacentList[700]);
+        console.log(cc);
+        console.log('length');
+        console.log(cc.length);
     }
     linkReference(linkList) {
         const containerReference = Memory['colony'][this.mainRoom]['roomPlanning']['containerReference'];
@@ -1909,10 +2094,10 @@ class TranslatePlanning {
             array[i] = temp;
         }
         array.sort(function (a, b) {
-            if (a.distance > b.distance) { //si a es mayor, retornar 1
+            if (a.distance < b.distance) { //si a es mayor, retornar 1
                 return 1;
             }
-            if (a.distance < b.distance) { //si a es memor, retornar -1
+            if (a.distance > b.distance) { //si a es memor, retornar -1
                 return -1;
             }
             // a must be equal to b
@@ -1999,10 +2184,19 @@ class Mem {
         this.initializeTowersMem();
         this.initializeDptRepair();
     }
+    assignLinkToRampart() {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        colonyMem['roomPlanning']['temp']['rampart'];
+    }
     initializeDptRepair() {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_repair'] = {};
+        colonyMem['dpt_repair']['actualHits'] = 0;
+        colonyMem['dpt_repair']['task'] = {};
+        colonyMem['dpt_repair']['rampartData'] = {};
+        colonyMem['dpt_repair']['linksPos'] = {};
         colonyMem['dpt_repair']['ticksToSpawn'] = {};
+        this.assignLinkToRampart();
     }
     initializeTowersMem() {
         const colonyMem = Memory['colony'][this.mainRoom];
@@ -4266,6 +4460,156 @@ module.exports = {
     // clear: clearUnused
 };
 
+class Tower {
+    constructor(mainRoom) {
+        this.mainRoom = mainRoom;
+        this.memory = Memory['colony'][mainRoom]['tower'];
+    }
+    /*
+        id {
+            energyPetition: boolean,
+            task,
+        }
+
+    */
+    /*
+        Una torreta cada 7 tick revisa su energia, si es inferiol a un valor dado,
+        hace una peticion de transferencia a Dpt_logistic.
+        Mientras no le llegue toda la energia que ha pedido, no lanza ninguna
+        peticion de energia.
+        
+    */
+    checkTowerEnergy() {
+        const towerMem = this.memory['data'];
+        for (let id in towerMem) {
+            if (!towerMem[id]['energyPetition']) {
+                const tower = Game.getObjectById(id);
+                if (tower.store['energy'] <= 700) {
+                    //SEND TASKFER REQUEST
+                    const transferTask = {
+                        'type': 'TRANSFER',
+                        'target': {
+                            'id': id,
+                            'resourceType': 'energy',
+                            'amount': tower.store.getFreeCapacity(RESOURCE_ENERGY)
+                        }
+                    };
+                    sendLogisticTask(this.mainRoom, logisticTaskName(transferTask), transferTask);
+                    towerMem[id]['energyPetition'] = true;
+                }
+            }
+        }
+    }
+    towerAttack() {
+        const towersData = this.memory['data'];
+        const attackTarget = this.memory['attackTask'];
+        let missingCreepsId = [];
+        let attacked = false;
+        for (let taskName in attackTarget) {
+            const hostileCreep = Game.getObjectById(attackTarget[taskName]);
+            if (hostileCreep) {
+                for (let towerId in towersData) {
+                    const tower = Game.getObjectById(towerId);
+                    tower.attack(hostileCreep);
+                }
+                attacked = true;
+            }
+            else {
+                missingCreepsId.push(taskName);
+            }
+        }
+        for (let i = 0; i < missingCreepsId.length; ++i) {
+            delete this.memory['attackTask'][missingCreepsId[i]];
+        }
+        return attacked;
+    }
+    static sendRoadRepairTask(roomName, roadId) {
+        const taskname = towerTask();
+        Memory['colony'][roomName]['tower']['repairRoad'][taskname] = roadId;
+    }
+    static cleanTowerEnergyPetition(roomName, towerId) {
+        Memory['colony'][roomName]['tower']['data'][towerId]['energyPetition'] = false;
+    }
+    static sendRampartRepairTask(roomName, rampartTask) {
+        const taskname = towerTask();
+        Memory['colony'][roomName]['tower']['repairRampart'][taskname] = rampartTask;
+    }
+    static sendAttackTask(roomName, creepId) {
+        const taskName = towerTask();
+        Memory['colony'][roomName]['tower']['attackTask'][taskName] = creepId;
+    }
+    towerRepairRampart(towerIndex) {
+        let i = towerIndex;
+        const rampartList = this.memory['repairRampart'];
+        const towersData = this.memory['data'];
+        const towersId = Object.keys(towersData);
+        let deleteRepairTask = [];
+        for (let taskName in rampartList) {
+            if (i < towersId.length)
+                break;
+            const rampart = Game.getObjectById(rampartList[taskName]);
+            const rampartNeedHits = 50000;
+            while (i < towersId.length && rampart.hits < rampartNeedHits) {
+                const tower = Game.getObjectById(towersId[i]);
+                tower.repair(rampart);
+                ++i;
+            }
+            if (rampart.hits > rampartNeedHits) {
+                deleteRepairTask.push(this.memory['repairRampart'][taskName]);
+            }
+        }
+        //delete road or container tasks
+        for (let j = 0; j < deleteRepairTask.length; ++j) {
+            delete rampartList[deleteRepairTask[j]];
+        }
+        return i;
+    }
+    towerRepairRoad(towerIndex) {
+        let i = towerIndex;
+        const repairRoad = this.memory['repairRoad'];
+        const towersData = this.memory['data'];
+        const towersId = Object.keys(towersData);
+        let deleteRepairTask = [];
+        for (let taskName in repairRoad) {
+            if (i >= towersId.length)
+                break;
+            const road = Game.getObjectById(repairRoad[taskName]);
+            let repairTime = ~~((road.hitsMax - road.hits) / 800);
+            while (i < towersId.length && repairTime) {
+                const tower = Game.getObjectById(towersId[i]);
+                tower.repair(road);
+                --repairTime;
+                ++i;
+            }
+            if (!repairTime) {
+                deleteRepairTask.push(taskName);
+            }
+        }
+        //delete road or container tasks
+        for (let j = 0; j < deleteRepairTask.length; ++j) {
+            delete this.memory['repairRoad'][deleteRepairTask[j]];
+        }
+        return i;
+    }
+    towerRepair() {
+        let i = 0;
+        i = this.towerRepairRampart(i);
+        i = this.towerRepairRoad(i);
+        //repair rampart task
+    }
+    towerTaskExecution() {
+        if (!this.towerAttack()) {
+            this.towerRepair();
+        }
+    }
+    run() {
+        if (Game.time % 7 == 0)
+            this.checkTowerEnergy();
+        //this.towerAssignRepairTask();
+        this.towerTaskExecution();
+    }
+}
+
 /** CONTROL ALL DEPARTMENT */
 class OperationReserch {
     constructor(mainRoom) {
@@ -4676,12 +5020,28 @@ class OperationReserch {
                     }
                 }
                 /*
-                Fase 6:
-                send build task, if complete jump to fase 5
+                Fase 7:
+                send build task, search rampart with hit 1 and send tower repair task
+                and jump to fase 6
                 */
                 else if (fase == 7) {
                     this.sendConstructionSideToBuildTask('rampart');
+                    const rampartList = Game.rooms[this.mainRoom].find(FIND_MY_STRUCTURES, {
+                        filter: function (object) {
+                            return object.structureType == 'rampart' && object.hits == 1;
+                        }
+                    });
+                    if (rampartList.length) {
+                        const repairTask = {
+                            'id': rampartList[0].id,
+                            'hits': 50000
+                        };
+                        Tower.sendRampartRepairTask(this.mainRoom, repairTask);
+                        this.memory['buildColony']['fase'] = 6;
+                    }
+                    this.memory['buildColony']['working'] = false;
                 }
+                //wait to levelUp
                 else ;
                 break;
         }
@@ -5023,7 +5383,8 @@ class Dpt_Logistic extends Department {
         return creepName$1;
     }
     checkPermanentCreepNum() {
-        if (Game.rooms[this.mainRoom].controller.level <= 7) {
+        const rcl = Game.rooms[this.mainRoom].controller.level;
+        if (rcl <= 7 && rcl > 1) {
             const creepsList = this.memory['ticksToSpawn'];
             const creepsName = Object.keys(creepsList);
             if (creepsName.length == 0) {
@@ -5047,156 +5408,6 @@ class Dpt_Logistic extends Department {
         if (Game.time % 97) {
             this.deleteDeadOneTimeCreeps();
         }
-    }
-}
-
-class Tower {
-    constructor(mainRoom) {
-        this.mainRoom = mainRoom;
-        this.memory = Memory['colony'][mainRoom]['tower'];
-    }
-    /*
-        id {
-            energyPetition: boolean,
-            task,
-        }
-
-    */
-    /*
-        Una torreta cada 7 tick revisa su energia, si es inferiol a un valor dado,
-        hace una peticion de transferencia a Dpt_logistic.
-        Mientras no le llegue toda la energia que ha pedido, no lanza ninguna
-        peticion de energia.
-        
-    */
-    checkTowerEnergy() {
-        const towerMem = this.memory['data'];
-        for (let id in towerMem) {
-            if (!towerMem[id]['energyPetition']) {
-                const tower = Game.getObjectById(id);
-                if (tower.store['energy'] <= 700) {
-                    //SEND TASKFER REQUEST
-                    const transferTask = {
-                        'type': 'TRANSFER',
-                        'target': {
-                            'id': id,
-                            'resourceType': 'energy',
-                            'amount': tower.store.getFreeCapacity(RESOURCE_ENERGY)
-                        }
-                    };
-                    sendLogisticTask(this.mainRoom, logisticTaskName(transferTask), transferTask);
-                    towerMem[id]['energyPetition'] = true;
-                }
-            }
-        }
-    }
-    towerAttack() {
-        const towersData = this.memory['data'];
-        const attackTarget = this.memory['attackTask'];
-        let missingCreepsId = [];
-        let attacked = false;
-        for (let taskName in attackTarget) {
-            const hostileCreep = Game.getObjectById(attackTarget[taskName]);
-            if (hostileCreep) {
-                for (let towerId in towersData) {
-                    const tower = Game.getObjectById(towerId);
-                    tower.attack(hostileCreep);
-                }
-                attacked = true;
-            }
-            else {
-                missingCreepsId.push(taskName);
-            }
-        }
-        for (let i = 0; i < missingCreepsId.length; ++i) {
-            delete this.memory['attackTask'][missingCreepsId[i]];
-        }
-        return attacked;
-    }
-    static sendRoadRepairTask(roomName, roadId) {
-        const taskname = towerTask();
-        Memory['colony'][roomName]['tower']['repairRoad'][taskname] = roadId;
-    }
-    static cleanTowerEnergyPetition(roomName, towerId) {
-        Memory['colony'][roomName]['tower']['data'][towerId]['energyPetition'] = false;
-    }
-    static sendRampartRepairTask(roomName, rampartId) {
-        const taskname = towerTask();
-        Memory['colony'][roomName]['tower']['repairRampart'][taskname] = rampartId;
-    }
-    static sendAttackTask(roomName, creepId) {
-        const taskName = towerTask();
-        Memory['colony'][roomName]['tower']['attackTask'][taskName] = creepId;
-    }
-    towerRepairRampart(towerIndex) {
-        let i = towerIndex;
-        const rampartList = this.memory['repairRampart'];
-        const towersData = this.memory['data'];
-        const towersId = Object.keys(towersData);
-        let deleteRepairTask = [];
-        for (let taskName in rampartList) {
-            if (i < towersId.length)
-                break;
-            const rampart = Game.getObjectById(rampartList[taskName]);
-            const rampartNeedHits = 50000;
-            while (i < towersId.length && rampart.hits < rampartNeedHits) {
-                const tower = Game.getObjectById(towersId[i]);
-                tower.repair(rampart);
-                ++i;
-            }
-            if (rampart.hits > rampartNeedHits) {
-                deleteRepairTask.push(this.memory['repairRampart'][taskName]);
-            }
-        }
-        //delete road or container tasks
-        for (let j = 0; j < deleteRepairTask.length; ++j) {
-            delete rampartList[deleteRepairTask[j]];
-        }
-        return i;
-    }
-    towerRepairRoad(towerIndex) {
-        let i = towerIndex;
-        const repairRoad = this.memory['repairRoad'];
-        const towersData = this.memory['data'];
-        const towersId = Object.keys(towersData);
-        let deleteRepairTask = [];
-        for (let taskName in repairRoad) {
-            if (i >= towersId.length)
-                break;
-            const road = Game.getObjectById(repairRoad[taskName]);
-            let repairTime = ~~((road.hitsMax - road.hits) / 800);
-            while (i < towersId.length && repairTime) {
-                const tower = Game.getObjectById(towersId[i]);
-                tower.repair(road);
-                --repairTime;
-                ++i;
-            }
-            if (!repairTime) {
-                deleteRepairTask.push(taskName);
-            }
-        }
-        //delete road or container tasks
-        for (let j = 0; j < deleteRepairTask.length; ++j) {
-            delete this.memory['repairRoad'][deleteRepairTask[j]];
-        }
-        return i;
-    }
-    towerRepair() {
-        let i = 0;
-        i = this.towerRepairRampart(i);
-        i = this.towerRepairRoad(i);
-        //repair rampart task
-    }
-    towerTaskExecution() {
-        if (!this.towerAttack()) {
-            this.towerRepair();
-        }
-    }
-    run() {
-        if (Game.time % 7 == 0)
-            this.checkTowerEnergy();
-        //this.towerAssignRepairTask();
-        this.towerTaskExecution();
     }
 }
 
@@ -5661,26 +5872,6 @@ const MemHack = {
 };
 
 MemHack.register();
-
-/**
- * 把 obj2 的原型合并到 obj1 的原型上
- * 如果原型的键以 Getter 结尾，则将会把其挂载为 getter 属性
- * @param obj1 要挂载到的对象
- * @param obj2 要进行挂载的对象
- */
-const assignPrototype = function (obj1, obj2) {
-    Object.getOwnPropertyNames(obj2.prototype).forEach(key => {
-        if (key.includes('Getter')) {
-            Object.defineProperty(obj1.prototype, key.split('Getter')[0], {
-                get: obj2.prototype[key],
-                enumerable: false,
-                configurable: true
-            });
-        }
-        else
-            obj1.prototype[key] = obj2.prototype[key];
-    });
-};
 
 function saveStructureID(roomName, structureType, index, id) {
     Memory['colony'][roomName]['roomPlanning']['model'][structureType][index]['id'] = id;

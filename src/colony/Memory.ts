@@ -74,12 +74,24 @@ export class Mem {
         this.initializeDptRepair();
     }
 
+    
+
+    private assignLinkToRampart() {
+        const colonyMem = Memory['colony'][this.mainRoom];
+
+        const rampartList = colonyMem['roomPlanning']['temp']['rampart'];
+
+    }
+
     private initializeDptRepair() {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_repair'] = {};
-        
+        colonyMem['dpt_repair']['actualHits'] = 0;
+        colonyMem['dpt_repair']['task'] = {};
+        colonyMem['dpt_repair']['rampartData'] = {};
+        colonyMem['dpt_repair']['linksPos'] = {};
         colonyMem['dpt_repair']['ticksToSpawn'] = {};
-
+        this.assignLinkToRampart();
     }
 
     private initializeTowersMem() {

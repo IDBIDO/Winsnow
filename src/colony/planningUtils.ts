@@ -8,3 +8,7 @@ export function saveStructureID(roomName:string, structureType: string, index: n
 export function getContainerIndex(roomName: string, structureFunction: ContainerFunction):number {
     return Memory['colony'][roomName]['roomPlanning']['containerReference'][structureFunction];
 }
+
+export function getRangePoints(pos: [number, number], range: number) {
+    
+}

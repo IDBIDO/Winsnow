@@ -253,7 +253,8 @@ export default class Dpt_Logistic extends Department {
     }
 
     private checkPermanentCreepNum() {
-        if (Game.rooms[this.mainRoom].controller.level <= 7) {
+        const rcl = Game.rooms[this.mainRoom].controller.level;
+        if (rcl <= 7 && rcl > 1) {
             const creepsList = this.memory['ticksToSpawn'];
             const creepsName = Object.keys(creepsList);
             if (creepsName.length == 0) {

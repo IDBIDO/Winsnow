@@ -26,7 +26,7 @@ module.exports.loop = function() {
     const creep = Memory['creeps'];
     for (let creepName in creep)  {
       if (Game.creeps[creepName]) {
-        //.creeps[creepName]['work']();
+        //Game.creeps[creepName]['work']();
         
 
       }

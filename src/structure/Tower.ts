@@ -94,9 +94,9 @@ export class Tower {
 
     }
 
-    static sendRampartRepairTask(roomName: string, rampartId: string) {
+    static sendRampartRepairTask(roomName: string, rampartTask: towerRepairTask) {
         const taskname = towerTask();
-        Memory['colony'][roomName]['tower']['repairRampart'][taskname] = rampartId;
+        Memory['colony'][roomName]['tower']['repairRampart'][taskname] = rampartTask;
 
     }    
 

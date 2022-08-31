@@ -1,6 +1,7 @@
 import * as planning from "./RoomPlanning"
 import * as utils from "./planningUtils"
 import * as acces from "./planningAcces"
+import { connectedComponents } from "@/utils";
 
 export class TranslatePlanning {
     mainRoom: string;
@@ -35,10 +36,7 @@ export class TranslatePlanning {
             Memory['colony'][this.mainRoom]['roomPlanning'] = {};
             //save model
             this.generateModel(roomStructsData['structMap']);
-            this.containerReference(roomStructsData['structMap']['container']);
-            this.linkReference(roomStructsData['structMap']['link']);
-            this.roadReference(roomStructsData['structMap']['road']);
-            this.labReference(roomStructsData['structMap']['lab']);
+  
             this.generateTemporal();
             /*
                 {
@@ -52,6 +50,11 @@ export class TranslatePlanning {
                 }
             */
             this.constructionSideRefAndPos();
+            this.inRampartPos();
+            this.containerReference(roomStructsData['structMap']['container']);
+            this.linkReference(roomStructsData['structMap']['link']);
+            this.roadReference(roomStructsData['structMap']['road']);
+            this.labReference(roomStructsData['structMap']['lab']);
 
             return true;
         }
@@ -110,6 +113,131 @@ export class TranslatePlanning {
             'spawn0ToMineral': spawn0ToMineral
         }
 
+    }
+
+    private roomWall(): boolean[][] {
+        const rampartList = Memory['colony'][this.mainRoom]['roomPlanning']['temp']['rampart'];
+        const matrix = new Array(50).fill(true).map(() => new Array(50).fill(true));
+        const terrain = new Room.Terrain(this.mainRoom);
+        for (let i = 0; i < 50; ++i) {
+            for (let j = 0; j < 50; ++j) {
+                if (terrain.get(i, j) == TERRAIN_MASK_WALL || utils.isRampartPos(this.mainRoom,[i, j])) {
+                    matrix[i][j] = false;
+                }
+            }
+        }
+        return matrix;
+    }
+
+    private nearConectedPos(pos: [number, number]): [number, number][] {
+        const terrain = new Room.Terrain(this.mainRoom);
+        const rampartList = Memory['colony'][this.mainRoom]['roomPlanning']['temp']['rampart'];
+
+        const candidatePos = utils.nearPosition(pos);
+        
+        let r: [number, number][] = [];
+        for (let i = 0; i < candidatePos.length; ++i) {
+
+            if (terrain.get(candidatePos[i][0], candidatePos[i][1]) != TERRAIN_MASK_WALL && !utils.isRampartPos(this.mainRoom, candidatePos[i])) {
+                r.push([candidatePos[i][0], candidatePos[i][1]])
+            }
+        }
+
+        return r;
+    }
+
+    private roomWallToAdj(roomCanPass: boolean[][]): number[][] {
+        let adjList: number[][]= [];
+        let cont = 0;
+        for (let i = 0; i < roomCanPass.length; ++i) {
+            for (let j = 0; j < roomCanPass[i].length; ++j) {
+                const node = this.translatePosToNode([i, j]);
+                //console.log(node);
+                
+                if (!roomCanPass[i][j]) {
+                    adjList[node]=[];
+                    ++cont;
+                } 
+                else {
+                    const nearPos = this.nearConectedPos([i, j]);
+                    let actualNode: number[] = [];
+                    for (let i = 0; i < nearPos.length; ++i) {
+                       actualNode.push( this.translatePosToNode(nearPos[i]) )
+                    }
+                    adjList[node] = actualNode;
+
+                }
+            }
+        }
+        console.log('walls');
+        
+        console.log(cont);
+        
+        
+       /*
+        for (let i = 0; i < roomCanPass.length; ++i) {
+            for (let j = 0; j < roomCanPass[i].length; ++j) {
+                const node = this.translatePosToNode([j, i]);
+                //console.log(node);
+                if (!roomCanPass[i][j]) adjList.push([]);
+                else {
+                    const nearPos = this.nearConectedPos([j, i]);
+                    let actualNode: number[] = [];
+                    for (let i = 0; i < nearPos.length; ++i) {
+                        actualNode.push( this.translatePosToNode(nearPos[i]) )
+                    }
+                    adjList.push(actualNode);
+                }
+
+            }
+        }
+        */
+        return adjList;
+    }
+
+    private translatePosToNode(pos: [number, number]): number {
+        return pos[0]*50 + pos[1];
+    }
+
+    private translateNodeToPos(node: number): [number, number] {
+        return [Math.floor(node/50), node%50]
+    }
+
+    private inRampartPos() {
+        const rampartList = Memory['colony'][this.mainRoom]['roomPlanning']['temp']['rampart'];
+        const spawn0Pos = Memory['colony'][this.mainRoom]['roomPlanning']['temp']['spawn'][0];
+
+        //const matrix = new Array(50).fill(false).map(() => new Array(50).fill(false));
+
+        //wall pos mask false
+        const roomWall = this.roomWall();
+        let cont = 0;
+        
+        for (let i = 0; i < roomWall.length; ++i) {
+            for (let j = 0; j < roomWall.length; ++j) {
+                if (!roomWall[i][j]) ++cont;
+            }
+        }
+
+        console.log(cont);
+        
+
+
+        const adjacentList = this.roomWallToAdj(roomWall);
+
+        
+        const cc = connectedComponents(adjacentList)
+        
+        //console.log(adjacentList[700]);
+        
+        
+        console.log(cc);
+    
+        console.log('length');
+        console.log(cc.length);
+        
+
+        
     }
 
     private linkReference(linkList: []){
@@ -252,10 +380,10 @@ export class TranslatePlanning {
         }
         array.sort(function (a, b) {
 
-            if (a.distance > b.distance) {  //si a es mayor, retornar 1
+            if (a.distance < b.distance) {  //si a es mayor, retornar 1
             return 1;
             }
-            if (a.distance < b.distance) {  //si a es memor, retornar -1
+            if (a.distance > b.distance) {  //si a es memor, retornar -1
             return -1;
             }
             // a must be equal to b

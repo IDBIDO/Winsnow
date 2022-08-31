@@ -7,6 +7,7 @@ import Dpt_Harvest from "@/department/dpt_harvest/Dpt_Harvest";
 import { distanceTwoPoints, nearPoint } from "@/roomPlanning/planningUtils";
 import * as SuperMove from "../SuperMove"
 import { Mem } from "@/colony/Memory";
+import { Tower } from "@/structure/Tower";
 
 /** CONTROL ALL DEPARTMENT */
 export class OperationReserch {
@@ -485,16 +486,31 @@ export class OperationReserch {
                 }
 
                 /*
-                Fase 6: 
-                send build task, if complete jump to fase 5
+                Fase 7: 
+                send build task, search rampart with hit 1 and send tower repair task
+                and jump to fase 6
                 */
                 else if (fase == 7) {
                     this.sendConstructionSideToBuildTask('rampart');
+                    const rampartList = Game.rooms[this.mainRoom].find(FIND_MY_STRUCTURES, {
+                        filter: function(object) {
+                            return object.structureType == 'rampart' && object.hits == 1;
+                        }
+                    })
+                    if (rampartList.length) {
+                        const repairTask: towerRepairTask = {
+                            'id': rampartList[0].id,
+                            'hits': 50000
+                        }
+                        Tower.sendRampartRepairTask(this.mainRoom, repairTask);
+                        this.memory['buildColony']['fase'] = 6;
+                    }
+                    this.memory['buildColony']['working'] = false;
 
                 }
-
+                //wait to levelUp
                 else if (fase == 8) {
-
+                    
                 }
 
                 break;

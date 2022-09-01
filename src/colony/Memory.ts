@@ -1,4 +1,6 @@
+import { getRangePoints, isRampartProtectPos, translateNodeToPos, translatePosToNode } from "@/roomPlanning/planningUtils";
 import { TranslatePlanning } from "@/roomPlanning/TranslatePlanning";
+import { difference, intersection } from "@/utils";
 
 
 
@@ -74,13 +76,112 @@ export class Mem {
         this.initializeDptRepair();
     }
 
-    
-
-    private assignLinkToRampart() {
+    private compuLinkPosCanditate(candidateLinkPos: {}) {
         const colonyMem = Memory['colony'][this.mainRoom];
+        const rampartList = colonyMem['roomPlanning']['temp']['rampart'];
+        //let candidateLinkPos = {};
+        for (let i = 0; i < rampartList.length; ++i) {
+            const inRange2Pos = getRangePoints(rampartList[i], 2);
+            for (let rangePos = 0; i < inRange2Pos.length; ++i) {
+                if (isRampartProtectPos(this.mainRoom, inRange2Pos[rangePos])) {
+                    //translate to pos to node
+                    const node = translatePosToNode(inRange2Pos[rangePos]);
+                    candidateLinkPos[node] = new Set();
+                }
+            }
+        }
+    }
 
+    private compuRampartRangeLessEqual4(candidateLinkPos) {
+        const colonyMem = Memory['colony'][this.mainRoom];
         const rampartList = colonyMem['roomPlanning']['temp']['rampart'];
 
+        for (let nodeName in candidateLinkPos) {
+            const nodePos = translateNodeToPos(parseInt(nodeName));
+            const nodeRoomPos = new RoomPosition(nodePos[0], nodePos[1], this.mainRoom);
+            for (let i = 0; i< rampartList.length; ++i) {
+                if (nodeRoomPos.getRangeTo(rampartList[i][0], rampartList[i][1]) <= 4) {
+                    candidateLinkPos[nodeName].add(i);
+                }
+            }
+        }
+    }
+
+    private compuLinkDataAndDeleteCandidate(linkPosData: {}, candidateLinkPos:{}) {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        const rampartList = colonyMem['roomPlanning']['temp']['rampart'];
+        //const inRampartPos = colonyMem['roomPlanning']['inRampartPos'];
+        const keys = Object.keys(candidateLinkPos);
+        let maxNode = keys[0];
+        //find max number rampart node
+        for (let i in candidateLinkPos) {
+            if (candidateLinkPos[i].size > candidateLinkPos[maxNode].size) {
+                maxNode = i;
+            }
+        }
+
+        //add maxNode to linkPosData
+        linkPosData[maxNode] = candidateLinkPos[maxNode];
+
+        //delete assigned rampart
+        for (let i in candidateLinkPos) {
+            candidateLinkPos[i] = difference(candidateLinkPos[i], linkPosData[maxNode]);
+        }
+    }
+
+    private allRampartAssigned(candidateLinkPos: {}): boolean {
+        let allAssigned = false;
+        for (let i in candidateLinkPos) {
+            if (candidateLinkPos[i].size) allAssigned = true;
+        }
+        return allAssigned;
+    }
+
+    private assignLinkToRampart() {
+
+        const colonyMem = Memory['colony'][this.mainRoom];
+        const rampartList = colonyMem['roomPlanning']['temp']['rampart'];
+
+        const inRampartPos = colonyMem['roomPlanning']['inRampartPos'];
+        
+        let candidateLinkPos = {};
+        //1. calcular candidatos a ser posicion de link
+            /*  candirateLinkPos = {
+                    node : {set of rampart reference}
+                }
+            */
+        this.compuLinkPosCanditate(candidateLinkPos);
+
+        // 2. calcular los rampart a posicion <= 4 a cada posicion candidato
+        this.compuRampartRangeLessEqual4(candidateLinkPos);
+        
+        // 3. coger el nodo con mas rampart
+        let linkNodeData ={};
+        let allAssigned = false;
+        while( !allAssigned ) {
+            this.compuLinkDataAndDeleteCandidate(linkNodeData, candidateLinkPos);
+            allAssigned = this.allRampartAssigned(candidateLinkPos);
+        }
+
+        /*
+        const keys = Object.keys(candidateLinkPos);
+        let linkNode = [];
+
+            //find max number rampart position
+        let maxNode = candidateLinkPos[keys[0]];
+        for (let nodeName in candidateLinkPos) {
+            if (candidateLinkPos[nodeName].length > candidateLinkPos[maxNode].length) {
+                maxNode = nodeName;
+            }
+
+        }
+            //push to linkNode
+        const linkPosData = {
+            'pos': translateNodeToPos( parseInt(maxNode) ),
+            'ramparts': candidateLinkPos[maxNode]
+        }
+        linkNode.push(linkPosData);
+        */
     }
 
     private initializeDptRepair() {
@@ -89,7 +190,7 @@ export class Mem {
         colonyMem['dpt_repair']['actualHits'] = 0;
         colonyMem['dpt_repair']['task'] = {};
         colonyMem['dpt_repair']['rampartData'] = {};
-        colonyMem['dpt_repair']['linksPos'] = {};
+        colonyMem['dpt_repair']['linksPos'] = [];
         colonyMem['dpt_repair']['ticksToSpawn'] = {};
         this.assignLinkToRampart();
     }

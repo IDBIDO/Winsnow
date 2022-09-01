@@ -51,4 +51,42 @@ export function connectedComponents(adj) {
   return components
 }
 
- 
+export function binarySearch (arr, x, start, end) {
+      
+  // Base Condition
+  if (start > end) return false;
+
+  // Find the middle index
+  let mid=Math.floor((start + end)/2);
+
+  // Compare mid with given key x
+  if (arr[mid]===x) return true;
+       
+  // If element at mid is greater than x,
+  // search in the left half of mid
+  if(arr[mid] > x)
+      return binarySearch(arr, x, start, mid-1);
+  else
+
+      // If element at mid is smaller than x,
+      // search in the right half of mid
+      return binarySearch(arr, x, mid+1, end);
+}
+
+export function intersection(setA, setB) {
+  let _intersection = new Set();
+  for (let elem of setB) {
+      if (setA.has(elem)) {
+          _intersection.add(elem);
+      }
+  }
+  return _intersection;
+}
+
+export function difference(setA, setB) {
+  let _difference = new Set(setA);
+  for (let elem of setB) {
+      _difference.delete(elem);
+  }
+  return _difference;
+}

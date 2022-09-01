@@ -148,30 +148,26 @@ export class TranslatePlanning {
 
     private roomWallToAdj(roomCanPass: boolean[][]): number[][] {
         let adjList: number[][]= [];
-        let cont = 0;
         for (let i = 0; i < roomCanPass.length; ++i) {
             for (let j = 0; j < roomCanPass[i].length; ++j) {
-                const node = this.translatePosToNode([i, j]);
+                const node = utils.translatePosToNode([i, j]);
                 //console.log(node);
                 
                 if (!roomCanPass[i][j]) {
                     adjList[node]=[];
-                    ++cont;
                 } 
                 else {
                     const nearPos = this.nearConectedPos([i, j]);
                     let actualNode: number[] = [];
                     for (let i = 0; i < nearPos.length; ++i) {
-                       actualNode.push( this.translatePosToNode(nearPos[i]) )
+                       actualNode.push( utils.translatePosToNode(nearPos[i]) )
                     }
                     adjList[node] = actualNode;
 
                 }
             }
         }
-        console.log('walls');
-        
-        console.log(cont);
+
         
         
        /*
@@ -203,9 +199,19 @@ export class TranslatePlanning {
         return [Math.floor(node/50), node%50]
     }
 
+    private searchCC(cc: number[][], obj: number) {
+        for (let i = 0; i< cc.length; ++i) {
+            
+            for (let j = 0; j < cc[i].length; ++j) {
+                if (cc[i][j] == obj) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
     private inRampartPos() {
-        const rampartList = Memory['colony'][this.mainRoom]['roomPlanning']['temp']['rampart'];
-        const spawn0Pos = Memory['colony'][this.mainRoom]['roomPlanning']['temp']['spawn'][0];
 
         //const matrix = new Array(50).fill(false).map(() => new Array(50).fill(false));
 
@@ -218,25 +224,25 @@ export class TranslatePlanning {
                 if (!roomWall[i][j]) ++cont;
             }
         }
-
-        console.log(cont);
         
-
-
         const adjacentList = this.roomWallToAdj(roomWall);
-
-        
         const cc = connectedComponents(adjacentList)
         
-        //console.log(adjacentList[700]);
+        const spawn0Pos = Memory['colony'][this.mainRoom]['roomPlanning']['model']['spawn'][0]['pos'];
+        const spawn0Node = utils.translatePosToNode(spawn0Pos);
+        const indexProtectedComponent = this.searchCC(cc, spawn0Node);
         
-        
-        console.log(cc);
-    
-        console.log('length');
-        console.log(cc.length);
-        
+        console.log(cc[indexProtectedComponent]);
+        let sortedCC = cc[indexProtectedComponent];
+        sortedCC.sort();
+        console.log(sortedCC);
 
+        let protectedPos: [number, number][] = [];
+        for (let i = 0; i < sortedCC.length; ++i) {
+            protectedPos.push(utils.translateNodeToPos(sortedCC[i]));
+        }
+        console.log(protectedPos);
+        Memory['colony'][this.mainRoom]['roomPlanning']['inRampartPos'] = sortedCC;
         
     }
 

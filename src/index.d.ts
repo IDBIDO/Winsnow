@@ -292,3 +292,8 @@ interface towerHeal {
 
 type TransferTarget = StructureTower | Creep | StructureContainer | StructureLab | StructureStorage
 type WithDrawTarget = StructureContainer | StructureStorage | StructureLab | Tombstone | Ruin
+
+
+
+/********* Dpt_repair ************/
+//type RepairLinkData = 

@@ -1,3 +1,4 @@
+import { binarySearch } from "@/utils";
 import { max, negate, xor } from "lodash";
 
 
@@ -9,6 +10,14 @@ export function equalPoint(pointA: [number, number], pointB: [number, number]): 
 export function maxTwoNumber(x:number, y: number) {
     if (x >= y) return x;
     return y;
+}
+
+export function translatePosToNode(pos: [number, number]): number {
+    return pos[0]*50 + pos[1];
+}
+
+export function translateNodeToPos(node: number): [number, number] {
+    return [Math.floor(node/50), node%50]
 }
 
 export function distanceTwoPoints(pointA: [x: number, y:number], pointB: [x: number, y:number]): number {
@@ -70,14 +79,6 @@ export function transformToPointList(model:{}) {
     }
 
     return toPoint;
-}
-
-export function connectedComponent(adjList: number[][]): number[][] {
-
-    var cc = require("connected-components");
-
-
-    return (cc(adjList));
 }
 
 
@@ -268,6 +269,15 @@ export function isRampartPos(roomName: string, pos: [number, number]): boolean {
     }
     return false;
 
+}
+
+export function isRampartProtectPos(roomName: string, pos: [number, number]): boolean {
+    const protectedPosList: number[] = Memory['colony'][roomName]['roomPlanning']['inRampartPos'];
+    const posNode = translatePosToNode(pos);
+    if (binarySearch(protectedPosList, posNode, 0, protectedPosList.length - 1 )) {
+        return true;
+    }
+    return false;
 }
 
 export function getRangePoints(point: [number, number], range: number):[number, number][] {

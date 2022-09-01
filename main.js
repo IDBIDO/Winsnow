@@ -1,6 +1,247 @@
 'use strict';
 
 /**
+ * 把 obj2 的原型合并到 obj1 的原型上
+ * 如果原型的键以 Getter 结尾，则将会把其挂载为 getter 属性
+ * @param obj1 要挂载到的对象
+ * @param obj2 要进行挂载的对象
+ */
+const assignPrototype = function (obj1, obj2) {
+    Object.getOwnPropertyNames(obj2.prototype).forEach(key => {
+        if (key.includes('Getter')) {
+            Object.defineProperty(obj1.prototype, key.split('Getter')[0], {
+                get: obj2.prototype[key],
+                enumerable: false,
+                configurable: true
+            });
+        }
+        else
+            obj1.prototype[key] = obj2.prototype[key];
+    });
+};
+function connectedComponents(adj) {
+    var numVertices = adj.length;
+    var visited = new Array(numVertices);
+    for (var i = 0; i < numVertices; ++i) {
+        visited[i] = false;
+    }
+    var components = [];
+    for (var i = 0; i < numVertices; ++i) {
+        if (visited[i]) {
+            continue;
+        }
+        var toVisit = [i];
+        var cc = [i];
+        visited[i] = true;
+        while (toVisit.length > 0) {
+            var v = toVisit.pop();
+            var nbhd = adj[v];
+            for (var j = 0; j < nbhd.length; ++j) {
+                var u = nbhd[j];
+                if (!visited[u]) {
+                    visited[u] = true;
+                    toVisit.push(u);
+                    cc.push(u);
+                }
+            }
+        }
+        components.push(cc);
+    }
+    return components;
+}
+
+function maxTwoNumber(x, y) {
+    if (x >= y)
+        return x;
+    return y;
+}
+function translatePosToNode(pos) {
+    return pos[0] * 50 + pos[1];
+}
+function translateNodeToPos(node) {
+    return [Math.floor(node / 50), node % 50];
+}
+function distanceTwoPoints(pointA, pointB) {
+    //return Math.sqrt( (pointA[0]-pointB[0]) **2 + (pointA[1]-pointB[1]) **2 )
+    let x = Math.sqrt((pointA[0] - pointB[0]) ** 2);
+    //console.log(x);
+    let y = Math.sqrt((pointA[1] - pointB[1]) ** 2);
+    //console.log(y);
+    return maxTwoNumber(x, y);
+}
+/*
+    punto de distancia minima del listPoint un punto 'point' dado
+*/
+function minDistance(point, listPoint) {
+    listPoint[0];
+    let disMin = distanceTwoPoints(point, listPoint[0]);
+    let index = 0;
+    for (let i = 1; i < listPoint.length; ++i) {
+        let aux = distanceTwoPoints(point, listPoint[i]);
+        if (aux < disMin) {
+            disMin = aux;
+            listPoint[i];
+            index = i;
+        }
+    }
+    //listPoint.splice(index, 1);
+    return index;
+    //return [pmim[0], pmim[1]];
+}
+/*
+    puntos de distancia 1 de un punto dado a una lista de puntos
+*/
+function nearPoint(point, listPoint) {
+    let near = [];
+    for (let i = 0; i < listPoint.length; ++i) {
+        if (distanceTwoPoints(point, listPoint[i]) == 1) {
+            near.push(i);
+        }
+    }
+    return near;
+}
+function nearPointOne(point, listPoint) {
+    let near;
+    for (let i = 0; i < listPoint.length; ++i) {
+        if (distanceTwoPoints(point, listPoint[i]) == 1) {
+            near = i;
+            break;
+        }
+    }
+    return near;
+}
+function transformRoadToAdjacentList(roadList) {
+    let adjacentList = [];
+    for (let i = 0; i < roadList.length; ++i) {
+        adjacentList.push(nearPoint(roadList[i], roadList));
+        //console.log(i , nearPoint(roadList[i], roadList));
+    }
+    //console.log(adjacentList);
+    return adjacentList;
+}
+function reconstructPath(beginPoint, endPoint, prev) {
+    let path = [];
+    for (let at = endPoint; at != -1; at = prev[at]) {
+        path.push(at);
+    }
+    path.reverse();
+    if (path[0] == beginPoint) {
+        return path;
+    }
+    return [];
+}
+function solveBFS(roadList, beginPoint) {
+    //initialize visited array
+    let visited = Array();
+    for (let i = 0; i < roadList.length; ++i) {
+        visited.push(false);
+    }
+    // Use an array as our queue representation:
+    let q = new Array();
+    visited[beginPoint] = true;
+    q.push(beginPoint);
+    //save path
+    let path = new Array();
+    path.push(beginPoint);
+    let prev = new Array();
+    for (let i = 0; i < roadList.length; ++i) {
+        prev.push(-1);
+    }
+    while (q.length > 0) {
+        const v = q.shift();
+        for (let adjV of roadList[v]) {
+            if (!visited[adjV]) {
+                visited[adjV] = true;
+                q.push(adjV);
+                prev[adjV] = v;
+            }
+        }
+    }
+    return prev;
+}
+function roadPath(roadList, beginPoint, endPoint) {
+    let prev = solveBFS(roadList, beginPoint);
+    return reconstructPath(beginPoint, endPoint, prev);
+}
+//get object's ID by roomName, position and structure type
+function getId(roomName, pos, structureType) {
+    console.log(structureType);
+    const position = new RoomPosition(pos[0], pos[1], roomName);
+    const object = position.lookFor(structureType);
+    return object[0].id;
+}
+/*
+    only valid if distance between two points are interger
+*/
+function pointsBetweenTwo(point1, point2) {
+    let x = point1[0] - point2[0];
+    let y = point1[1] - point2[1];
+    const max = maxTwoNumber(Math.abs(x), Math.abs(y));
+    const incX = -(x / max);
+    const incY = -(y / max);
+    let r = Array(max);
+    let actualX = point1[0];
+    let actualY = point1[1];
+    for (let i = 0; i < max; ++i) {
+        actualX += incX;
+        actualY += incY;
+        r[i] = [actualX, actualY];
+    }
+    r.pop();
+    return r;
+}
+function inMapRange(pos) {
+    if (pos[0] >= 0 && pos[0] < 50) {
+        if (pos[1] >= 0 && pos[1] < 50) {
+            return true;
+        }
+    }
+    return false;
+}
+/*
+    negative points will ignored
+*/
+function nearPosition(pos) {
+    let nearPoints = [
+        [pos[0] - 1, pos[1] + 1],
+        [pos[0] - 1, pos[1]],
+        [pos[0] - 1, pos[1] - 1],
+        [pos[0], pos[1] + 1],
+        [pos[0], pos[1] - 1],
+        [pos[0] + 1, pos[1] + 1],
+        [pos[0] + 1, pos[1]],
+        [pos[0] + 1, pos[1] - 1],
+    ];
+    let validNearPoints = [];
+    for (let i = 0; i < nearPoints.length; ++i) {
+        if (inMapRange(nearPoints[i])) {
+            validNearPoints.push(nearPoints[i]);
+        }
+    }
+    return validNearPoints;
+}
+function isRampartPos(roomName, pos) {
+    const rampartDataList = Memory['colony'][roomName]['roomPlanning']['model']['rampart'];
+    for (let i = 0; i < rampartDataList.length; ++i) {
+        if (pos[0] == rampartDataList[i]['pos'][0] && pos[1] == rampartDataList[i]['pos'][1]) {
+            return true;
+        }
+    }
+    return false;
+}
+function getRangePoints(point, range) {
+    const angulo1 = [point[0] - range, point[1] + range];
+    const angulo2 = [point[0] + range, point[1] + range];
+    const angulo3 = [point[0] + range, point[1] - range];
+    const angulo4 = [point[0] - range, point[1] - range];
+    const r1 = [angulo1].concat(pointsBetweenTwo(angulo1, angulo2));
+    const r2 = r1.concat([angulo2].concat(pointsBetweenTwo(angulo2, angulo3)));
+    const r3 = r2.concat([angulo3].concat(pointsBetweenTwo(angulo3, angulo4)));
+    const r4 = r3.concat([angulo4].concat(pointsBetweenTwo(angulo4, angulo1)));
+    return r4;
+}
+
+/**
  * 63超级扣位置自动布局
  * 能覆盖95% 地地形布局的覆盖
  * 
@@ -1593,213 +1834,9 @@ module.exports = {
 }
 */
 
-function maxTwoNumber(x, y) {
-    if (x >= y)
-        return x;
-    return y;
-}
-function distanceTwoPoints(pointA, pointB) {
-    //return Math.sqrt( (pointA[0]-pointB[0]) **2 + (pointA[1]-pointB[1]) **2 )
-    let x = Math.sqrt((pointA[0] - pointB[0]) ** 2);
-    //console.log(x);
-    let y = Math.sqrt((pointA[1] - pointB[1]) ** 2);
-    //console.log(y);
-    return maxTwoNumber(x, y);
-}
-/*
-    punto de distancia minima del listPoint un punto 'point' dado
-*/
-function minDistance(point, listPoint) {
-    listPoint[0];
-    let disMin = distanceTwoPoints(point, listPoint[0]);
-    let index = 0;
-    for (let i = 1; i < listPoint.length; ++i) {
-        let aux = distanceTwoPoints(point, listPoint[i]);
-        if (aux < disMin) {
-            disMin = aux;
-            listPoint[i];
-            index = i;
-        }
-    }
-    //listPoint.splice(index, 1);
-    return index;
-    //return [pmim[0], pmim[1]];
-}
-/*
-    puntos de distancia 1 de un punto dado a una lista de puntos
-*/
-function nearPoint(point, listPoint) {
-    let near = [];
-    for (let i = 0; i < listPoint.length; ++i) {
-        if (distanceTwoPoints(point, listPoint[i]) == 1) {
-            near.push(i);
-        }
-    }
-    return near;
-}
-function nearPointOne(point, listPoint) {
-    let near;
-    for (let i = 0; i < listPoint.length; ++i) {
-        if (distanceTwoPoints(point, listPoint[i]) == 1) {
-            near = i;
-            break;
-        }
-    }
-    return near;
-}
-function transformRoadToAdjacentList(roadList) {
-    let adjacentList = [];
-    for (let i = 0; i < roadList.length; ++i) {
-        adjacentList.push(nearPoint(roadList[i], roadList));
-        //console.log(i , nearPoint(roadList[i], roadList));
-    }
-    //console.log(adjacentList);
-    return adjacentList;
-}
-function reconstructPath(beginPoint, endPoint, prev) {
-    let path = [];
-    for (let at = endPoint; at != -1; at = prev[at]) {
-        path.push(at);
-    }
-    path.reverse();
-    if (path[0] == beginPoint) {
-        return path;
-    }
-    return [];
-}
-function solveBFS(roadList, beginPoint) {
-    //initialize visited array
-    let visited = Array();
-    for (let i = 0; i < roadList.length; ++i) {
-        visited.push(false);
-    }
-    // Use an array as our queue representation:
-    let q = new Array();
-    visited[beginPoint] = true;
-    q.push(beginPoint);
-    //save path
-    let path = new Array();
-    path.push(beginPoint);
-    let prev = new Array();
-    for (let i = 0; i < roadList.length; ++i) {
-        prev.push(-1);
-    }
-    while (q.length > 0) {
-        const v = q.shift();
-        for (let adjV of roadList[v]) {
-            if (!visited[adjV]) {
-                visited[adjV] = true;
-                q.push(adjV);
-                prev[adjV] = v;
-            }
-        }
-    }
-    return prev;
-}
-function roadPath(roadList, beginPoint, endPoint) {
-    let prev = solveBFS(roadList, beginPoint);
-    return reconstructPath(beginPoint, endPoint, prev);
-}
-//get object's ID by roomName, position and structure type
-function getId(roomName, pos, structureType) {
-    console.log(structureType);
-    const position = new RoomPosition(pos[0], pos[1], roomName);
-    const object = position.lookFor(structureType);
-    return object[0].id;
-}
-function inMapRange(pos) {
-    if (pos[0] >= 0 && pos[0] < 50) {
-        if (pos[1] >= 0 && pos[1] < 50) {
-            return true;
-        }
-    }
-    return false;
-}
-/*
-    negative points will ignored
-*/
-function nearPosition(pos) {
-    let nearPoints = [
-        [pos[0] - 1, pos[1] + 1],
-        [pos[0] - 1, pos[1]],
-        [pos[0] - 1, pos[1] - 1],
-        [pos[0], pos[1] + 1],
-        [pos[0], pos[1] - 1],
-        [pos[0] + 1, pos[1] + 1],
-        [pos[0] + 1, pos[1]],
-        [pos[0] + 1, pos[1] - 1],
-    ];
-    let validNearPoints = [];
-    for (let i = 0; i < nearPoints.length; ++i) {
-        if (inMapRange(nearPoints[i])) {
-            validNearPoints.push(nearPoints[i]);
-        }
-    }
-    return validNearPoints;
-}
-function isRampartPos(roomName, pos) {
-    const rampartDataList = Memory['colony'][roomName]['roomPlanning']['model']['rampart'];
-    for (let i = 0; i < rampartDataList.length; ++i) {
-        if (pos[0] == rampartDataList[i]['pos'][0] && pos[1] == rampartDataList[i]['pos'][1]) {
-            return true;
-        }
-    }
-    return false;
-}
-
 function getPlanningStructurePos(roomName, structureType, index) {
     const pos = Memory['colony'][roomName]['roomPlanning']['model'][structureType][index]['pos'];
     return pos;
-}
-
-/**
- * 把 obj2 的原型合并到 obj1 的原型上
- * 如果原型的键以 Getter 结尾，则将会把其挂载为 getter 属性
- * @param obj1 要挂载到的对象
- * @param obj2 要进行挂载的对象
- */
-const assignPrototype = function (obj1, obj2) {
-    Object.getOwnPropertyNames(obj2.prototype).forEach(key => {
-        if (key.includes('Getter')) {
-            Object.defineProperty(obj1.prototype, key.split('Getter')[0], {
-                get: obj2.prototype[key],
-                enumerable: false,
-                configurable: true
-            });
-        }
-        else
-            obj1.prototype[key] = obj2.prototype[key];
-    });
-};
-function connectedComponents(adj) {
-    var numVertices = adj.length;
-    var visited = new Array(numVertices);
-    for (var i = 0; i < numVertices; ++i) {
-        visited[i] = false;
-    }
-    var components = [];
-    for (var i = 0; i < numVertices; ++i) {
-        if (visited[i]) {
-            continue;
-        }
-        var toVisit = [i];
-        var cc = [i];
-        visited[i] = true;
-        while (toVisit.length > 0) {
-            var v = toVisit.pop();
-            var nbhd = adj[v];
-            for (var j = 0; j < nbhd.length; ++j) {
-                var u = nbhd[j];
-                if (!visited[u]) {
-                    visited[u] = true;
-                    toVisit.push(u);
-                    cc.push(u);
-                }
-            }
-        }
-        components.push(cc);
-    }
-    return components;
 }
 
 class TranslatePlanning {
@@ -1916,27 +1953,23 @@ class TranslatePlanning {
     }
     roomWallToAdj(roomCanPass) {
         let adjList = [];
-        let cont = 0;
         for (let i = 0; i < roomCanPass.length; ++i) {
             for (let j = 0; j < roomCanPass[i].length; ++j) {
-                const node = this.translatePosToNode([i, j]);
+                const node = translatePosToNode([i, j]);
                 //console.log(node);
                 if (!roomCanPass[i][j]) {
                     adjList[node] = [];
-                    ++cont;
                 }
                 else {
                     const nearPos = this.nearConectedPos([i, j]);
                     let actualNode = [];
                     for (let i = 0; i < nearPos.length; ++i) {
-                        actualNode.push(this.translatePosToNode(nearPos[i]));
+                        actualNode.push(translatePosToNode(nearPos[i]));
                     }
                     adjList[node] = actualNode;
                 }
             }
         }
-        console.log('walls');
-        console.log(cont);
         /*
          for (let i = 0; i < roomCanPass.length; ++i) {
              for (let j = 0; j < roomCanPass[i].length; ++j) {
@@ -1963,26 +1996,41 @@ class TranslatePlanning {
     translateNodeToPos(node) {
         return [Math.floor(node / 50), node % 50];
     }
+    searchCC(cc, obj) {
+        for (let i = 0; i < cc.length; ++i) {
+            for (let j = 0; j < cc[i].length; ++j) {
+                if (cc[i][j] == obj) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
     inRampartPos() {
-        Memory['colony'][this.mainRoom]['roomPlanning']['temp']['rampart'];
-        Memory['colony'][this.mainRoom]['roomPlanning']['temp']['spawn'][0];
         //const matrix = new Array(50).fill(false).map(() => new Array(50).fill(false));
         //wall pos mask false
         const roomWall = this.roomWall();
-        let cont = 0;
         for (let i = 0; i < roomWall.length; ++i) {
             for (let j = 0; j < roomWall.length; ++j) {
                 if (!roomWall[i][j])
-                    ++cont;
+                    ;
             }
         }
-        console.log(cont);
         const adjacentList = this.roomWallToAdj(roomWall);
         const cc = connectedComponents(adjacentList);
-        //console.log(adjacentList[700]);
-        console.log(cc);
-        console.log('length');
-        console.log(cc.length);
+        const spawn0Pos = Memory['colony'][this.mainRoom]['roomPlanning']['model']['spawn'][0]['pos'];
+        const spawn0Node = translatePosToNode(spawn0Pos);
+        const indexProtectedComponent = this.searchCC(cc, spawn0Node);
+        console.log(cc[indexProtectedComponent]);
+        let sortedCC = cc[indexProtectedComponent];
+        sortedCC.sort();
+        console.log(sortedCC);
+        let protectedPos = [];
+        for (let i = 0; i < sortedCC.length; ++i) {
+            protectedPos.push(translateNodeToPos(sortedCC[i]));
+        }
+        console.log(protectedPos);
+        Memory['colony'][this.mainRoom]['roomPlanning']['inRampartPos'] = sortedCC;
     }
     linkReference(linkList) {
         const containerReference = Memory['colony'][this.mainRoom]['roomPlanning']['containerReference'];
@@ -2186,7 +2234,13 @@ class Mem {
     }
     assignLinkToRampart() {
         const colonyMem = Memory['colony'][this.mainRoom];
-        colonyMem['roomPlanning']['temp']['rampart'];
+        const rampartList = colonyMem['roomPlanning']['temp']['rampart'];
+        colonyMem['roomPlanning']['inRampartPos'];
+        for (let i = 0; i < rampartList.length; ++i) {
+            const inRange2Pos = getRangePoints(rampartList[i], 2);
+            for (let rangePos = 0; i < inRange2Pos.length; ++i) {
+            }
+        }
     }
     initializeDptRepair() {
         const colonyMem = Memory['colony'][this.mainRoom];

@@ -232,16 +232,16 @@ export class TranslatePlanning {
         const spawn0Node = utils.translatePosToNode(spawn0Pos);
         const indexProtectedComponent = this.searchCC(cc, spawn0Node);
         
-        console.log(cc[indexProtectedComponent]);
+        //console.log(cc[indexProtectedComponent]);
         let sortedCC = cc[indexProtectedComponent];
         sortedCC.sort();
-        console.log(sortedCC);
+        //console.log(sortedCC);
 
         let protectedPos: [number, number][] = [];
         for (let i = 0; i < sortedCC.length; ++i) {
             protectedPos.push(utils.translateNodeToPos(sortedCC[i]));
         }
-        console.log(protectedPos);
+       // console.log(protectedPos);
         Memory['colony'][this.mainRoom]['roomPlanning']['inRampartPos'] = sortedCC;
         
     }

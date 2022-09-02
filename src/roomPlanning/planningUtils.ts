@@ -183,7 +183,7 @@ export function roadPath(roadList: number[][], beginPoint: number, endPoint: num
 //get object's ID by roomName, position and structure type
 export function getId(roomName: string, pos: [number, number], structureType: string) {
 
-    console.log(structureType);
+    //console.log(structureType);
     
     const position = new RoomPosition(pos[0], pos[1], roomName);
     const object = position.lookFor(structureType as keyof AllLookAtTypes);

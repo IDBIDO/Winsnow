@@ -2331,33 +2331,21 @@ class Mem {
             }
         */
         this.compuLinkPosCanditate(candidateLinkPos);
+        const keys = Object.keys(candidateLinkPos);
+        console.log('positions:');
+        console.log(keys);
+        /*
+
         // 2. calcular los rampart a posicion <= 4 a cada posicion candidato
         this.compuRampartRangeLessEqual4(candidateLinkPos);
+        
         // 3. coger el nodo con mas rampart
-        let linkNodeData = {};
+        let linkNodeData ={};
         let allAssigned = false;
-        while (!allAssigned) {
+        while( !allAssigned ) {
             this.compuLinkDataAndDeleteCandidate(linkNodeData, candidateLinkPos);
             allAssigned = this.allRampartAssigned(candidateLinkPos);
         }
-        /*
-        const keys = Object.keys(candidateLinkPos);
-        let linkNode = [];
-
-            //find max number rampart position
-        let maxNode = candidateLinkPos[keys[0]];
-        for (let nodeName in candidateLinkPos) {
-            if (candidateLinkPos[nodeName].length > candidateLinkPos[maxNode].length) {
-                maxNode = nodeName;
-            }
-
-        }
-            //push to linkNode
-        const linkPosData = {
-            'pos': translateNodeToPos( parseInt(maxNode) ),
-            'ramparts': candidateLinkPos[maxNode]
-        }
-        linkNode.push(linkPosData);
         */
     }
     initializeDptRepair() {

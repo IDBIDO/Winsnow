@@ -32,6 +32,7 @@ module.exports.loop = function() {
       }
     }
     
+    
 //Memory['colony']['W1N7']['creepSpawning']['spawn'].push('Spawn1')
 //ColonyApi.createColony('W1N7')
 //ColonyApi.destroyAllBuilding('W1N7')

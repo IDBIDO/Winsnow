@@ -44,8 +44,10 @@ export const bodyPrototype = {
     worker: [WORK, CARRY, MOVE],
     builder: [WORK, CARRY, MOVE],
     transporter: [CARRY, MOVE],
+    repairer: [WORK, CARRY, MOVE],
     initializer: [WORK, CARRY, MOVE],
-    iniQueen: [CARRY, MOVE]
+    iniQueen: [CARRY, MOVE],
+    upgrader_base: [WORK, CARRY, MOVE]
 }
 
 
@@ -69,19 +71,39 @@ export const bodyComponentNum = {
     },
     builder: {
         1: [1, 3, 1],
-        2: [1, 3, 1],
-        3: [1, 3, 1],
-        4: [1, 3, 1],
+        2: [2, 3, 1],
+        3: [2, 3, 1],
+        4: [3, 4, 2],
         5: [2, 4, 2],
         6: [3, 5, 3],
         7: [5, 7, 5],
         8: [7, 9, 7]
 
     },
+    upgrader_base: {
+        1: [2, 1, 1],
+        2: [2, 1, 1],
+        3: [3, 1, 1],
+        4: [3, 1, 1],
+        5: [3, 1, 1],
+        6: [3, 1, 1],
+        7: [2, 1, 1],
+        8: [15, 5, 8]
+    },
+    repairer: {
+        3: [1, 3, 1],
+        4: [1, 3, 1],
+        5: [1, 3, 1],
+        6: [2, 6, 1]
+    },
 
     transporter: {
         1: [3, 3],
-        2: [3, 3]
+        2: [6, 3],
+        3: [6, 3],
+        4: [6, 3],
+        5: [6, 3],
+        6: [10, 5],
     },
 
     initializer: {
@@ -122,7 +144,7 @@ export const numConfigs = {
 
 
 export function workerSourceConfigUpdate(energyRCL: number, roomName: string): void {
-    console.log(energyRCL);
+    //console.log(energyRCL);
     
     if (energyRCL == 1) {
         const colonyMem = Memory['colony'][roomName];
@@ -138,7 +160,7 @@ export function workerSourceConfigUpdate(energyRCL: number, roomName: string): v
         const s1 = source1Pos.lookFor(LOOK_SOURCES);
         const s2 = source2Pos.lookFor(LOOK_SOURCES);
 
-        console.log(s1);
+        //console.log(s1);
         
         colonyMem['dpt_work']['creep'][namePrefix+'_dptWork_1']['setting']['source'] = s1[0].id;
 

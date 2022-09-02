@@ -1,4 +1,10 @@
 
+
+interface arrayPos {
+    ref: string,
+    pos: [number, number]
+    distance: number
+}
 /********************* ROLE DATA ****************/
 interface InitializerData {
     source: string;
@@ -41,6 +47,12 @@ interface BuildTask {
     roomName: string,
     modelReference: number
     
+}
+
+//////**************  upgrader ****/
+interface Upgrader_baseData {
+    source: string;
+    logisticCreepName: string
 }
 
 
@@ -113,11 +125,20 @@ interface TransferTask {
 
 interface WithdrawRequestData {
     id: string, 
-    resourceType: ResourceConstant
+    resourceType: ResourceConstant,
+    roomName: string, 
+    pos: [number, number],
+    
 }
 interface WithdrawRequest {
     type: 'WITHDRAW',
     source: WithdrawRequestData
+}
+
+interface WidrawTask {
+    type: 'WITHDRAW',
+    source: WithdrawRequestData,
+    target: string,
 }
 
 interface transferTaskOperation {
@@ -185,6 +206,8 @@ interface ICreepConfig {
     // creep 获取工作所需资源时执行的方法
     // 返回 true 则执行 target 阶段，返回其他将继续执行该方法
     */
+    prepare?: (creep: Creep) => boolean
+
     source?: (creep: Creep) => boolean;
     // creep 工作时执行的方法,
     // 返回 true 则执行 source 阶段，返回其他将继续执行该方法
@@ -199,13 +222,13 @@ type BaseRoleConstant =
     'colonizer' |
     //'collector' |
     //'miner' |
-    //'upgrader' |
+    'upgrader_base' |
     //'filler' |
     'builder' |
-    //'repairer' |
+    'repairer' |
     'initializer'|
     'iniQueen'
-    
+
 type AdvancedRoleConstant =
     'manager'|
     'transporter'
@@ -217,6 +240,13 @@ type CreepWork = {
 // 所有的 creep 角色
 type CreepRoleConstant = BaseRoleConstant | AdvancedRoleConstant 
 
+interface repairerData {
+    needBost: boolean,
+    labId: string,
+    source: string,
+    target: string
+
+}
 
 /******************* STRUCTURE FUNCTION ***********************/
 type ContainerFunction = 
@@ -232,5 +262,38 @@ type LinkFunction =
     'link_center'
 
 
-/************************ BUILD COLONY TASK TYPE ************************ */
+/************* STRUCTURE ******************/
+interface towerData {
+    energyPetition: boolean,
+    task: towerTask,
+    pos: [number, number]
+}
 
+type towerTask = towerRepairTask | towerRepairTask | towerHeal;
+
+interface towerRepairTask {
+    id: string, 
+    hits: number
+}
+
+interface towerAttack {
+    id: string, 
+
+}
+
+interface towerHeal {
+    id: string, 
+    hits: number
+}
+
+
+
+/*********************** */
+
+type TransferTarget = StructureTower | Creep | StructureContainer | StructureLab | StructureStorage
+type WithDrawTarget = StructureContainer | StructureStorage | StructureLab | Tombstone | Ruin
+
+
+
+/********* Dpt_repair ************/
+//type RepairLinkData = 

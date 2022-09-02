@@ -105,7 +105,8 @@ export default class Dpt_Harvest extends Department {
         const creepsSource2 = this.memory['source2']['creeps'];
 
         const harvesterNeeded = this.getHarvesterNeeded();
-
+        //console.log(harvesterNeeded);
+        
         let toDelete = creepsSource1.length - harvesterNeeded;
         while (toDelete) {
             const creepDeleted = creepsSource1[creepsSource1.length-1];
@@ -130,18 +131,57 @@ export default class Dpt_Harvest extends Department {
         for (let creepName in creepList) {
 
             if (creepList[creepName] && creepList[creepName] <= Game.time) {
-                CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName, 'harvester', null, null, null);
+                CreepSpawning.sendToSpawnInitializacion(this.mainRoom, creepName, 'harvester',  null,'dpt_harvest', null);
                 this.memory['ticksToSpawn'][creepName] = null;
             }
         }
     }
 
+    static cleanContainerWithdrawPetition(roomName: string, containerId: string) {
+        Memory['colony'][roomName]['dpt_harvest']['container'][containerId]['withdrawPetition'] = false;
+    }
+
+    private checkContainerEnergy() {
+        const containerList = this.memory['container'];
+        for (let id in containerList) {
+           
+            if (! containerList[id]['withdrawPetition']) {   //@ts-ignore
+                const container = Game.getObjectById(id as Id<StructureContainer>);   
+                const resourceList = Object.keys(container.store);
+                
+                let resourceIndex = 0;
+                while (resourceIndex < resourceList.length && !containerList[id]['withdrawPetition']) {
+                    if (container.store[resourceList[resourceIndex]] >= 900) {
+                        const withdrawRequest: WithdrawRequest = {
+                            'type': 'WITHDRAW',
+                            'source': {
+                                'id': id,     
+                                'resourceType': resourceList[resourceIndex] as ResourceConstant,
+                                'roomName': container.room.name,
+                                'pos': [container.pos.x, container.pos.y]
+                                
+                            }
+                        }
+                        sendLogisticTask(this.mainRoom, logisticTaskName(withdrawRequest), withdrawRequest);
+                        containerList[id]['withdrawPetition'] = true;
+                    }
+                    ++resourceIndex;
+                }
+                
+            }
+        }
+    }
+
     public run() {
-        if (Game.time % 13 == 0 && Memory['colony'][this.mainRoom]['state']['actualize']) {
+        if (Game.time % 151 == 0) {
             this.checkCreepNum();
         }
-        if (Game.time % 23 == 0) {
+        if (Game.time % 13 == 0) {
             this.recycleCreep();
+        }
+
+        if (Game.time % 7 == 0) {
+            this.checkContainerEnergy();
         }
 
     }

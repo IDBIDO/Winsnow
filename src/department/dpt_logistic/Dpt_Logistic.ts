@@ -1,7 +1,8 @@
 import { Department } from "../Department";
 import * as dpt_config from "@/department/dpt_config"
 import { moveRequest } from "@/colony/dpt_comunication";
-
+import { CreepSpawning } from "@/structure/CreepSpawning";
+import * as names from "@/colony/nameManagement";
 
 export default class Dpt_Logistic extends Department {
 
@@ -108,7 +109,7 @@ export default class Dpt_Logistic extends Department {
         const storages = this.memory['storage'];
         if (storages.length == 2) {
             const c1 = Game.getObjectById(storages[0]);
-            console.log(c1);
+            //console.log(c1);
             
             const c2 = Game.getObjectById(storages[1]);
             //@ts-ignore
@@ -117,7 +118,7 @@ export default class Dpt_Logistic extends Department {
             }
             else return c2.id;
         }
-        else if (storages.length == 1) return storages[0].id
+        else if (storages.length == 1) return storages[0]
         else return null
     }
 
@@ -132,11 +133,21 @@ export default class Dpt_Logistic extends Department {
         return r;
     }
 
+    private createWidrawTask(widrawRequest: WithdrawRequest): WidrawTask {
+
+        const r: WidrawTask = {
+            type: 'WITHDRAW',
+            source: widrawRequest.source,
+            target: this.getMaxCapacityStorageID(),
+        }
+        return r;
+    }
+
     private notifyCreepNameToObject(objectID: string, creepName: string) {
         //@ts-ignore
         const object = Game.getObjectById(objectID);
         if (object instanceof Creep) {
-            object.memory['logisticCreepName'] = creepName;
+            object.memory['task']['logisticCreepName'] = creepName;
         }
 
 
@@ -146,12 +157,24 @@ export default class Dpt_Logistic extends Department {
         const targetTaskList = this.memory['targetTask'];
         for (let request in targetTaskList) {
             if (request) {
-                const task = this.createTransferTask(targetTaskList[request]);
-                //notify task object the creep assigned to it
-                this.notifyCreepNameToObject(task.target.id, creepName);
+                if (targetTaskList[request]['type'] == 'TRANSFER') {
+                    const task = this.createTransferTask(targetTaskList[request]);
+                    //notify task object the creep assigned to it
+                    this.notifyCreepNameToObject(task.target.id, creepName);
+                        //delete this.memory['targetTask'][request];
+                    //assig task to logistic creep
+                    Game.creeps[creepName].memory['task'] = task;
+                        //Game.creeps[creepName].memory['sendTaskRequest'] = false;
+                        //return true;
+                }
+                else if (targetTaskList[request]['type'] == 'WITHDRAW') {
+                    const task = this.createWidrawTask(targetTaskList[request]);
+                    Game.creeps[creepName].memory['task'] = task;
+
+                        //return true;
+                }
+                Game.creeps[creepName].memory['sendTaskRequest'] = false;
                 delete this.memory['targetTask'][request];
-                //assig task to logistic creep
-                Game.creeps[creepName].memory['task'] = task;
                 return true;
             }
         }
@@ -181,16 +204,20 @@ export default class Dpt_Logistic extends Department {
         const sourceTaskList = this.memory['sourceTask'];
         const targetTaskList = this.memory['targetTask'];
         for (let i = requestList.length-1; i >= 0; --i) {
-            if (this.memory['fillTask']) {
-                this.assigFillTask(requestList[i]);
-                this.memory['fillTask'] = false;
-                this.memory['request'].pop();
-            }
+            if (Game.creeps[requestList[i]]) {
+                
+                if (this.memory['fillTask']) {
+                    this.assigFillTask(requestList[i]);
+                    Game.creeps[requestList[i]].memory['sendTaskRequest'] = false;
+                    this.memory['fillTask'] = false;
+                    this.memory['request'].pop();
+                }
 
-            else if (this.assigTargetTask(requestList[i])) {
-                this.memory['request'].pop();                
+                else if (this.assigTargetTask(requestList[i])) {
+                    this.memory['request'].pop();                
+                }
             }
-
+            else this.memory['request'].pop(); 
 
        
         }
@@ -198,8 +225,65 @@ export default class Dpt_Logistic extends Department {
         
     }
 
+    private deleteDeadOneTimeCreeps() {
+        const oneTimeCreeps = this.memory['oneTimeCreeps'];
+        for (let creepName in oneTimeCreeps) {
+            if (oneTimeCreeps[creepName] <= Game.time) {
+                delete this.memory['oneTimeCreeps'][creepName];
+                delete Memory.creeps[creepName];
+            }
+        }
+    }
+
+    static sendToSpawnTransporter(roomName: string, oneTime: boolean): string {
+        let dpt = '-';
+        if (!oneTime) dpt = 'dpt_logistic';
+        const creepName = names.creepName();
+        const data: LogisticData = {
+            source: {
+                id: null,
+                roomName: roomName,
+                pos: null
+            }, 
+            target: null
+        };
+        CreepSpawning.sendToSpawnInitializacion(roomName, creepName,  'transporter', data, dpt, false);
+    
+        return creepName
+    }
+
+    private checkPermanentCreepNum() {
+        const rcl = Game.rooms[this.mainRoom].controller.level;
+        if (rcl <= 7 && rcl > 1) {
+            const creepsList = this.memory['ticksToSpawn'];
+            const creepsName = Object.keys(creepsList);
+            if (creepsName.length == 0) {
+                const name = Dpt_Logistic.sendToSpawnTransporter(this.mainRoom, false);
+                this.memory['ticksToSpawn'][name] = null;
+
+            }
+            else {
+                if (creepsList[creepsName[0]] != null && creepsList[creepsName[0]] < Game.time) {
+                    CreepSpawning.sendToSpawnRecycle(this.mainRoom,creepsName[0], 'transporter', 'dpt_logistic');
+                    CreepSpawning.initializeCreepState(creepsName[0]);
+
+                    this.memory['ticksToSpawn'][[creepsName[0]]] = null;
+
+                }
+            }
+        }
+    }
+
     public run() {
         this.processRequest();
+
+        if (Game.time % 7) {
+            this.checkPermanentCreepNum();
+        }
+        if (Game.time% 97) {
+            this.deleteDeadOneTimeCreeps();
+        }
+
     }
 
 }

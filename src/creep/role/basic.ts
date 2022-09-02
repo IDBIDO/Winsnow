@@ -36,6 +36,19 @@ const roles:{
 
 
     builder: (data: {}): ICreepConfig => ({
+        prepare: creep => {
+            const request: TransferRequest = {
+                'type': 'TRANSFER',
+                'target': {
+                    'id': creep.id,
+                    'resourceType': 'energy',
+                    'amount': -1
+                }
+            }
+            creep.say('LogisticTask Sended')
+            sendLogisticTask(creep.memory['roomName'], logisticTaskName(request), request);
+            return true;
+        },
 
         source: creep => {
             const target = creep.memory['task']['target'];
@@ -45,6 +58,7 @@ const roles:{
                 if (contructionSide) {  //@ts-ignore
 
                     //send logistic request
+                    /*
                     if (!creep.memory['sendLogisticRequest']) {
                         const request: TransferRequest = {
                             'type': 'TRANSFER',
@@ -58,16 +72,19 @@ const roles:{
                         sendLogisticTask(creep.memory['roomName'], logisticTaskName(request), request);
                         creep.memory['sendLogisticRequest'] = true;
                     }
-
-                    const logisticCreep = Game.creeps[creep.memory['logisticCreepName']]    //@ts-ignore
+                    */
+                    
+                    //@ts-ignore
                     const range = creep.pos.getRangeTo(contructionSide)
-                        //@ts-ignore
-        
-                    if (range <= 3 && logisticCreep) return true; 
-                    else {      //@ts-ignore
-                        creep.moveTo(contructionSide, {ignoreCreeps: false})
-                        return false;
+
+                   //@ts-ignore
+                   const rcode = creep.moveTo(contructionSide);
+
+                    if (range <= 2) {
+                        return true;
                     }
+                    return false;
+
                 }
                 else {    //constructionSide complete, delete creep.memory
                     creep.memory['task']['target']['id'] = null;
@@ -77,7 +94,7 @@ const roles:{
                 }
             }
             else {  //no target, try to find a target
-                if (Game.time % 13 == 0) {
+                if (Game.time % 7 == 0) {
                     
                     const closeContructionSide = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
                     if (closeContructionSide) {
@@ -85,7 +102,8 @@ const roles:{
                         
                         creep.memory['task']['target']['id'] = closeContructionSide.id;
                         creep.memory['task']['target']['pos'] = [closeContructionSide.pos.x, closeContructionSide.pos.y];
-                        creep.memory['task']['target']['roomName'] = closeContructionSide.room;
+                        creep.memory['task']['target']['roomName'] = closeContructionSide.room.name;
+
                         
                     }
                     else {
@@ -107,17 +125,17 @@ const roles:{
                 const r = creep.build(target);
                 if (r == ERR_NOT_ENOUGH_ENERGY) {
                     creep.say('⚡');
-                    if(Game.time%13 == 0) { 
-                        const logisticCreepName = creep.memory['task']['logisticCreepName'];
-                        if (logisticCreepName) {
-                            const logisticCreep = Game.creeps[logisticCreepName];
-                            if (!logisticCreep) {
-                                creep.memory['sendLogisticRequest'] = false;
-                                creep.suicide();
-                                return true;    //change state to end logistic request
-                            }
+                    
+                    const logisticCreepName = creep.memory['task']['logisticCreepName'];
+                    if (logisticCreepName) {                            
+                        const logisticCreep = Game.creeps[logisticCreepName];
+                        if (!logisticCreep) {
+                            creep.memory['sendLogisticRequest'] = false;
+                            creep.suicide();
+                            return true;    //change state to end logistic request
                         }
                     }
+                    
                 } 
                 else if (r == ERR_NOT_IN_RANGE) creep.moveTo(target, {ignoreCreeps: true})
                 
@@ -150,26 +168,14 @@ const roles:{
             let target: StructureContainer | StructureLink;
             target = Game.getObjectById(data.target as Id<StructureContainer> | Id<StructureLink>);
             
-            /*  CODE FOR REMOTEHARVESTER
-            //if target is a creep, throw a task to call a transporter
-            if (!target) {
-                if(!creep.memory['waiting']) {
-                    //publisher.callSourceTransporter(creep);
-                    sendRequest(creep.memory['roomName'], creep.memory['department'], creep.name);
-                    creep.memory['waiting'] = true;
-                }
-            }
-            */
-
-            /*
-            else if (target instanceof Creep) {
-                creep.transfer(target, RESOURCE_ENERGY)
-            }
-            */
             if (target) {
-                creep.transfer(target, RESOURCE_ENERGY)
+                if(target.hits < target.hitsMax - 800) {
+                    creep.repair(target);
+                } else {
+                    creep.transfer(target, RESOURCE_ENERGY)
+                }
+            
             }
-
             return (creep.store.getUsedCapacity() <= 0);
         }
 
@@ -193,7 +199,7 @@ const roles:{
             
             const queen = Game.creeps['Queen' + creep.room.name];
             
-                if (queen && creep.pos.isNearTo(queen.pos)) {
+                if (queen && creep.pos.isNearTo(queen.pos) && queen.store.getFreeCapacity() > 0) {
                     
                     
                     creep.transfer(queen, 'energy');
@@ -244,6 +250,12 @@ const roles:{
                 
                 creep.moveTo(nearInitializer);
             }
+            const containers = creep.room.find(FIND_STRUCTURES, {
+                filter:{structureType: STRUCTURE_CONTAINER}
+            })
+            if (containers.length >= 2) {       //fase 1 finished
+                return true;
+            }
 
         // 自己身上的能量装满了，返回 true（切换至 target 阶段）
         return creep.store.getFreeCapacity() <= 0;
@@ -251,6 +263,7 @@ const roles:{
         target: creep => {
             const nearSpawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
             if (nearSpawn) {
+                
                 if (nearSpawn.store.getFreeCapacity('energy') > 0) {
                     
                     if (creep.transfer(nearSpawn, 'energy') == ERR_NOT_IN_RANGE) {
@@ -258,6 +271,7 @@ const roles:{
 
                     }
                 }
+
             }
 
             if (Game.time % 7 == 0) {
@@ -271,7 +285,7 @@ const roles:{
 
                     //save id to planning model
                     const sourceContainer1Index = getContainerIndex(creep.room.name, 'container_source1');
-                    console.log(sourceContainer1Index);
+                    //console.log(sourceContainer1Index);
                     
                     
                     saveStructureID(creep.room.name, 'container', sourceContainer1Index, containers[0].id);
@@ -291,23 +305,42 @@ const roles:{
             return creep.store[RESOURCE_ENERGY] <= 0
         }
     }),
-//Game.creeps['QueenW2N5'].memory['role] = 'iniQueen
-    /*
-    transporter: (data: LogisticData): ICreepConfig => ({
+
+    repairer: (data: {}): ICreepConfig => ({
+        prepare: creep => {
+
+            return true;
+        },
+
         source: creep => {
-            const sourceID = creep.memory['data']['source']['id'];
-            const source = Game.getObjectById(sourceID);
-            if (source instanceof Creep) {
-                creep.moveTo(source);
-            }
-    
-            return false;
+            const source = Game.getObjectById(creep.memory['task']['source']); //@ts-ignore
+            if (creep.withdraw(source, 'energy') == ERR_NOT_IN_RANGE) creep.moveTo(source);
+
+            return creep.store.getFreeCapacity() <= 0;
         },
         target: creep => {
-            return false;
-        }
+            const rcode = creep.upgradeController(creep.room.controller);
+            if (rcode == ERR_NOT_IN_RANGE) creep.moveTo(creep.room.controller);
 
+            return (creep.store.getUsedCapacity() <= 0);
+        }
     }),
-    */
+
+    upgrader_base: (data: {}): ICreepConfig => ({
+        source: creep => {
+            const source = Game.getObjectById(creep.memory['task']['source']); //@ts-ignore
+           if (creep.withdraw(source, 'energy') == ERR_NOT_IN_RANGE) creep.moveTo(source);
+
+            return creep.store.getFreeCapacity() <= 0;
+        },
+        target: creep => {
+            const rcode = creep.upgradeController(creep.room.controller);
+            if (rcode == ERR_NOT_IN_RANGE) creep.moveTo(creep.room.controller);
+
+            return (creep.store.getUsedCapacity() <= 0);
+        }
+    }),
+
+
 }
 export default roles;

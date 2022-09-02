@@ -5,6 +5,8 @@ import Dpt_Logistic from "@/department/dpt_logistic/Dpt_Logistic";
 import { ControllerOrder } from "@/structure/ControllerOrder";
 import Dpt_Build from "@/department/dpt_build/Dpt_Build";
 import Dpt_Harvest from "@/department/dpt_harvest/Dpt_Harvest";
+import Dpt_Upgrader from "@/department/dpt_upgrader/Dpt_Upgrader";
+import { Tower } from "@/structure/Tower";
 
 
 /** 
@@ -34,8 +36,6 @@ export class Colony {
     }
 
 
-
-
     public run() {
 
         const dpt_harvest = new Dpt_Harvest(this.mainRoom);
@@ -56,15 +56,19 @@ export class Colony {
         const operationResearch = new OperationReserch(this.mainRoom);
         operationResearch.run();
 
-        
+        const dpt_upgrader = new Dpt_Upgrader(this.mainRoom);
+        dpt_upgrader.run();
+
+        const tower = new Tower(this.mainRoom);
+        tower.run();
     }
     
 }
 
 
-//Memory['colony']['W7N9']['creepSpawning']['spawn'].push('Spawn1')
-//ColonyApi.createColony('W7N9')
-//ColonyApi.deleteColony('W7N9')
+//Memory['colony']['W1N7']['creepSpawning']['spawn'].push('Spawn1')
+//ColonyApi.createColony('W1N7')
+//ColonyApi.deleteColony('W1N7')
 //Memory.creeps = {}
 
 //Memory['colony']['W7N7']['dpt_build']['ticksToSpawn']['W7N7_dptWork_1'] = Game.time + 10;

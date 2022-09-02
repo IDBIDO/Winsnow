@@ -1,6 +1,7 @@
 import * as planning from "./RoomPlanning"
 import * as utils from "./planningUtils"
 import * as acces from "./planningAcces"
+import { connectedComponents } from "@/utils";
 
 export class TranslatePlanning {
     mainRoom: string;
@@ -35,10 +36,7 @@ export class TranslatePlanning {
             Memory['colony'][this.mainRoom]['roomPlanning'] = {};
             //save model
             this.generateModel(roomStructsData['structMap']);
-            this.containerReference(roomStructsData['structMap']['container']);
-            this.linkReference(roomStructsData['structMap']['link']);
-            this.roadReference(roomStructsData['structMap']['road']);
-            this.labReference(roomStructsData['structMap']['lab']);
+  
             this.generateTemporal();
             /*
                 {
@@ -52,6 +50,11 @@ export class TranslatePlanning {
                 }
             */
             this.constructionSideRefAndPos();
+            this.inRampartPos();
+            this.containerReference(roomStructsData['structMap']['container']);
+            this.linkReference(roomStructsData['structMap']['link']);
+            this.roadReference(roomStructsData['structMap']['road']);
+            this.labReference(roomStructsData['structMap']['lab']);
 
             return true;
         }
@@ -110,6 +113,137 @@ export class TranslatePlanning {
             'spawn0ToMineral': spawn0ToMineral
         }
 
+    }
+
+    private roomWall(): boolean[][] {
+        const rampartList = Memory['colony'][this.mainRoom]['roomPlanning']['temp']['rampart'];
+        const matrix = new Array(50).fill(true).map(() => new Array(50).fill(true));
+        const terrain = new Room.Terrain(this.mainRoom);
+        for (let i = 0; i < 50; ++i) {
+            for (let j = 0; j < 50; ++j) {
+                if (terrain.get(i, j) == TERRAIN_MASK_WALL || utils.isRampartPos(this.mainRoom,[i, j])) {
+                    matrix[i][j] = false;
+                }
+            }
+        }
+        return matrix;
+    }
+
+    private nearConectedPos(pos: [number, number]): [number, number][] {
+        const terrain = new Room.Terrain(this.mainRoom);
+        const rampartList = Memory['colony'][this.mainRoom]['roomPlanning']['temp']['rampart'];
+
+        const candidatePos = utils.nearPosition(pos);
+        
+        let r: [number, number][] = [];
+        for (let i = 0; i < candidatePos.length; ++i) {
+
+            if (terrain.get(candidatePos[i][0], candidatePos[i][1]) != TERRAIN_MASK_WALL && !utils.isRampartPos(this.mainRoom, candidatePos[i])) {
+                r.push([candidatePos[i][0], candidatePos[i][1]])
+            }
+        }
+
+        return r;
+    }
+
+    private roomWallToAdj(roomCanPass: boolean[][]): number[][] {
+        let adjList: number[][]= [];
+        for (let i = 0; i < roomCanPass.length; ++i) {
+            for (let j = 0; j < roomCanPass[i].length; ++j) {
+                const node = utils.translatePosToNode([i, j]);
+                //console.log(node);
+                
+                if (!roomCanPass[i][j]) {
+                    adjList[node]=[];
+                } 
+                else {
+                    const nearPos = this.nearConectedPos([i, j]);
+                    let actualNode: number[] = [];
+                    for (let i = 0; i < nearPos.length; ++i) {
+                       actualNode.push( utils.translatePosToNode(nearPos[i]) )
+                    }
+                    adjList[node] = actualNode;
+
+                }
+            }
+        }
+
+        
+        
+       /*
+        for (let i = 0; i < roomCanPass.length; ++i) {
+            for (let j = 0; j < roomCanPass[i].length; ++j) {
+                const node = this.translatePosToNode([j, i]);
+                //console.log(node);
+                if (!roomCanPass[i][j]) adjList.push([]);
+                else {
+                    const nearPos = this.nearConectedPos([j, i]);
+                    let actualNode: number[] = [];
+                    for (let i = 0; i < nearPos.length; ++i) {
+                        actualNode.push( this.translatePosToNode(nearPos[i]) )
+                    }
+                    adjList.push(actualNode);
+                }
+
+            }
+        }
+        */
+        return adjList;
+    }
+
+    private translatePosToNode(pos: [number, number]): number {
+        return pos[0]*50 + pos[1];
+    }
+
+    private translateNodeToPos(node: number): [number, number] {
+        return [Math.floor(node/50), node%50]
+    }
+
+    private searchCC(cc: number[][], obj: number) {
+        for (let i = 0; i< cc.length; ++i) {
+            
+            for (let j = 0; j < cc[i].length; ++j) {
+                if (cc[i][j] == obj) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private inRampartPos() {
+
+        //const matrix = new Array(50).fill(false).map(() => new Array(50).fill(false));
+
+        //wall pos mask false
+        const roomWall = this.roomWall();
+        let cont = 0;
+        
+        for (let i = 0; i < roomWall.length; ++i) {
+            for (let j = 0; j < roomWall.length; ++j) {
+                if (!roomWall[i][j]) ++cont;
+            }
+        }
+        
+        const adjacentList = this.roomWallToAdj(roomWall);
+        const cc = connectedComponents(adjacentList)
+        
+        const spawn0Pos = Memory['colony'][this.mainRoom]['roomPlanning']['model']['spawn'][0]['pos'];
+        const spawn0Node = utils.translatePosToNode(spawn0Pos);
+        const indexProtectedComponent = this.searchCC(cc, spawn0Node);
+        
+        console.log(cc[indexProtectedComponent]);
+        let sortedCC = cc[indexProtectedComponent];
+        sortedCC.sort();
+        console.log(sortedCC);
+
+        let protectedPos: [number, number][] = [];
+        for (let i = 0; i < sortedCC.length; ++i) {
+            protectedPos.push(utils.translateNodeToPos(sortedCC[i]));
+        }
+        console.log(protectedPos);
+        Memory['colony'][this.mainRoom]['roomPlanning']['inRampartPos'] = sortedCC;
+        
     }
 
     private linkReference(linkList: []){
@@ -190,22 +324,114 @@ export class TranslatePlanning {
         )
     }
 
+    private tempExtension() {
+        const temp = Memory['colony'][this.mainRoom]['roomPlanning']['temp'];
+        const extensionList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['extension'];
+        temp['extension'] = {};
+
+        const spawn0Pos:[number, number] = Memory['colony'][this.mainRoom]['roomPlanning']['model']['spawn'][0]['pos'];
+        let array = Array<arrayPos>(extensionList.length);
+        for (let i = 0; i < extensionList.length; ++i) {
+            //temp['extension'][i] = extensionList[i]['pos'];
+            const distance = utils.distanceTwoPoints(spawn0Pos, extensionList[i]['pos']);
+            const temp: arrayPos = {
+                'ref': i.toString(),
+                'pos': extensionList[i]['pos'],
+                'distance': distance
+            }
+            array[i] = temp;
+        }
+        array.sort(function (a, b) {
+
+            if (a.distance > b.distance) {  //si a es mayor, retornar 1
+            return 1;
+            }
+            if (a.distance < b.distance) {  //si a es memor, retornar -1
+            return -1;
+            }
+            // a must be equal to b
+            return 0;
+            
+        });
+
+        for (let i = 0; i < extensionList.length; ++i) {
+            temp['extension'][i] = array[i].pos;
+
+        }
+
+        //change model extension
+        const modelExtension = Memory['colony'][this.mainRoom]['roomPlanning']['model']['extension'];
+        for (let i = 0; i < modelExtension.length; ++i) {
+            modelExtension[i]['pos'] = temp['extension'][i];
+        }
+    }
+
+    private tempSpawn() {
+        const temp = Memory['colony'][this.mainRoom]['roomPlanning']['temp'];
+        const spawnList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['spawn'];
+        temp['spawn'] = {};
+
+        const controllerRoomPos = Game.rooms[this.mainRoom].controller.pos;
+        const controllerPos:[number, number] = [controllerRoomPos.x, controllerRoomPos.y];
+        let array = Array<arrayPos>(spawnList.length);
+        for (let i = 0; i < spawnList.length; ++i) {
+            //temp['extension'][i] = extensionList[i]['pos'];
+            const distance = utils.distanceTwoPoints(controllerPos, spawnList[i]['pos']);
+            const temp: arrayPos = {
+                'ref': i.toString(),
+                'pos': spawnList[i]['pos'],
+                'distance': distance
+            }
+            array[i] = temp;
+        }
+        array.sort(function (a, b) {
+
+            if (a.distance < b.distance) {  //si a es mayor, retornar 1
+            return 1;
+            }
+            if (a.distance > b.distance) {  //si a es memor, retornar -1
+            return -1;
+            }
+            // a must be equal to b
+            return 0;
+            
+        });
+
+        for (let i = 0; i < spawnList.length; ++i) {
+            temp['spawn'][i] = array[i].pos;
+
+        }
+
+        //change model extension
+        const modelExtension = Memory['colony'][this.mainRoom]['roomPlanning']['model']['spawn'];
+        for (let i = 0; i < modelExtension.length; ++i) {
+            modelExtension[i]['pos'] = temp['spawn'][i];
+        }
+
+        
+    }
+
     private generateTemporal() {
         Memory['colony'][this.mainRoom]['roomPlanning']['temp'] = {};
         const temp = Memory['colony'][this.mainRoom]['roomPlanning']['temp'];
+        const model = Memory['colony'][this.mainRoom]['roomPlanning']['model'];
 
-
-        const roadList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['road'];
-        temp['road'] = {};
-        for (let i = 0; i < roadList.length; ++i) {
-            temp['road'][i] = roadList[i]['pos'];
+        //copy model to temp
+        for (let structureName in model) {
+            Memory['colony'][this.mainRoom]['roomPlanning']['temp'][structureName] = {}
+            for (let i in model[structureName])
+                Memory['colony'][this.mainRoom]['roomPlanning']['temp'][structureName][i] =
+                    model[structureName][i]['pos']
+                
         }
 
-        const extensionList = Memory['colony'][this.mainRoom]['roomPlanning']['model']['extension'];
-        temp['extension'] = {};
-        for (let i = 0; i < extensionList.length; ++i) {
-            temp['extension'][i] = extensionList[i]['pos'];
-        }
+        //modify spawn order
+        this.tempSpawn();
+
+        //modify extension order
+        this.tempExtension();
+
+        
 
     }
 

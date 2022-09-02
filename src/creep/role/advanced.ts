@@ -1,7 +1,70 @@
 import { sendRequest } from "@/colony/dpt_comunication";
-import { distanceTwoPoints } from "@/roomPlanning/planningUtils";
+import Dpt_Harvest from "@/department/dpt_harvest/Dpt_Harvest";
+import { distanceTwoPoints, maxTwoNumber } from "@/roomPlanning/planningUtils";
+import { Tower } from "@/structure/Tower";
+
+export const TRANSFER_DEATH_LIMIT = 30;
 
 
+export const deathPrepare = function(creep: Creep, sourceId: string): false {
+
+    if (creep.store.getUsedCapacity() > 0 && creep.room.storage) {
+        for (const resourceType in creep.store) {
+
+            const target = creep.room.storage
+
+            creep.moveTo(target.pos)
+            creep.transfer(target, <ResourceConstant>resourceType)
+            
+            return false
+        }
+    }
+    else {
+        if (creep.memory['task']['type'] == 'TRANSFER') {
+            const target = Game.getObjectById(creep.memory['task']['target']['id']) //@ts-ignore
+            notifyTaskCompleteTransfer(creep, target);
+        }
+        else if (creep.memory['task']['type'] == 'WITHDRAW') {
+            const target = Game.getObjectById(creep.memory['task']['source']['id']) //@ts-ignore
+            notifyTaskCompleteWithdraw(creep, target);
+        }
+        creep.suicide();
+    }
+
+    return false
+}
+
+export const transferCreepStore = function(creep: Creep, sourceId: string): boolean {
+    if (creep.store.getUsedCapacity() > 0){
+        for (const resourceType in creep.store) {
+            if (resourceType == 'energy') return false
+
+            let target: StructureStorage;
+            //    @ts-ignore
+           target = sourceId ? Game.getObjectById<StructureStorage>(sourceId): creep.room.storage
+
+            // 转移资源
+            creep.moveTo(target.pos)
+            creep.transfer(target, <ResourceConstant>resourceType)
+            
+            
+        }
+        return true;
+    }
+    return false;
+}
+
+export const notifyTaskCompleteTransfer = function(creep: Creep, target: TransferTarget) {
+    if (target instanceof StructureTower) {
+        Tower.cleanTowerEnergyPetition(target.room.name, target.id);
+    }
+}
+
+export const notifyTaskCompleteWithdraw = function(creep: Creep, source: WithDrawTarget) {
+    if (source instanceof StructureContainer) {
+        Dpt_Harvest.cleanContainerWithdrawPetition(source.room.name,source.id);
+    }
+}
 
 const roles: {
     [role in AdvancedRoleConstant]: (data: {}) => ICreepConfig
@@ -22,11 +85,14 @@ const roles: {
     transporter: (data: {}): ICreepConfig => ({
         source: creep => {
             
-            
+            if (creep.ticksToLive <= TRANSFER_DEATH_LIMIT) return deathPrepare(creep, creep.memory['task']['source'])
+
             const taskType = creep.memory['task']['type'];
             if (taskType) {
-                
-                return transferTaskOperations[taskType].source(creep)
+                if (!transferCreepStore(creep, creep.memory['task']['source'])) {
+                    return transferTaskOperations[taskType].source(creep)
+                }
+                else return false;
             }
             else {
                 
@@ -44,13 +110,9 @@ const roles: {
             
         },
         target: creep => {
-            
- 
             const taskType:string = creep.memory['task']['type'];
             
             if (taskType) {
- 
-                
                 return transferTaskOperations[taskType].target(creep)
             }
             else return true;       //get new task
@@ -80,7 +142,8 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
             if (targetID) {
                 target = <StructureExtension>Game.getObjectById(targetID)
                 if (!target || target.structureType !== STRUCTURE_EXTENSION || target.store.getFreeCapacity(RESOURCE_ENERGY) <= 0) {
-                    delete creep.memory['task']['target']
+                    creep.memory['task']['target'] = null;
+                    //creep.memory['sendTaskRequest'] = false;
                     target = undefined
                 }
             }
@@ -96,11 +159,9 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
                 
                 if (!target) {
                     // 都填满了，任务完成
-                    //creep.room.deleteCurrentRoomTransferTask()
-                    //set fill task to true
+
                     Memory['colony'][creep.memory['roomName']]['dpt_logistic']['fillTask'] = false;
                     creep.memory['task']['type'] = null;
-                    creep.memory['sendTaskRequest'] = false;
                     return true
                 }
 
@@ -144,6 +205,7 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
     },
     TRANSFER: {
         source: (creep:Creep) => {
+
             const source = Game.getObjectById(creep.memory['task']['source'])
             //CHECK IF CREEP STORAGE IS EMPTY
 
@@ -154,35 +216,48 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
             return creep.store.getFreeCapacity() <= 0;
         },
         target: (creep:Creep) => {
-            const target = Game.getObjectById(creep.memory['task']['target']['id']);
+            const target = Game.getObjectById(creep.memory['task']['target']['id'] as Id<TransferTarget>);
             
-            if (target) {    //@ts-ignore
-                const transfer = creep.transfer(target, creep.memory['task']['target']['resourceType']);
+            if (target) {   
+                const resourceType =  creep.memory['task']['target']['resourceType'];  
+                const transfer = creep.transfer(target, resourceType);
                 
-                const creepStorageIni = creep.store.getUsedCapacity();
+                const creepStorageIni = creep.store[resourceType];
+                const amountNeeded:number = creep.memory['task']['target']['amount'];
+
                 if (transfer == ERR_NOT_IN_RANGE) {
                     //const pos = new RoomPosition(creep.memory['task']['target']['pos'][0], creep.memory['task']['target']['pos'][1], creep.memory['task']['target']['roomName']);
-                    //@ts-ignore
+                   
                     creep.moveTo(target);
                 }
                 else if (transfer == OK) {
-                    creep.memory['amountDone'] = creep.memory['amountDone'] + creepStorageIni;
+                    creep.memory['task']['amountDone'] = creep.memory['task']['amountDone'] + creepStorageIni;
+                }
+                else if (transfer == ERR_FULL && amountNeeded != -1) {
+                    creep.memory['task']['type'] = null;
+                    //creep.memory['sendTaskRequest'] = false;
+                    notifyTaskCompleteTransfer(creep, target);
+
+                    creep.say('❌')
+                    return true;
                 }
                 
+                
 
-                const amountNeeded:number = creep.memory['task']['target']['amount'];
                 if (amountNeeded != -1) {
-                    if (creep.memory['amountDone'] >= amountNeeded) {   //task complete
+                    if (creep.memory['task']['amountDone'] >= amountNeeded) {   //task complete
                         creep.memory['task']['type'] = null;
+                        //creep.memory['sendTaskRequest'] = false;
+                        notifyTaskCompleteTransfer(creep, target);
                         return true;
-                    }else return (creep.store.getUsedCapacity() <= 0);
+                    } else return (creep.store.getUsedCapacity() <= 0);
                 }
                 else return (creep.store.getUsedCapacity() <= 0);
 
             }
-            else {  //reset task
+            else {  //reset task, only in case of creep
                 creep.memory['task']['type'] = null;
-                creep.memory['sendTaskRequest'] = false;
+                //creep.memory['sendTaskRequest'] = false;
                 creep.say('❌')
                 return true;
             }
@@ -193,11 +268,62 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
         
     },
     WITHDRAW: {
-        source: (creep:Creep) => {
-            return false;
+        /*
+        const r: WidrawTask = {
+            type: 'WITHDRAW',
+            source: widrawRequest.source,
+            target: this.getMaxCapacityStorageID(),
+            amountDone: 0
+        }
+        */
+        /*
+        'source': {
+            'id': id,     
+            'resourceType': resourceList[resourceIndex] as ResourceConstant,
+            'roomName': container.room.name,
+            'pos': [container.pos.x, container.pos.y]
+            
+        }
+        */
+        source: (creep: Creep) => {
+            const source = Game.getObjectById(creep.memory['task']['source']['id'] as Id<WithDrawTarget>);
+            //if missing source delete task
+            if (!source) {
+                creep.memory['task']['type'] = null;
+                //creep.memory['sendTaskRequest'] = false;
+                creep.say('❌')
+                return false;
+            }
+
+            const resourceType = creep.memory['task']['source']['resourceType']
+            if (creep.withdraw(source, resourceType as ResourceConstant) == ERR_NOT_IN_RANGE) {
+                const sourceTask = creep.memory['task']['source'];
+                const sourcePos = new RoomPosition(sourceTask['pos'][0], sourceTask['pos'][1], sourceTask['roomName']);
+                creep.moveTo(sourcePos);
+                return false;
+            }
+            else {
+                notifyTaskCompleteWithdraw(creep, source);
+                return true;
+            }
+
         },
-        target: (creep:Creep) => {
-            return false;
+        target: (creep: Creep) => {
+            const target = Game.getObjectById(creep.memory['task']['source']['id'] as Id<TransferTarget>);
+            const resourceType = Object.keys(creep.store)[0]
+            if (creep.transfer(target, resourceType as ResourceConstant) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(target);
+                return false;
+            }
+            
+            if (creep.store.getUsedCapacity() <= 0) {
+                creep.memory['task']['type'] = null;
+                //creep.memory['sendTaskRequest'] = false;
+                creep.say('❌')
+                return true;
+            }
+            else return false;
+
         }
         
     }

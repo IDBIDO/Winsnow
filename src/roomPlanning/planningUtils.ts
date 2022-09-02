@@ -1,4 +1,6 @@
-import { max, xor } from "lodash";
+import { binarySearch } from "@/utils";
+import { max, negate, xor } from "lodash";
+
 
 export function equalPoint(pointA: [number, number], pointB: [number, number]): boolean {
     if (pointA[0] == pointB[0] && pointA[1] == pointB[1]) return true;
@@ -8,6 +10,14 @@ export function equalPoint(pointA: [number, number], pointB: [number, number]): 
 export function maxTwoNumber(x:number, y: number) {
     if (x >= y) return x;
     return y;
+}
+
+export function translatePosToNode(pos: [number, number]): number {
+    return pos[0]*50 + pos[1];
+}
+
+export function translateNodeToPos(node: number): [number, number] {
+    return [Math.floor(node/50), node%50]
 }
 
 export function distanceTwoPoints(pointA: [x: number, y:number], pointB: [x: number, y:number]): number {
@@ -62,7 +72,7 @@ export function transformToPointList(model:{}) {
         toPoint[structureName] = [];
         for (let i = 0; i < model[structureName].length; ++i) {
             toPoint[structureName].push( transformToPoint(model[structureName][i]) );
-            console.log(toPoint[structureName][i].x);
+            //console.log(toPoint[structureName][i].x);
             
         }
         
@@ -70,7 +80,6 @@ export function transformToPointList(model:{}) {
 
     return toPoint;
 }
-
 
 
 /*
@@ -103,10 +112,11 @@ export function transformRoadToAdjacentList(roadList: [x: number, y: number][]):
     let adjacentList: number[][] = [];
     for (let i = 0; i < roadList.length; ++i) {
         adjacentList.push(nearPoint(roadList[i], roadList));
-        console.log(i , nearPoint(roadList[i], roadList));
+        //console.log(i , nearPoint(roadList[i], roadList));
         
     }
-    console.log(adjacentList);
+    //console.log(adjacentList);
+    
     
     return adjacentList;
 }
@@ -181,3 +191,106 @@ export function getId(roomName: string, pos: [number, number], structureType: st
     return object[0].id;
 }
 
+
+/*
+    only valid if distance between two points are interger
+*/
+function pointsBetweenTwo(point1: [number, number], point2: [number, number]): [number, number][] {
+    let x = point1[0] - point2[0];
+    let y = point1[1] - point2[1];
+
+    const max = maxTwoNumber(Math.abs(x), Math.abs(y)) ;
+    const incX = -(x/max);
+    const incY = -(y/max);
+
+    let r = Array<[number, number]>(max);
+    let actualX = point1[0];
+    let actualY = point1[1];
+
+    for (let i = 0; i < max; ++i ) {
+      actualX += incX;
+      actualY += incY;
+      r[i] = [actualX, actualY];
+        
+    }
+    r.pop();
+    return r;
+}
+
+export function outOfPlanning(map: boolean[][], point: number) {
+
+}
+
+export function inMapRange(pos: [number, number]):boolean {
+    
+    if (pos[0]>= 0 && pos[0] < 50) {
+        if (pos[1] >= 0 && pos[1] < 50) {            
+            return true;            
+        }
+    }
+    return false;
+}
+
+/*
+    negative points will ignored
+*/
+export function nearPosition(pos: [number, number]):[number, number][] {
+    
+    let nearPoints: [number, number][] = [
+        [pos[0]-1, pos[1]+1], 
+        [pos[0]-1, pos[1]], 
+        [pos[0]-1, pos[1]-1],
+
+        [pos[0], pos[1]+1], 
+        [pos[0], pos[1]-1], 
+
+        [pos[0]+1, pos[1]+1], 
+        [pos[0]+1, pos[1]], 
+        [pos[0]+1, pos[1]-1], 
+    ]
+    
+    let validNearPoints:[number, number][] = []
+    for (let i = 0; i < nearPoints.length; ++i) {
+        if (inMapRange(nearPoints[i])) {
+            validNearPoints.push(nearPoints[i]);
+        }
+    }
+
+    return validNearPoints;
+}
+
+export function isRampartPos(roomName: string, pos: [number, number]): boolean {
+    
+    const rampartDataList = Memory['colony'][roomName]['roomPlanning']['model']['rampart'];
+    for (let i = 0; i < rampartDataList.length; ++i) {
+        if (pos[0] == rampartDataList[i]['pos'][0] && pos[1] == rampartDataList[i]['pos'][1]) {
+            return true;
+        }
+    }
+    return false;
+
+}
+
+export function isRampartProtectPos(roomName: string, pos: [number, number]): boolean {
+    const protectedPosList: number[] = Memory['colony'][roomName]['roomPlanning']['inRampartPos'];
+    const posNode = translatePosToNode(pos);
+    if (binarySearch(protectedPosList, posNode, 0, protectedPosList.length - 1 )) {
+        return true;
+    }
+    return false;
+}
+
+export function getRangePoints(point: [number, number], range: number):[number, number][] {
+    const angulo1: [number, number] = [point[0]-range, point[1]+ range];
+    const angulo2: [number, number] = [point[0]+range, point[1]+ range];
+    const angulo3: [number, number] = [point[0]+range, point[1]- range];
+    const angulo4: [number, number] = [point[0]-range, point[1]- range];
+
+    const r1 = [angulo1].concat(pointsBetweenTwo(angulo1, angulo2));
+    const r2 = r1.concat([angulo2].concat(pointsBetweenTwo(angulo2, angulo3)));
+    const r3 = r2.concat([angulo3].concat(pointsBetweenTwo(angulo3, angulo4)));
+    const r4 = r3.concat([angulo4].concat(pointsBetweenTwo(angulo4, angulo1)));
+
+    return r4;
+
+}

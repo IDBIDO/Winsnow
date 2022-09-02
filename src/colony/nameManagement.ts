@@ -5,9 +5,13 @@ export function logisticTaskName(request: TaskRequest) {
 }
 
 export function creepName() {
-    return Math.random().toString(36).substr(2,9).toLocaleUpperCase()
+    return Math.random().toString(36).substr(2,10).toLocaleUpperCase()
 }
 
 export function requestName() {
     return (Math.random().toString(36).substr(2,6))
+}
+
+export function towerTask() {
+    return ('TOWER' + Math.random().toString(36).substr(2,6));
 }

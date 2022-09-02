@@ -26,13 +26,12 @@ module.exports.loop = function() {
     const creep = Memory['creeps'];
     for (let creepName in creep)  {
       if (Game.creeps[creepName]) {
-        //Game.creeps[creepName]['work']();
-        
+        //Game.creeps[creepName]['work']();  
 
       }
     }
     
-    
+
 //Memory['colony']['W1N7']['creepSpawning']['spawn'].push('Spawn1')
 //ColonyApi.createColony('W1N7')
 //ColonyApi.destroyAllBuilding('W1N7')

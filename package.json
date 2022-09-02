@@ -1,7 +1,7 @@
 {
   "name": "winsnow",
   "version": "1.0.0",
-  "description": "",
+  "description": "A bot for Screeps World",
   "main": "main.js",
   "scripts": {
     "push": "rollup -cw --environment DEST:main",

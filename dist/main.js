@@ -49,6 +49,31 @@ function connectedComponents(adj) {
     }
     return components;
 }
+function binarySearch(arr, x, start, end) {
+    // Base Condition
+    if (start > end)
+        return false;
+    // Find the middle index
+    let mid = Math.floor((start + end) / 2);
+    // Compare mid with given key x
+    if (arr[mid] === x)
+        return true;
+    // If element at mid is greater than x,
+    // search in the left half of mid
+    if (arr[mid] > x)
+        return binarySearch(arr, x, start, mid - 1);
+    else
+        // If element at mid is smaller than x,
+        // search in the right half of mid
+        return binarySearch(arr, x, mid + 1, end);
+}
+function difference(setA, setB) {
+    let _difference = new Set(setA);
+    for (let elem of setB) {
+        _difference.delete(elem);
+    }
+    return _difference;
+}
 
 function maxTwoNumber(x, y) {
     if (x >= y)
@@ -226,6 +251,14 @@ function isRampartPos(roomName, pos) {
         if (pos[0] == rampartDataList[i]['pos'][0] && pos[1] == rampartDataList[i]['pos'][1]) {
             return true;
         }
+    }
+    return false;
+}
+function isRampartProtectPos(roomName, pos) {
+    const protectedPosList = Memory['colony'][roomName]['roomPlanning']['inRampartPos'];
+    const posNode = translatePosToNode(pos);
+    if (binarySearch(protectedPosList, posNode, 0, protectedPosList.length - 1)) {
+        return true;
     }
     return false;
 }
@@ -2232,15 +2265,100 @@ class Mem {
         this.initializeTowersMem();
         this.initializeDptRepair();
     }
-    assignLinkToRampart() {
+    compuLinkPosCanditate(candidateLinkPos) {
         const colonyMem = Memory['colony'][this.mainRoom];
         const rampartList = colonyMem['roomPlanning']['temp']['rampart'];
-        colonyMem['roomPlanning']['inRampartPos'];
+        //let candidateLinkPos = {};
         for (let i = 0; i < rampartList.length; ++i) {
             const inRange2Pos = getRangePoints(rampartList[i], 2);
             for (let rangePos = 0; i < inRange2Pos.length; ++i) {
+                if (isRampartProtectPos(this.mainRoom, inRange2Pos[rangePos])) {
+                    //translate to pos to node
+                    const node = translatePosToNode(inRange2Pos[rangePos]);
+                    candidateLinkPos[node] = new Set();
+                }
             }
         }
+    }
+    compuRampartRangeLessEqual4(candidateLinkPos) {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        const rampartList = colonyMem['roomPlanning']['temp']['rampart'];
+        for (let nodeName in candidateLinkPos) {
+            const nodePos = translateNodeToPos(parseInt(nodeName));
+            const nodeRoomPos = new RoomPosition(nodePos[0], nodePos[1], this.mainRoom);
+            for (let i = 0; i < rampartList.length; ++i) {
+                if (nodeRoomPos.getRangeTo(rampartList[i][0], rampartList[i][1]) <= 4) {
+                    candidateLinkPos[nodeName].add(i);
+                }
+            }
+        }
+    }
+    compuLinkDataAndDeleteCandidate(linkPosData, candidateLinkPos) {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        colonyMem['roomPlanning']['temp']['rampart'];
+        //const inRampartPos = colonyMem['roomPlanning']['inRampartPos'];
+        const keys = Object.keys(candidateLinkPos);
+        let maxNode = keys[0];
+        //find max number rampart node
+        for (let i in candidateLinkPos) {
+            if (candidateLinkPos[i].size > candidateLinkPos[maxNode].size) {
+                maxNode = i;
+            }
+        }
+        //add maxNode to linkPosData
+        linkPosData[maxNode] = candidateLinkPos[maxNode];
+        //delete assigned rampart
+        for (let i in candidateLinkPos) {
+            candidateLinkPos[i] = difference(candidateLinkPos[i], linkPosData[maxNode]);
+        }
+    }
+    allRampartAssigned(candidateLinkPos) {
+        let allAssigned = false;
+        for (let i in candidateLinkPos) {
+            if (candidateLinkPos[i].size)
+                allAssigned = true;
+        }
+        return allAssigned;
+    }
+    assignLinkToRampart() {
+        const colonyMem = Memory['colony'][this.mainRoom];
+        colonyMem['roomPlanning']['temp']['rampart'];
+        colonyMem['roomPlanning']['inRampartPos'];
+        let candidateLinkPos = {};
+        //1. calcular candidatos a ser posicion de link
+        /*  candirateLinkPos = {
+                node : {set of rampart reference}
+            }
+        */
+        this.compuLinkPosCanditate(candidateLinkPos);
+        // 2. calcular los rampart a posicion <= 4 a cada posicion candidato
+        this.compuRampartRangeLessEqual4(candidateLinkPos);
+        // 3. coger el nodo con mas rampart
+        let linkNodeData = {};
+        let allAssigned = false;
+        while (!allAssigned) {
+            this.compuLinkDataAndDeleteCandidate(linkNodeData, candidateLinkPos);
+            allAssigned = this.allRampartAssigned(candidateLinkPos);
+        }
+        /*
+        const keys = Object.keys(candidateLinkPos);
+        let linkNode = [];
+
+            //find max number rampart position
+        let maxNode = candidateLinkPos[keys[0]];
+        for (let nodeName in candidateLinkPos) {
+            if (candidateLinkPos[nodeName].length > candidateLinkPos[maxNode].length) {
+                maxNode = nodeName;
+            }
+
+        }
+            //push to linkNode
+        const linkPosData = {
+            'pos': translateNodeToPos( parseInt(maxNode) ),
+            'ramparts': candidateLinkPos[maxNode]
+        }
+        linkNode.push(linkPosData);
+        */
     }
     initializeDptRepair() {
         const colonyMem = Memory['colony'][this.mainRoom];
@@ -2248,7 +2366,7 @@ class Mem {
         colonyMem['dpt_repair']['actualHits'] = 0;
         colonyMem['dpt_repair']['task'] = {};
         colonyMem['dpt_repair']['rampartData'] = {};
-        colonyMem['dpt_repair']['linksPos'] = {};
+        colonyMem['dpt_repair']['linksPos'] = [];
         colonyMem['dpt_repair']['ticksToSpawn'] = {};
         this.assignLinkToRampart();
     }

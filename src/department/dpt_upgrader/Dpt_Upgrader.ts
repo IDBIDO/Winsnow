@@ -33,7 +33,7 @@ export default class Dpt_Upgrader extends Department {
         const containerMem = Memory['colony'][this.mainRoom]['dpt_upgrade']['container'];   //@ts-ignore
         const stage = Math.trunc((2000 - container.store['energy']) / 400);
         //console.log(stage);
-        
+    
             //stage1:   < 1500 
             //stage2:   < 1000
             //stage3:   < 500

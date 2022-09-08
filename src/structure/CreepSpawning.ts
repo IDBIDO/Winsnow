@@ -33,9 +33,12 @@ export class CreepSpawning {
     private spawn(spawnName: string, creepName: string, creepRole: string, creepData:{}, dpt: string, pull: boolean): ScreepsReturnCode {
         const spawn = Game.spawns[spawnName];
         const energyRCL = setting.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
+        //console.log(Game.rooms[this.mainRoom].energyCapacityAvailable);
+        
         //console.log(energyRCL);
         
         const creepBody = setting.getBody(creepRole, energyRCL);
+        //console.log(creepBody);
         
         if (creepData) {
             return spawn.spawnCreep(creepBody, creepName, {
@@ -98,7 +101,10 @@ export class CreepSpawning {
               const creepDpt = spawnTask[creepName]['department'];
               const creepData = spawnTask[creepName]['task'];   //////////////////////
               const pull = spawnTask[creepName]['dontPullMe'];
-              if (this.spawn(spawnName, creepName, creepRole, creepData, creepDpt, pull) == OK) {
+              const rcode = this.spawn(spawnName, creepName, creepRole, creepData, creepDpt, pull);
+              //console.log(rcode);
+              if (rcode == OK) {
+                
                 delete spawnTask[creepName];
 
                 if (Memory['colony'][this.mainRoom][creepDpt]) this.notifyTaskComplete(creepName, creepRole, creepDpt);
@@ -201,7 +207,10 @@ export class CreepSpawning {
             
         }
 
-        if (r != OK) this.spawnTaskExecution();
+        if (r != OK) {
+            this.spawnTaskExecution();
+            
+        }
 
     }
 

@@ -21,12 +21,12 @@ module.exports.loop = function() {
 
 
   const colony = new Colony('W1N7');
-  //colony.run();
+  colony.run();
 
     const creep = Memory['creeps'];
     for (let creepName in creep)  {
       if (Game.creeps[creepName]) {
-        //Game.creeps[creepName]['work']();  
+        Game.creeps[creepName]['work']();  
 
       }
     }

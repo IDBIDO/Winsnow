@@ -2,7 +2,7 @@ import { Department } from "../Department";
 import * as dpt_config from "@/department/dpt_config"
 import { moveRequest, sendLogisticTask } from "@/colony/dpt_comunication";
 import { logisticTaskName } from "@/colony/nameManagement";
-import { ticksToSpawn } from "@/creep/setting";
+import { getEnergyRCL, ticksToSpawn } from "@/creep/setting";
 import { CreepSpawning } from "@/structure/CreepSpawning";
 
 
@@ -21,7 +21,7 @@ export default class Dpt_Harvest extends Department {
 
     }
     actualizeCreepNumber(): void {
-        const rclEnergy = dpt_config.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
+        const rclEnergy = getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
         if (rclEnergy == 1) {
             const sourceId1 = this.getSourceId1();
             const sourceId2 = this.getSourceId2();
@@ -85,8 +85,12 @@ export default class Dpt_Harvest extends Department {
     private getHarvesterNeeded(): number {
         
         const availableEnergy = Game.rooms[this.mainRoom].energyCapacityAvailable;
-        const energyRCL = dpt_config.getEnergyRCL(availableEnergy);
-        if (energyRCL == 1) return 3;
+        const energyRCL = getEnergyRCL(availableEnergy);
+        //console.log(availableEnergy);
+        
+        //console.log(energyRCL);
+        
+        if (energyRCL == 1 ) return 3;
         else if (energyRCL == 2) {
             return 2;
         }
@@ -103,7 +107,7 @@ export default class Dpt_Harvest extends Department {
     private checkCreepNum():void {
         const creepsSource1 = this.memory['source1']['creeps'];
         const creepsSource2 = this.memory['source2']['creeps'];
-
+        if(Game.rooms[this.mainRoom].controller.level == 1) return;
         const harvesterNeeded = this.getHarvesterNeeded();
         //console.log(harvesterNeeded);
         

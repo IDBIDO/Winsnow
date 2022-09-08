@@ -1,10 +1,18 @@
 import { sendRequest } from "@/colony/dpt_comunication";
 import Dpt_Harvest from "@/department/dpt_harvest/Dpt_Harvest";
 import { distanceTwoPoints, maxTwoNumber } from "@/roomPlanning/planningUtils";
+import { CreepSpawning } from "@/structure/CreepSpawning";
 import { Tower } from "@/structure/Tower";
 
 export const TRANSFER_DEATH_LIMIT = 30;
 
+export const taskRequestSended = function(creepName: string, roomName: string): boolean {
+    const requestList = Memory['colony'][roomName]['dpt_logistic']['request'];
+    for (let i = 0; i < requestList.length; ++i) {
+        if (requestList[i] == creepName) return true;
+    }
+    return false;
+}
 
 export const deathPrepare = function(creep: Creep, sourceId: string): false {
 
@@ -97,8 +105,10 @@ const roles: {
             else {
                 
                 //send task 
-                if (creep.memory['sendTaskRequest']) {
+                if (taskRequestSended(creep.name, creep.memory['roomName'])) {
                     creep.say('💤')
+                    const flag = Game.flags[creep.room.name + '_logisticPoint']
+                    if (flag) creep.moveTo(flag);
                 }
                 else {
                     creep.say('✉️')
@@ -300,13 +310,13 @@ export const transferTaskOperations: { [task in LogisticTaskType]: transferTaskO
                 const sourceTask = creep.memory['task']['source'];
                 const sourcePos = new RoomPosition(sourceTask['pos'][0], sourceTask['pos'][1], sourceTask['roomName']);
                 creep.moveTo(sourcePos);
-                return false;
+                //return false;
             }
             else {
                 notifyTaskCompleteWithdraw(creep, source);
-                return true;
+               // return true;
             }
-
+            creep.store.getFreeCapacity() <= 0;
         },
         target: (creep: Creep) => {
             const target = Game.getObjectById(creep.memory['task']['source']['id'] as Id<TransferTarget>);

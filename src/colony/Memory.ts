@@ -35,8 +35,12 @@ export class Mem {
     */
     public initializeColonyMem(): void {
         if (! Memory['colony']) {
-            Memory['colony'] = {}
+            Memory['colony'] = {};
         }
+        if (! Memory['creeps']) {
+            Memory['creeps'] = {};
+        }
+
         delete Memory['colony'][this.mainRoom]
 
         Memory['colony'][this.mainRoom] = {};
@@ -193,7 +197,10 @@ export class Mem {
     private initializeDptRepair() {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_repair'] = {};
-        colonyMem['dpt_repair']['actualHits'] = 0;
+        colonyMem['dpt_repair']['wallHitsUpdate'] = false;
+        colonyMem['dpt_repair']['wallHits'] = 0;
+        colonyMem['dpt_repair']['nukerHitsUpdate'] = false;
+        colonyMem['dpt_repair']['nukerHits'] = 0;        
         colonyMem['dpt_repair']['task'] = {};
         colonyMem['dpt_repair']['rampartData'] = {};
         colonyMem['dpt_repair']['linksPos'] = [];
@@ -298,4 +305,5 @@ export class Mem {
         colonyMem['dpt_build']['transporterCreeps'] = {}
     }
 
+    
 }

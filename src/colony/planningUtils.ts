@@ -12,3 +12,12 @@ export function getContainerIndex(roomName: string, structureFunction: Container
 export function getRangePoints(pos: [number, number], range: number) {
     
 }
+
+export function getRampartDataByReference(roomName: string, ref: number): structureData {
+    const rampartData = Memory['colony'][roomName]['roomPlanning']['model']['rampart'][ref];
+    const r: structureData = {
+        'id': rampartData['id'],
+        'pos': rampartData['pos']
+    }
+    return r
+}

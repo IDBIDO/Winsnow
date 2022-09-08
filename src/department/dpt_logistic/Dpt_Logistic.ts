@@ -3,6 +3,7 @@ import * as dpt_config from "@/department/dpt_config"
 import { moveRequest } from "@/colony/dpt_comunication";
 import { CreepSpawning } from "@/structure/CreepSpawning";
 import * as names from "@/colony/nameManagement";
+import { getEnergyRCL } from "@/creep/setting";
 
 export default class Dpt_Logistic extends Department {
 
@@ -12,7 +13,7 @@ export default class Dpt_Logistic extends Department {
 
     protected actualizeCreepNumber() {
         //throw new Error("Method not implemented.");
-        const rclEnergy = dpt_config.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
+        const rclEnergy = getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
         if (rclEnergy == 1) {
             const source: LogisticSourceTask = {
                 id: null, 
@@ -260,7 +261,6 @@ export default class Dpt_Logistic extends Department {
             if (creepsName.length == 0) {
                 const name = Dpt_Logistic.sendToSpawnTransporter(this.mainRoom, false);
                 this.memory['ticksToSpawn'][name] = null;
-
             }
             else {
                 if (creepsList[creepsName[0]] != null && creepsList[creepsName[0]] < Game.time) {

@@ -4,6 +4,7 @@ import * as setting from "@/creep/setting";
 import * as names from "@/colony/nameManagement"
 import { CreepSpawning } from "@/structure/CreepSpawning";
 import { filter } from "lodash";
+import { getEnergyRCL } from "@/creep/setting";
 
 export default class Dpt_Build extends Department {
     
@@ -29,7 +30,7 @@ export default class Dpt_Build extends Department {
     }
 
     private realiaseBuildTask() {
-        const rclEnergy = dpt_config.getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
+        const rclEnergy = getEnergyRCL(Game.rooms[this.mainRoom].energyCapacityAvailable);
         const memReference = Memory['colony'][this.mainRoom]['roomPlanning']['stage'];
         for (let structureName in memReference) {
             for (let i = 0; i < memReference[structureName].length; ++i) {
@@ -56,7 +57,7 @@ export default class Dpt_Build extends Department {
     private getBuildersNeeded(): number {
         const buildCost:number = this.memory['buildCost'];
         const availableEnergy = Game.rooms[this.mainRoom].energyCapacityAvailable;
-        const energyRCL = dpt_config.getEnergyRCL(availableEnergy);
+        const energyRCL = getEnergyRCL(availableEnergy);
         
         const builderFactor = this.getBuilderFactor(energyRCL);
 

@@ -21,6 +21,16 @@ interface HarvesterData{
     target: string;
 }
 
+interface RepairerData {
+    source: string,
+    target: {
+        id: string,
+        hits: number,
+        pos: string,
+        roomName: string
+    }
+}
+
 /*****************WORKER**************** */
 interface WorkerData {
     source: string;
@@ -296,4 +306,15 @@ type WithDrawTarget = StructureContainer | StructureStorage | StructureLab | Tom
 
 
 /********* Dpt_repair ************/
-//type RepairLinkData = 
+interface RampartRepairTask {
+    source: string,
+    target: string,
+    hits: number, 
+
+}
+
+/******************** ROOM PLANNING *********************/
+interface structureData{
+    id: string;
+    pos: [number, number];
+}

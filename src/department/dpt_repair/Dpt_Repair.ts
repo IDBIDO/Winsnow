@@ -1,4 +1,6 @@
+import { repairerTaskName } from "@/colony/nameManagement";
 import { getRampartDataByReference } from "@/colony/planningUtils";
+import { translateNodeToPos } from "@/roomPlanning/planningUtils";
 import { CreepSpawning } from "@/structure/CreepSpawning";
 import { Department } from "../Department";
 
@@ -7,6 +9,8 @@ export const MaxHitsNuker = 10000000
 export const MaxHitsWall = 20000000
 export const MaxHitsInvader = 2000000
 
+export const RepairCreepNum = 1;
+
 export default class Dpt_Build extends Department {
     
     
@@ -14,8 +18,24 @@ export default class Dpt_Build extends Department {
         super(dptRoom, 'dpt_build');
     }
 
+    
+
     static sendToSpawnRepairer(roomName: string) {
         
+    }
+
+    private getWallRampartLinkPos(ref: number): [number, number] {
+        const linkPosData = this.memory['linkPosData'];
+        const linkPosDataKeys = Object.keys(linkPosData);
+        for (let i = 0; i < linkPosDataKeys.length; ++i) {
+            for (let j = 0; j < linkPosData[i].length; ++j) {
+                if (linkPosData[i] == ref) {
+                    const linkPos = translateNodeToPos(parseInt(linkPosDataKeys[i]));
+                    return linkPos;
+                }
+            }
+        }
+        return null;    //teoricamente imposible de alcanzar
     }
 
     private createWallRampartTask() {
@@ -32,20 +52,20 @@ export default class Dpt_Build extends Department {
                             //publish repair task
                             let source;
                             if (Game.rooms[this.mainRoom].controller.level < 8) source = null;
-                            else {
-                                //check if exist link
-                            }
                             const rampartTask: RampartRepairTask = {
                                 'source': source,
                                 'target': rampart.id,
-                                'hits': wallHits + Math.trunc(wallHits*10/100)
+                                'hits': wallHits + Math.trunc(wallHits*10/100),
+                                'linkPos': this.getWallRampartLinkPos(i)
                             }
+                            const taskName = repairerTaskName();
+                            this.memory[taskName] = rampartTask;
                         }
                     }
 
                 }
             }
-
+            this.memory['wallHitsUpdate'] = false;
 
         }
         
@@ -64,8 +84,14 @@ export default class Dpt_Build extends Department {
 
     private actualizeWallHits() {
         const wallHits = this.memory['wallHits'];
+        
         //max wallHits 50M
         if (wallHits > 50000000) return 
+
+        //task imcomplete 
+        const taskList = Object.keys( this.memory['task'] );
+        if (taskList.length) return 
+
         if (wallHits < 100000) {
             this.memory['wallHits'] = 100000;  //initialize
             this.memory['wallHitsUpdate'] = true;
@@ -91,6 +117,19 @@ export default class Dpt_Build extends Department {
         }
     }
 
+    private getCreepsAliveOrSpawning(): number {
+        return 1;
+    }
+
+    private repairerCreepNumControl() {
+        const creepsAliveOrSpawning = this.getCreepsAliveOrSpawning();
+        if (creepsAliveOrSpawning < RepairCreepNum) {
+            //send to spawn repairer
+
+        }
+
+    }
+
     public run() {
 
         if (Game.time % 167 == 0) {
@@ -103,6 +142,10 @@ export default class Dpt_Build extends Department {
 
         if( Game.time % 23 == 0) {
             this.createWallRampartTask();
+        }
+
+        if(Game.time % 3 == 0) {
+            this.repairerCreepNumControl();
         }
     }
 }

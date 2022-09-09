@@ -310,6 +310,7 @@ interface RampartRepairTask {
     source: string,
     target: string,
     hits: number, 
+    linkPos: [number, number]
 
 }
 

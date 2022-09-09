@@ -615,8 +615,10 @@ export class OperationReserch {
                         this.resetFaseValues();
                     }
                 }
+                //check new tower, no constructionSide, no need to check building
                 else if (fase == 2) {
-                    if (this.checkBuildTaskDone() && this.checkLevelUpTaskDone()) {
+                    //
+                    if (this.checkLevelUpTaskDone()) {
                         this.memory['buildColony']['buildRCL'] = 3;
                         this.memory['buildColony']['fase'] = 0;
                         this.resetFaseValues();

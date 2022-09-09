@@ -2361,7 +2361,10 @@ class Mem {
     initializeDptRepair() {
         const colonyMem = Memory['colony'][this.mainRoom];
         colonyMem['dpt_repair'] = {};
-        colonyMem['dpt_repair']['actualHits'] = 0;
+        colonyMem['dpt_repair']['wallHitsUpdate'] = false;
+        colonyMem['dpt_repair']['wallHits'] = 0;
+        colonyMem['dpt_repair']['nukerHitsUpdate'] = false;
+        colonyMem['dpt_repair']['nukerHits'] = 0;
         colonyMem['dpt_repair']['task'] = {};
         colonyMem['dpt_repair']['rampartData'] = {};
         colonyMem['dpt_repair']['linksPos'] = [];
@@ -5288,8 +5291,10 @@ class OperationReserch {
                         this.resetFaseValues();
                     }
                 }
+                //check new tower, no constructionSide, no need to check building
                 else if (fase == 2) {
-                    if (this.checkBuildTaskDone() && this.checkLevelUpTaskDone()) {
+                    //
+                    if (this.checkLevelUpTaskDone()) {
                         this.memory['buildColony']['buildRCL'] = 3;
                         this.memory['buildColony']['fase'] = 0;
                         this.resetFaseValues();

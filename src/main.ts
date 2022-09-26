@@ -20,7 +20,9 @@ module.exports.loop = function() {
   ColonyApi;
 
 
+
   const colony = new Colony('W7N9');
+
   colony.run();
 
     const creep = Memory['creeps'];

@@ -4,13 +4,22 @@ export const energyAvailable = [300, 550, 800, 1300, 1800, 2300, 5600, 10000]
 
 export function getEnergyRCL(energyAmount: number): number {
 
+    /*
     let found = false;
     let i = 0;
     while( !found && i < 8) {
-        if (energyAmount <= energyAvailable[i]) return i+1;
+        if (energyAvailable[i] > energyAmount) return i;
         ++i;
     }
     return -1;
+    */
+   let found = false;
+   let i = 0;
+   while (!found && i < 8) {
+    if (energyAvailable[i] > energyAmount) return i;
+    ++i;
+   }
+   return 8;
 }
 
 export function getBody(role: string, rcl: number): BodyPartConstant[] {
@@ -82,8 +91,8 @@ export const bodyComponentNum = {
     },
     upgrader_base: {
         1: [2, 1, 1],
-        2: [2, 1, 1],
-        3: [3, 1, 1],
+        2: [3, 1, 2],
+        3: [3, 1, 2],
         4: [3, 1, 1],
         5: [3, 1, 1],
         6: [3, 1, 1],
@@ -94,7 +103,9 @@ export const bodyComponentNum = {
         3: [1, 3, 1],
         4: [1, 3, 1],
         5: [1, 3, 1],
-        6: [2, 6, 1]
+        6: [2, 6, 1], 
+        7: [4, 12, 2], 
+        8: [10, 6, 5], 
     },
 
     transporter: {

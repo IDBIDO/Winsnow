@@ -129,12 +129,15 @@ const roles:{
                     const logisticCreepName = creep.memory['task']['logisticCreepName'];
                     if (logisticCreepName) {                            
                         const logisticCreep = Game.creeps[logisticCreepName];
+                        
                         if (!logisticCreep) {
                             creep.memory['sendLogisticRequest'] = false;
                             creep.suicide();
                             return true;    //change state to end logistic request
                         }
                     }
+                    const flag = Game.flags[creep.room.name + '_builderPoint']
+                    if (flag) creep.moveTo(flag);
                     
                 } 
                 else if (r == ERR_NOT_IN_RANGE) creep.moveTo(target, {ignoreCreeps: true})
@@ -184,6 +187,7 @@ const roles:{
 
     }),
 
+    
     
     initializer: (data: InitializerData): ICreepConfig => ({
         source: creep => {

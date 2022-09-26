@@ -18,6 +18,12 @@ export class ControllerOrder {
     }
 
     private checkRoomEnergy(): void {
+        //asegurar la prioridad de transporter en el cambio de container a storage
+        const storage = Game.rooms[this.mainRoom].storage;
+        if(storage) {
+            if (storage.store['energy'] < 1000) return;
+        }
+
         const energyCapacity = Game.rooms[this.mainRoom].energyCapacityAvailable
         const energyAvailable = Game.rooms[this.mainRoom].energyAvailable;
         if (energyAvailable < energyCapacity) {
@@ -33,7 +39,7 @@ export class ControllerOrder {
         const actualRCL = this.memory['actualRCL'];
         const rcl = Game.rooms[this.mainRoom].controller.level
         if (rcl > actualRCL) {
-            this.memory['actualRCL'] = rcl;
+            this.memory['actualRCL'] = Memory['colony'][this.mainRoom]['state']['buildColony']['buildRCL'] + 2;
             Memory['colony'][this.mainRoom]['state']['buildColony']['task']['levelUP'] = true;
         }
     }

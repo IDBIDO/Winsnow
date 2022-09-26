@@ -325,6 +325,7 @@ export class OperationReserch {
         for (let i = 0; i < towerList.length; ++i) {
             const towerId = towerList[i]['id'];
             if (towerId) {
+                console.log(towerId);
                 
                 if (!actualTower[towerId]) {
                     const towerData: towerData = {
@@ -332,6 +333,8 @@ export class OperationReserch {
                         'task': null,
                         'pos': towerList['pos']
                     }
+                    console.log(towerData);
+                    
                     Memory['colony'][this.mainRoom]['tower']['data'][towerId] = towerData;
 
                 }
@@ -391,10 +394,12 @@ export class OperationReserch {
                     this.sendConstructionSideToBuildTask('road');
                     this.sendConstructionSideToBuildTask('tower');
 
-                    this.memory['buildColony']['fase'] = 2;
-                    this.memory['buildColony']['working'] = false;
+                    //this.memory['buildColony']['fase'] = 2;
+                    //this.memory['buildColony']['working'] = false;
                 }
                 else if (fase == 2) {
+                    console.log('INITIALIZE TOWER');
+                
                     this.checkNewTower();
                     
                     
@@ -429,8 +434,11 @@ export class OperationReserch {
                         Memory['colony'][this.mainRoom]['dpt_harvest']['container'][logisticStorage[i]] = {
                             withdrawPetition: false,
                         }
-                        
+                           
                     }
+                    Memory['colony'][this.mainRoom]['dpt_logistic']['storage'] = [];
+
+                    Memory['colony'][this.mainRoom]['dpt_logistic']['storage'].push(Game.rooms[this.mainRoom].storage.id)
 
 
                 }
@@ -510,6 +518,8 @@ export class OperationReserch {
                 }
                 //wait to levelUp
                 else if (fase == 8) {
+                    
+
                     
                 }
 
@@ -605,8 +615,10 @@ export class OperationReserch {
                         this.resetFaseValues();
                     }
                 }
+                //check new tower, no constructionSide, no need to check building
                 else if (fase == 2) {
-                    if (this.checkBuildTaskDone() && this.checkLevelUpTaskDone()) {
+                    //
+                    if (this.checkLevelUpTaskDone()) {
                         this.memory['buildColony']['buildRCL'] = 3;
                         this.memory['buildColony']['fase'] = 0;
                         this.resetFaseValues();
@@ -630,7 +642,7 @@ export class OperationReserch {
                 else if (fase == 2) {
                     const storage = Game.rooms[this.mainRoom].storage;
                     if (storage.store['energy'] > 100000) {
-                        this.memory['buildColony']['fase'] = 3;
+                        this.memory['buildColony']['fase'] = 4;
                         this.resetFaseValues();
                     }
                 }

@@ -4,6 +4,11 @@ export function logisticTaskName(request: TaskRequest) {
     return (request.type + Math.random().toString(36).substr(2,7));
 }
 
+export function repairerTaskName() {
+    //return (performance.now().toString(36)+Math.random().toString(36)).replace(/\./g,"");
+   return ('repair_' + Math.random().toString(36).substr(2,7));
+}
+
 export function creepName() {
     return Math.random().toString(36).substr(2,10).toLocaleUpperCase()
 }

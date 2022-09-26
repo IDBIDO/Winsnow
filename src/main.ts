@@ -20,7 +20,9 @@ module.exports.loop = function() {
   ColonyApi;
 
 
-  const colony = new Colony('W1N7');
+
+  const colony = new Colony('W7N9');
+
   colony.run();
 
     const creep = Memory['creeps'];
@@ -30,8 +32,8 @@ module.exports.loop = function() {
 
       }
     }
-//Memory['colony']['W1N7']['creepSpawning']['spawn'].push('Spawn1')
-//ColonyApi.createColony('W1N7')
+//Memory['colony']['W7N9']['creepSpawning']['spawn'].push('Spawn1')
+//ColonyApi.createColony('W7N9')
 //ColonyApi.destroyAllBuilding('W1N7')
 //ColonyApi.deleteColony('W1N7')
 //Memory.creeps = {}
